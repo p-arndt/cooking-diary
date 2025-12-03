@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -10,7 +10,7 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { X, Calendar as CalendarIcon, ChefHat, ChevronDown } from '@lucide/svelte';
+	import { X, Calendar as CalendarIcon, ChefHat, ChevronDown, Plus } from '@lucide/svelte';
 	import { formatDate, toDateString } from '$lib/utils/date';
 	import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date';
 
@@ -298,11 +298,12 @@
 								/>
 							</div>
 						{/if}
-						{#if showMealSuggestions && filteredMeals.length > 0}
-							<div
-								class="absolute top-full z-50 mt-1.5 max-h-[300px] w-full overflow-auto rounded-md border bg-popover shadow-lg"
-							>
-								<div class="p-1">
+					{#if showMealSuggestions}
+						<div
+							class="absolute top-full z-50 mt-1.5 max-h-[300px] w-full overflow-auto rounded-md border bg-popover shadow-lg"
+						>
+							<div class="p-1">
+								{#if filteredMeals.length > 0}
 									{#each filteredMeals as meal, index}
 										<button
 											type="button"
@@ -337,9 +338,28 @@
 											</div>
 										</button>
 									{/each}
-								</div>
+									<div class="my-1 border-t"></div>
+								{:else if mealSearchQuery.trim()}
+									<p class="px-2 py-1.5 text-sm text-muted-foreground">No meals found</p>
+									<div class="my-1 border-t"></div>
+								{/if}
+								<button
+									type="button"
+									class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+									onclick={() => {
+										open = false;
+										goto('/meals/new');
+									}}
+									onmousedown={(e) => e.preventDefault()}
+								>
+									<div class="flex items-center gap-2 text-primary">
+										<Plus class="h-4 w-4" />
+										<span>Create new meal</span>
+									</div>
+								</button>
 							</div>
-						{/if}
+						</div>
+					{/if}
 					</div>
 				</div>
 

@@ -37,7 +37,7 @@
 	<div class="flex items-center justify-between">
 		<div>
 			<h1 class="text-4xl font-bold tracking-tight">Categories</h1>
-			<p class="text-muted-foreground mt-1">Manage your meal categories</p>
+			<p class="mt-1 text-muted-foreground">Manage your meal categories</p>
 		</div>
 		<Button onclick={() => (showAddDialog = true)}>
 			<Plus class="mr-2 h-4 w-4" />
@@ -47,64 +47,68 @@
 
 	<!-- Categories List -->
 	{#if data.categories.length > 0}
-		<div class="space-y-2">
-			{#each data.categories as category}
-				<Card>
-					<CardContent class="pt-6">
-						{#if editingCategory?.id === category.id}
-							<!-- Edit Mode -->
-							<form
-								method="POST"
-								action="?/edit"
-								class="flex items-center gap-2"
-								use:enhance={({ formData }) => {
-									formData.append('id', category.id);
-									formData.append('name', editingName.trim());
+		<Card>
+			<CardContent>
+				<div class="divide-y">
+					{#each data.categories as category}
+						<div class="flex items-center justify-between px-4 py-3">
+							{#if editingCategory?.id === category.id}
+								<!-- Edit Mode -->
+								<form
+									method="POST"
+									action="?/edit"
+									class="flex flex-1 items-center gap-2"
+									use:enhance={({ formData }) => {
+										formData.append('id', category.id);
+										formData.append('name', editingName.trim());
 
-									return async ({ result }) => {
-										if (result.type === 'success') {
-											cancelEdit();
-										} else if (result.type === 'failure') {
-											alert(result.data?.error || 'Failed to update category');
-										}
-									};
-								}}
-							>
-								<Input bind:value={editingName} class="flex-1" />
-								<Button type="submit" size="sm">Save</Button>
-								<Button type="button" size="sm" variant="outline" onclick={cancelEdit}>Cancel</Button>
-							</form>
-						{:else}
-							<!-- View Mode -->
-							<div class="flex items-center justify-between">
-								<span class="text-lg font-medium">• {category.name}</span>
-								<div class="flex gap-2">
+										return async ({ result }) => {
+											if (result.type === 'success') {
+												cancelEdit();
+											} else if (result.type === 'failure') {
+												alert(result.data?.error || 'Failed to update category');
+											}
+										};
+									}}
+								>
+									<Input bind:value={editingName} class="flex-1" />
+									<Button type="submit" size="sm">Save</Button>
+									<Button type="button" size="sm" variant="outline" onclick={cancelEdit}
+										>Cancel</Button
+									>
+								</form>
+							{:else}
+								<!-- View Mode -->
+								<span class="font-medium">{category.name}</span>
+								<div class="flex gap-1">
 									<Button
-										size="sm"
+										size="icon"
 										variant="ghost"
+										class="h-8 w-8"
 										onclick={() => startEdit(category)}
 									>
 										<Edit class="h-4 w-4" />
 									</Button>
 									<Button
-										size="sm"
+										size="icon"
 										variant="ghost"
+										class="h-8 w-8 text-destructive hover:text-destructive"
 										onclick={() => (deleteCategoryId = category.id)}
 									>
-										<Trash2 class="h-4 w-4 text-destructive" />
+										<Trash2 class="h-4 w-4" />
 									</Button>
 								</div>
-							</div>
-						{/if}
-					</CardContent>
-				</Card>
-			{/each}
-		</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</CardContent>
+		</Card>
 	{:else}
 		<Card>
-			<CardContent class="pt-6">
-				<div class="text-center py-12">
-					<p class="text-muted-foreground mb-4">No categories yet. Create your first one!</p>
+			<CardContent class="py-12">
+				<div class="text-center">
+					<p class="mb-4 text-muted-foreground">No categories yet. Create your first one!</p>
 					<Button onclick={() => (showAddDialog = true)}>
 						<Plus class="mr-2 h-4 w-4" />
 						Add Category
@@ -150,7 +154,13 @@
 				</div>
 				<div class="flex justify-end gap-2">
 					<Dialog.Close>
-						<Button type="button" variant="outline" onclick={() => { newCategoryName = ''; }}>Cancel</Button>
+						<Button
+							type="button"
+							variant="outline"
+							onclick={() => {
+								newCategoryName = '';
+							}}>Cancel</Button
+						>
 					</Dialog.Close>
 					<Button type="submit">Add</Button>
 				</div>
@@ -165,7 +175,8 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Delete Category</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to delete this category? This will remove it from all meals, but won't delete the meals themselves.
+				Are you sure you want to delete this category? This will remove it from all meals, but won't
+				delete the meals themselves.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
@@ -196,4 +207,3 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
-

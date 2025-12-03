@@ -35,7 +35,10 @@
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
 		<DropdownMenu.Root>
-			<DropdownMenu.Trigger class="flex w-full items-center space-x-2  hover:bg-sidebar-accent!">
+			<DropdownMenu.Trigger
+				class="flex w-full items-center space-x-2 {sidebar.open &&
+					'p-2'} rounded-xl  hover:bg-sidebar-accent!"
+			>
 				<Avatar.Root class="size-8 rounded-full">
 					<Avatar.Image src={user.image ?? undefined} alt={user.name} />
 					<Avatar.Fallback class="rounded-full">{getUserInitials(user.name)}</Avatar.Fallback>
