@@ -45,25 +45,17 @@
 
 	<!-- Meal Photo -->
 	{#if data.meal.defaultPhotoUrl}
-		<Card>
-			<CardContent class="p-0">
-				<div class="aspect-video w-full overflow-hidden rounded-lg">
-					<img
-						src={data.meal.defaultPhotoUrl}
-						alt={data.meal.title}
-						class="h-full w-full object-cover"
-					/>
-				</div>
-			</CardContent>
-		</Card>
+		<div class="aspect-video w-full overflow-hidden rounded-xl border bg-muted">
+			<img
+				src={data.meal.defaultPhotoUrl}
+				alt={data.meal.title}
+				class="h-full w-full object-contain"
+			/>
+		</div>
 	{:else}
-		<Card>
-			<CardContent class="pt-6">
-				<div class="flex aspect-video items-center justify-center">
-					<ChefHat class="h-24 w-24 text-muted-foreground" />
-				</div>
-			</CardContent>
-		</Card>
+		<div class="flex aspect-video w-full items-center justify-center rounded-xl border bg-muted">
+			<ChefHat class="h-24 w-24 text-muted-foreground" />
+		</div>
 	{/if}
 
 	<!-- Default Notes -->

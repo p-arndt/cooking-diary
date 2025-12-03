@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Plus, Calendar as CalendarIcon, List, Search, X, ChefHat } from '@lucide/svelte';
+	import { Plus, Calendar as CalendarIcon, List, Search, X, ChefHat, Loader2 } from '@lucide/svelte';
 	import { getMonthYear, formatDate, isSameDay, toDateString, isToday } from '$lib/utils/date';
 	import QuickAddEntryDialog from '$lib/components/quick-add-entry-dialog.svelte';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
@@ -19,6 +19,53 @@
 	const view = $derived(data.view || 'timeline');
 	const currentMonth = $derived(new Date(data.currentMonth || new Date()));
 	let selectedDate = $state<Date | null>(new Date());
+
+	// Timeline infinite scroll state
+	let allTimelineEntries = $state([...data.timelineEntries]);
+	let hasMore = $state(data.hasMoreEntries);
+	let isLoadingMore = $state(false);
+	let loadMoreTrigger = $state<HTMLDivElement | null>(null);
+
+	// Reset entries when data changes (e.g., after adding new entry)
+	$effect(() => {
+		allTimelineEntries = [...data.timelineEntries];
+		hasMore = data.hasMoreEntries;
+	});
+
+	async function loadMoreEntries() {
+		if (isLoadingMore || !hasMore) return;
+
+		isLoadingMore = true;
+		try {
+			const response = await fetch(`/api/entries?offset=${allTimelineEntries.length}&limit=15`);
+			const result = await response.json();
+			
+			allTimelineEntries = [...allTimelineEntries, ...result.entries];
+			hasMore = result.hasMore;
+		} catch (error) {
+			console.error('Failed to load more entries:', error);
+		} finally {
+			isLoadingMore = false;
+		}
+	}
+
+	// Intersection Observer for infinite scroll
+	$effect(() => {
+		if (!loadMoreTrigger || view !== 'timeline') return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+					loadMoreEntries();
+				}
+			},
+			{ rootMargin: '100px' }
+		);
+
+		observer.observe(loadMoreTrigger);
+
+		return () => observer.disconnect();
+	});
 
 	// Meal search state
 	let mealSearchQuery = $state('');
@@ -88,7 +135,7 @@
 
 	// Group timeline entries by date
 	const timelineEntriesWithDates = $derived(
-		data.timelineEntries.map((e) => ({
+		allTimelineEntries.map((e) => ({
 			...e,
 			dateCooked: typeof e.dateCooked === 'string' ? new Date(e.dateCooked) : e.dateCooked
 		}))
@@ -314,9 +361,9 @@
 							{@const isSelected = selectedDate && isSameDay(cellDate, selectedDate)}
 							{@const hasEntry = hasEntries(cellDate)}
 							<button
-								class="relative aspect-square rounded-md border p-2 text-sm transition-colors hover:bg-accent {isCurrentMonth
+								class="relative aspect-square rounded-lg p-2 text-sm transition-colors hover:bg-accent {isCurrentMonth
 									? 'text-foreground'
-									: 'text-muted-foreground'} {isSelected ? 'bg-primary text-primary-foreground' : ''} {isToday(cellDate)
+									: 'text-muted-foreground/50'} {isSelected ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''} {isToday(cellDate) && !isSelected
 									? 'ring-2 ring-primary'
 									: ''}"
 								onclick={() => {
@@ -325,7 +372,7 @@
 							>
 								{cellDate.getDate()}
 								{#if hasEntry}
-									<span class="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"></span>
+									<span class="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full {isSelected ? 'bg-primary-foreground' : 'bg-primary'}"></span>
 								{/if}
 							</button>
 						{/each}
@@ -383,6 +430,22 @@
 						</div>
 					</div>
 				{/each}
+
+				<!-- Load more trigger -->
+				<div bind:this={loadMoreTrigger} class="flex justify-center py-4">
+					{#if isLoadingMore}
+						<div class="flex items-center gap-2 text-muted-foreground">
+							<Loader2 class="h-5 w-5 animate-spin" />
+							<span>Loading more...</span>
+						</div>
+					{:else if hasMore}
+						<Button variant="ghost" onclick={loadMoreEntries}>
+							Load more
+						</Button>
+					{:else}
+						<p class="text-sm text-muted-foreground">You've reached the end</p>
+					{/if}
+				</div>
 			{:else}
 				<Card>
 					<CardContent class="pt-6">

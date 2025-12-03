@@ -121,23 +121,26 @@ export class EntryService {
 	}
 
 	/**
-	 * Get all entries for a user (timeline view)
+	 * Get all entries for a user (timeline view) with pagination
 	 */
-	static async getAllEntries(userId: string, limit?: number): Promise<EntryWithMeal[]> {
-		let query = db
+	static async getAllEntries(
+		userId: string,
+		limit: number = 20,
+		offset: number = 0
+	): Promise<{ entries: EntryWithMeal[]; hasMore: boolean }> {
+		const entries = await db
 			.select()
 			.from(mealEntries)
 			.where(eq(mealEntries.userId, userId))
-			.orderBy(desc(mealEntries.dateCooked));
+			.orderBy(desc(mealEntries.dateCooked))
+			.limit(limit + 1)
+			.offset(offset);
 
-		if (limit) {
-			query = query.limit(limit) as typeof query;
-		}
-
-		const entries = await query;
+		const hasMore = entries.length > limit;
+		const paginatedEntries = hasMore ? entries.slice(0, limit) : entries;
 
 		const entriesWithMeals = await Promise.all(
-			entries.map(async (entry) => {
+			paginatedEntries.map(async (entry) => {
 				const meal = await db
 					.select()
 					.from(meals)
@@ -167,7 +170,7 @@ export class EntryService {
 			})
 		);
 
-		return entriesWithMeals;
+		return { entries: entriesWithMeals, hasMore };
 	}
 
 	/**

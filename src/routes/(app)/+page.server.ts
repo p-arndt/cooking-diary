@@ -31,10 +31,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		monthEnd
 	);
 
-	// For timeline view, get all entries
-	const timelineEntries = view === 'timeline' 
-		? await EntryService.getAllEntries(locals.user.id, 50)
-		: [];
+	// For timeline view, get paginated entries
+	const timelineData = view === 'timeline' 
+		? await EntryService.getAllEntries(locals.user.id, 15, 0)
+		: { entries: [], hasMore: false };
+	const timelineEntries = timelineData.entries;
+	const hasMoreEntries = timelineData.hasMore;
 
 	// Get meals for quick add dialog
 	const meals = await MealService.getMealsByUserId(locals.user.id);
@@ -53,6 +55,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		view,
 		entries,
 		timelineEntries,
+		hasMoreEntries,
 		datesWithEntries,
 		currentMonth: currentDate.toISOString(),
 		meals,
