@@ -2,6 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { EntryService } from '$lib/server/services/entry.service';
 import { MealService } from '$lib/server/services/meal.service';
+import { SettingsService } from '$lib/server/services/settings.service';
+import { AnalyticsService } from '$lib/server/services/analytics.service';
 import { getMonthStart, getMonthEnd } from '$lib/utils/date';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -41,8 +43,26 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// Get meals for quick add dialog
 	const meals = await MealService.getMealsByUserId(locals.user.id);
 
-	// Get meals not cooked recently for suggestions
-	const suggestionMeals = await MealService.getMealsNotCookedRecently(locals.user.id, 14);
+	// Get user settings and compute suggestion meals
+	const settings = await SettingsService.getSettings(locals.user.id);
+
+	// Get preferred categories for today based on patterns
+	let preferredCategoryIds: string[] = [];
+	if (settings.suggestionUseDayOfWeek) {
+		const todayPatterns = await AnalyticsService.getTopCategoriesForDay(
+			locals.user.id,
+			new Date().getDay(),
+			3
+		);
+		preferredCategoryIds = todayPatterns.map((p) => p.categoryId);
+	}
+
+	// Get meals for suggestions with user preferences
+	const suggestionMeals = await MealService.getMealsForSuggestion(locals.user.id, {
+		daysThreshold: settings.suggestionDaysThreshold,
+		excludedCategoryIds: settings.suggestionExcludedCategoryIds || [],
+		preferredCategoryIds
+	});
 
 	// Get entries for searched meal
 	const searchedMealEntries = searchMealId 

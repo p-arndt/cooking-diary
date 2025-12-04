@@ -406,20 +406,89 @@ export class MealService {
 	}
 
 	/**
-	 * Get a random meal suggestion (prefers meals not cooked recently)
+	 * Get a random meal suggestion with user preferences
 	 */
-	static async getRandomMealSuggestion(userId: string): Promise<MealWithCategories | null> {
-		const notRecentlyCooked = await this.getMealsNotCookedRecently(userId, 14);
+	static async getRandomMealSuggestion(
+		userId: string,
+		options?: {
+			daysThreshold?: number;
+			useDayOfWeek?: boolean;
+			excludedCategoryIds?: string[];
+			preferredCategoryIdsForToday?: string[];
+		}
+	): Promise<MealWithCategories | null> {
+		const daysThreshold = options?.daysThreshold ?? 14;
+		const excludedCategoryIds = options?.excludedCategoryIds ?? [];
+		const preferredCategoryIds = options?.preferredCategoryIdsForToday ?? [];
 
-		if (notRecentlyCooked.length > 0) {
-			const randomIndex = Math.floor(Math.random() * notRecentlyCooked.length);
-			return notRecentlyCooked[randomIndex];
+		let candidates = await this.getMealsNotCookedRecently(userId, daysThreshold);
+
+		if (excludedCategoryIds.length > 0) {
+			candidates = candidates.filter(
+				(meal) => !meal.categories.some((c) => excludedCategoryIds.includes(c.id))
+			);
 		}
 
-		const allMeals = await this.getMealsByUserId(userId);
+		if (preferredCategoryIds.length > 0 && options?.useDayOfWeek) {
+			const preferredMeals = candidates.filter((meal) =>
+				meal.categories.some((c) => preferredCategoryIds.includes(c.id))
+			);
+			if (preferredMeals.length > 0) {
+				candidates = preferredMeals;
+			}
+		}
+
+		if (candidates.length > 0) {
+			const randomIndex = Math.floor(Math.random() * candidates.length);
+			return candidates[randomIndex];
+		}
+
+		let allMeals = await this.getMealsByUserId(userId);
+		if (excludedCategoryIds.length > 0) {
+			allMeals = allMeals.filter(
+				(meal) => !meal.categories.some((c) => excludedCategoryIds.includes(c.id))
+			);
+		}
+
 		if (allMeals.length === 0) return null;
 
 		const randomIndex = Math.floor(Math.random() * allMeals.length);
 		return allMeals[randomIndex];
+	}
+
+	/**
+	 * Get meals for suggestion based on user settings
+	 */
+	static async getMealsForSuggestion(
+		userId: string,
+		options?: {
+			daysThreshold?: number;
+			excludedCategoryIds?: string[];
+			preferredCategoryIds?: string[];
+		}
+	): Promise<MealWithCategories[]> {
+		const daysThreshold = options?.daysThreshold ?? 14;
+		const excludedCategoryIds = options?.excludedCategoryIds ?? [];
+		const preferredCategoryIds = options?.preferredCategoryIds ?? [];
+
+		let candidates = await this.getMealsNotCookedRecently(userId, daysThreshold);
+
+		if (excludedCategoryIds.length > 0) {
+			candidates = candidates.filter(
+				(meal) => !meal.categories.some((c) => excludedCategoryIds.includes(c.id))
+			);
+		}
+
+		if (preferredCategoryIds.length > 0) {
+			const preferred = candidates.filter((meal) =>
+				meal.categories.some((c) => preferredCategoryIds.includes(c.id))
+			);
+			const others = candidates.filter(
+				(meal) => !meal.categories.some((c) => preferredCategoryIds.includes(c.id))
+			);
+			candidates = [...preferred, ...others];
+		}
+
+		return candidates;
 	}
 }
