@@ -2,16 +2,16 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
-	// import { pwaInfo } from 'virtual:pwa-info'; // @ts-ignore
+	import { pwaInfo } from 'virtual:pwa-info';
 
 	let { children } = $props();
-	// let webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
+	let webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
 </script>
 
 <svelte:head>
 	<link rel="icon" href="/favicon.ico" />
 	<title>Cooking Diary</title>
-	<!-- {@html webManifestLink} -->
+	{@html webManifestLink}
 </svelte:head>
 
 <Toaster position="top-center" />

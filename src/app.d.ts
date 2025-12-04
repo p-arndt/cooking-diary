@@ -19,4 +19,14 @@ declare global {
 	}
 }
 
+declare module 'virtual:pwa-info' {
+	export interface PWAInfo {
+		webManifest: {
+			href: string;
+			linkTag: string;
+		};
+	}
+	export const pwaInfo: PWAInfo | undefined;
+}
+
 export {};
