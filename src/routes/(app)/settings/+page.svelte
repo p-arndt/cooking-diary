@@ -1,0 +1,225 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import type { PageData } from './$types';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import { Switch } from '$lib/components/ui/switch/index.js';
+	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Sparkles, Calendar, Clock, X, Check, TrendingUp } from '@lucide/svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+
+	let { data }: { data: PageData } = $props();
+
+	let daysThreshold = $state(data.settings.suggestionDaysThreshold);
+	let useDayOfWeek = $state(data.settings.suggestionUseDayOfWeek);
+	let excludedCategoryIds = $state<string[]>(data.settings.suggestionExcludedCategoryIds || []);
+	let isSubmitting = $state(false);
+	let showSuccess = $state(false);
+
+	function toggleCategory(categoryId: string) {
+		if (excludedCategoryIds.includes(categoryId)) {
+			excludedCategoryIds = excludedCategoryIds.filter((id) => id !== categoryId);
+		} else {
+			excludedCategoryIds = [...excludedCategoryIds, categoryId];
+		}
+	}
+
+	function getCategoryById(id: string) {
+		return data.categories.find((c) => c.id === id);
+	}
+
+	const daysLabel = $derived(
+		daysThreshold === 0
+			? 'Always show all meals'
+			: daysThreshold === 1
+				? 'Exclude meals cooked yesterday'
+				: `Exclude meals cooked in the last ${daysThreshold} days`
+	);
+
+	const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+	const TODAY_NAME = DAY_NAMES[new Date().getDay()];
+</script>
+
+<svelte:head>
+	<title>Settings - Cooking Diary</title>
+</svelte:head>
+
+<div class="container mx-auto max-w-3xl space-y-6 px-4 py-8">
+	<div>
+		<h1 class="text-4xl font-bold tracking-tight">Settings</h1>
+		<p class="mt-1 text-muted-foreground">Customize your cooking diary experience</p>
+	</div>
+
+	<form
+		method="POST"
+		action="?/updateSuggestionSettings"
+		use:enhance={() => {
+			isSubmitting = true;
+			return async ({ result }) => {
+				isSubmitting = false;
+				if (result.type === 'success') {
+					showSuccess = true;
+					setTimeout(() => {
+						showSuccess = false;
+					}, 3000);
+				}
+			};
+		}}
+	>
+		<input type="hidden" name="daysThreshold" value={daysThreshold} />
+		<input type="hidden" name="useDayOfWeek" value={useDayOfWeek.toString()} />
+		<input type="hidden" name="excludedCategoryIds" value={JSON.stringify(excludedCategoryIds)} />
+
+		<Card>
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2">
+					<Sparkles class="h-5 w-5 text-amber-500" />
+					Meal Suggestions
+				</CardTitle>
+				<CardDescription>
+					Customize how the "What should I cook?" feature works
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-6">
+				<!-- Days Threshold -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<div class="space-y-0.5">
+							<Label class="flex items-center gap-2">
+								<Clock class="h-4 w-4" />
+								Recently Cooked Threshold
+							</Label>
+							<p class="text-sm text-muted-foreground">
+								{daysLabel}
+							</p>
+						</div>
+					</div>
+					<NativeSelect
+						value={daysThreshold.toString()}
+						onchange={(e) => (daysThreshold = parseInt(e.currentTarget.value))}
+						class="w-full"
+					>
+						<option value="0">Show all meals (no filter)</option>
+						<option value="3">3 days</option>
+						<option value="7">7 days</option>
+						<option value="14">14 days (default)</option>
+						<option value="21">21 days</option>
+						<option value="30">30 days</option>
+						<option value="60">60 days</option>
+					</NativeSelect>
+				</div>
+
+				<!-- Day of Week -->
+				<div class="flex items-center justify-between rounded-lg border p-4">
+					<div class="space-y-0.5">
+						<Label class="flex items-center gap-2">
+							<Calendar class="h-4 w-4" />
+							Use Day-of-Week Patterns
+						</Label>
+						<p class="text-sm text-muted-foreground">
+							Prioritize categories you usually cook on {TODAY_NAME}s
+						</p>
+					</div>
+					<Switch checked={useDayOfWeek} onCheckedChange={(v) => (useDayOfWeek = v)} />
+				</div>
+
+				<!-- Excluded Categories -->
+				<div class="space-y-3">
+					<div>
+						<Label>Excluded Categories</Label>
+						<p class="text-sm text-muted-foreground">
+							Categories to never suggest (click to toggle)
+						</p>
+					</div>
+					<div class="flex flex-wrap gap-2">
+						{#each data.categories as category}
+							{@const isExcluded = excludedCategoryIds.includes(category.id)}
+							<button
+								type="button"
+								onclick={() => toggleCategory(category.id)}
+								class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors {isExcluded
+									? 'border-destructive/50 bg-destructive/10 text-destructive'
+									: 'border-border hover:bg-accent'}"
+							>
+								{#if isExcluded}
+									<X class="h-3 w-3" />
+								{/if}
+								{category.name}
+							</button>
+						{/each}
+						{#if data.categories.length === 0}
+							<p class="text-sm text-muted-foreground">No categories yet</p>
+						{/if}
+					</div>
+				</div>
+
+				<div class="flex items-center gap-3 pt-2">
+					<Button type="submit" disabled={isSubmitting}>
+						{#if isSubmitting}
+							Saving...
+						{:else}
+							Save Settings
+						{/if}
+					</Button>
+					{#if showSuccess}
+						<span class="flex items-center gap-1 text-sm text-green-600">
+							<Check class="h-4 w-4" />
+							Settings saved!
+						</span>
+					{/if}
+				</div>
+			</CardContent>
+		</Card>
+	</form>
+
+	<!-- Cooking Patterns -->
+	{#if data.patternsSummary.totalEntriesAnalyzed > 0}
+		<Card>
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2">
+					<TrendingUp class="h-5 w-5 text-blue-500" />
+					Your Cooking Patterns
+				</CardTitle>
+				<CardDescription>
+					Based on {data.patternsSummary.totalEntriesAnalyzed} cooking entries
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<div class="grid gap-4 sm:grid-cols-2">
+					{#each DAY_NAMES as day}
+						{@const patterns = data.patternsSummary.topCategoriesByDay[day] || []}
+						<div class="rounded-lg border p-3 {day === TODAY_NAME ? 'border-primary bg-primary/5' : ''}">
+							<div class="flex items-center gap-2 mb-2">
+								<span class="font-medium">{day}</span>
+								{#if day === TODAY_NAME}
+									<Badge variant="default" class="text-xs">Today</Badge>
+								{/if}
+							</div>
+							{#if patterns.length > 0}
+								<div class="flex flex-wrap gap-1">
+									{#each patterns as pattern}
+										<Tooltip.Root>
+											<Tooltip.Trigger>
+												<Badge variant="secondary" class="text-xs">
+													{pattern.categoryName}
+												</Badge>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												Cooked {pattern.count} times on {day}s
+											</Tooltip.Content>
+										</Tooltip.Root>
+									{/each}
+								</div>
+							{:else}
+								<p class="text-xs text-muted-foreground">No pattern yet</p>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</CardContent>
+		</Card>
+	{/if}
+</div>
+
