@@ -76,6 +76,10 @@ export const meals = pgTable('meals', {
 	defaultNotes: text('default_notes'),
 	defaultPhotoUrl: text('default_photo_url'),
 
+	prepTime: text('prep_time'),
+	cookTime: text('cook_time'),
+	difficulty: text('difficulty'),
+
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });

@@ -36,6 +36,9 @@ export const actions: Actions = {
 		const defaultPhotoUrl = formData.get('defaultPhotoUrl')?.toString() || null;
 		const categoryIdsStr = formData.get('categoryIds')?.toString() || '[]';
 		const photoFile = formData.get('photo') as File | null;
+		const prepTime = formData.get('prepTime')?.toString() || null;
+		const cookTime = formData.get('cookTime')?.toString() || null;
+		const difficulty = formData.get('difficulty')?.toString() || null;
 
 		let categoryIds: string[] = [];
 		try {
@@ -64,6 +67,9 @@ export const actions: Actions = {
 				title,
 				defaultNotes,
 				defaultPhotoUrl: finalPhotoUrl,
+				prepTime,
+				cookTime,
+				difficulty,
 				categoryIds
 			});
 

@@ -41,6 +41,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// Get meals for quick add dialog
 	const meals = await MealService.getMealsByUserId(locals.user.id);
 
+	// Get meals not cooked recently for suggestions
+	const suggestionMeals = await MealService.getMealsNotCookedRecently(locals.user.id, 14);
+
 	// Get entries for searched meal
 	const searchedMealEntries = searchMealId 
 		? await EntryService.getEntriesByMealId(locals.user.id, searchMealId)
@@ -59,6 +62,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		datesWithEntries,
 		currentMonth: currentDate.toISOString(),
 		meals,
+		suggestionMeals,
 		searchMealId,
 		searchedMeal,
 		searchedMealEntries

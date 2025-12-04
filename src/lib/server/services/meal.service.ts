@@ -1,12 +1,15 @@
 import { db } from '$lib/server/db';
 import { categories, mealEntries, meals, mealToCategories } from '$lib/server/db/schema';
-import { and, desc, eq, inArray, like } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, like, sql } from 'drizzle-orm';
 
 export type MealWithCategories = {
 	id: string;
 	title: string;
 	defaultNotes: string | null;
 	defaultPhotoUrl: string | null;
+	prepTime: string | null;
+	cookTime: string | null;
+	difficulty: string | null;
 	userId: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -22,7 +25,7 @@ export class MealService {
 			.select()
 			.from(meals)
 			.where(eq(meals.userId, userId))
-			.orderBy(desc(meals.createdAt));
+			.orderBy(asc(meals.title));
 
 		const mealsWithCategories = await Promise.all(
 			userMeals.map(async (meal) => {
@@ -53,7 +56,7 @@ export class MealService {
 			.select()
 			.from(meals)
 			.where(and(eq(meals.userId, userId), like(meals.title, `%${searchTerm}%`)))
-			.orderBy(desc(meals.createdAt));
+			.orderBy(asc(meals.title));
 
 		const mealsWithCategories = await Promise.all(
 			userMeals.map(async (meal) => {
@@ -97,7 +100,7 @@ export class MealService {
 			.select()
 			.from(meals)
 			.where(and(eq(meals.userId, userId), inArray(meals.id, mealIdList)))
-			.orderBy(desc(meals.createdAt));
+			.orderBy(asc(meals.title));
 
 		const mealsWithCategories = await Promise.all(
 			userMeals.map(async (meal) => {
@@ -198,6 +201,9 @@ export class MealService {
 			title: string;
 			defaultNotes?: string | null;
 			defaultPhotoUrl?: string | null;
+			prepTime?: string | null;
+			cookTime?: string | null;
+			difficulty?: string | null;
 			categoryIds?: string[];
 		}
 	): Promise<MealWithCategories> {
@@ -207,7 +213,10 @@ export class MealService {
 				userId,
 				title: data.title,
 				defaultNotes: data.defaultNotes || null,
-				defaultPhotoUrl: data.defaultPhotoUrl || null
+				defaultPhotoUrl: data.defaultPhotoUrl || null,
+				prepTime: data.prepTime || null,
+				cookTime: data.cookTime || null,
+				difficulty: data.difficulty || null
 			})
 			.returning();
 
@@ -245,6 +254,9 @@ export class MealService {
 			title?: string;
 			defaultNotes?: string | null;
 			defaultPhotoUrl?: string | null;
+			prepTime?: string | null;
+			cookTime?: string | null;
+			difficulty?: string | null;
 			categoryIds?: string[];
 		}
 	): Promise<MealWithCategories | null> {
@@ -264,6 +276,9 @@ export class MealService {
 		if (data.title !== undefined) updateData.title = data.title;
 		if (data.defaultNotes !== undefined) updateData.defaultNotes = data.defaultNotes;
 		if (data.defaultPhotoUrl !== undefined) updateData.defaultPhotoUrl = data.defaultPhotoUrl;
+		if (data.prepTime !== undefined) updateData.prepTime = data.prepTime;
+		if (data.cookTime !== undefined) updateData.cookTime = data.cookTime;
+		if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
 
 		const [updated] = await db
 			.update(meals)
@@ -316,5 +331,83 @@ export class MealService {
 
 		await db.delete(meals).where(eq(meals.id, mealId));
 		return true;
+	}
+
+	/**
+	 * Get meals not cooked recently (for suggestions)
+	 * Returns meals that haven't been cooked in the last X days, or never cooked
+	 */
+	static async getMealsNotCookedRecently(
+		userId: string,
+		daysThreshold: number = 14
+	): Promise<MealWithCategories[]> {
+		const thresholdDate = new Date();
+		thresholdDate.setDate(thresholdDate.getDate() - daysThreshold);
+		const thresholdStr = thresholdDate.toISOString().split('T')[0];
+
+		const recentlyCooked = await db
+			.selectDistinct({ mealId: mealEntries.mealId })
+			.from(mealEntries)
+			.where(
+				and(eq(mealEntries.userId, userId), gte(mealEntries.dateCooked, thresholdStr))
+			);
+
+		const recentMealIds = recentlyCooked.map((e) => e.mealId);
+
+		let userMeals;
+		if (recentMealIds.length > 0) {
+			userMeals = await db
+				.select()
+				.from(meals)
+				.where(
+					and(
+						eq(meals.userId, userId),
+						sql`${meals.id} NOT IN (${sql.join(
+							recentMealIds.map((id) => sql`${id}`),
+							sql`, `
+						)})`
+					)
+				);
+		} else {
+			userMeals = await db.select().from(meals).where(eq(meals.userId, userId));
+		}
+
+		const mealsWithCategories = await Promise.all(
+			userMeals.map(async (meal) => {
+				const mealCategories = await db
+					.select({
+						id: categories.id,
+						name: categories.name
+					})
+					.from(mealToCategories)
+					.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
+					.where(eq(mealToCategories.mealId, meal.id));
+
+				return {
+					...meal,
+					categories: mealCategories
+				};
+			})
+		);
+
+		return mealsWithCategories;
+	}
+
+	/**
+	 * Get a random meal suggestion (prefers meals not cooked recently)
+	 */
+	static async getRandomMealSuggestion(userId: string): Promise<MealWithCategories | null> {
+		const notRecentlyCooked = await this.getMealsNotCookedRecently(userId, 14);
+
+		if (notRecentlyCooked.length > 0) {
+			const randomIndex = Math.floor(Math.random() * notRecentlyCooked.length);
+			return notRecentlyCooked[randomIndex];
+		}
+
+		const allMeals = await this.getMealsByUserId(userId);
+		if (allMeals.length === 0) return null;
+
+		const randomIndex = Math.floor(Math.random() * allMeals.length);
+		return allMeals[randomIndex];
 	}
 }

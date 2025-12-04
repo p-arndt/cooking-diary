@@ -9,6 +9,7 @@
 	import { getMonthYear, formatDate, isSameDay, toDateString, isToday } from '$lib/utils/date';
 	import QuickAddEntryDialog from '$lib/components/quick-add-entry-dialog.svelte';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
+	import RandomMealSuggestion from '$lib/components/random-meal-suggestion.svelte';
 
 	type Props = {
 		data: PageData;
@@ -283,6 +284,11 @@
 				</div>
 			{/if}
 		</div>
+
+		<!-- Random Meal Suggestion -->
+		{#if data.suggestionMeals.length > 0 && !data.searchedMeal}
+			<RandomMealSuggestion meals={data.suggestionMeals} />
+		{/if}
 	</div>
 
 	<!-- Search Results -->

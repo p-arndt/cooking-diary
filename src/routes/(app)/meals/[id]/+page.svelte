@@ -4,9 +4,29 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { ArrowLeft, Edit, ChefHat } from '@lucide/svelte';
+	import { ArrowLeft, Edit, ChefHat, Clock, Flame, Gauge } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
+
+	const difficultyLabel = $derived(
+		data.meal.difficulty === 'easy'
+			? 'Easy'
+			: data.meal.difficulty === 'medium'
+				? 'Medium'
+				: data.meal.difficulty === 'hard'
+					? 'Hard'
+					: null
+	);
+
+	const difficultyColor = $derived(
+		data.meal.difficulty === 'easy'
+			? 'text-green-600'
+			: data.meal.difficulty === 'medium'
+				? 'text-yellow-600'
+				: data.meal.difficulty === 'hard'
+					? 'text-red-600'
+					: ''
+	);
 
 	async function cookToday() {
 		const today = new Date().toISOString().split('T')[0];
@@ -55,6 +75,39 @@
 	{:else}
 		<div class="flex aspect-video w-full items-center justify-center rounded-xl border bg-muted">
 			<ChefHat class="h-24 w-24 text-muted-foreground" />
+		</div>
+	{/if}
+
+	<!-- Time & Effort -->
+	{#if data.meal.prepTime || data.meal.cookTime || data.meal.difficulty}
+		<div class="flex flex-wrap gap-4">
+			{#if data.meal.prepTime}
+				<div class="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
+					<Clock class="h-5 w-5 text-muted-foreground" />
+					<div>
+						<p class="text-xs text-muted-foreground">Prep Time</p>
+						<p class="font-medium">{data.meal.prepTime}</p>
+					</div>
+				</div>
+			{/if}
+			{#if data.meal.cookTime}
+				<div class="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
+					<Flame class="h-5 w-5 text-muted-foreground" />
+					<div>
+						<p class="text-xs text-muted-foreground">Cook Time</p>
+						<p class="font-medium">{data.meal.cookTime}</p>
+					</div>
+				</div>
+			{/if}
+			{#if difficultyLabel}
+				<div class="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
+					<Gauge class="h-5 w-5 {difficultyColor}" />
+					<div>
+						<p class="text-xs text-muted-foreground">Difficulty</p>
+						<p class="font-medium {difficultyColor}">{difficultyLabel}</p>
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/if}
 

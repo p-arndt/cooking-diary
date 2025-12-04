@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { categories } from '$lib/server/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 
 export class CategoryService {
 	/**
@@ -11,7 +11,7 @@ export class CategoryService {
 			.select()
 			.from(categories)
 			.where(eq(categories.userId, userId))
-			.orderBy(desc(categories.createdAt));
+			.orderBy(asc(categories.name));
 	}
 
 	/**

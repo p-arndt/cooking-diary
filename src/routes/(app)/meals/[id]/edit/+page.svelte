@@ -7,8 +7,9 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
 	import CategoryInput from '$lib/components/category-input.svelte';
-	import { ArrowLeft, X } from '@lucide/svelte';
+	import { ArrowLeft, X, Clock, Flame } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -19,6 +20,10 @@
 	let photoFile = $state<File | null>(null);
 	let photoPreview = $state<string | null>(data.meal.defaultPhotoUrl || null);
 	let isSubmitting = $state(false);
+
+	let prepTime = $state(data.meal.prepTime || '');
+	let cookTime = $state(data.meal.cookTime || '');
+	let difficulty = $state(data.meal.difficulty || '');
 
 	async function createCategory(name: string) {
 		try {
@@ -94,6 +99,9 @@
 					formData.append('title', title);
 					formData.append('defaultNotes', defaultNotes);
 					formData.append('categoryIds', JSON.stringify(selectedCategoryIds));
+					formData.append('prepTime', prepTime);
+					formData.append('cookTime', cookTime);
+					formData.append('difficulty', difficulty);
 					if (photoFile) {
 						formData.append('photo', photoFile);
 					}
@@ -137,6 +145,48 @@
 							onCreateCategory={createCategory}
 							placeholder="Type to add categories (press Enter or comma to create)"
 						/>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+					<div>
+						<Label for="prepTime" class="flex items-center gap-2">
+							<Clock class="h-4 w-4" />
+							Prep Time
+						</Label>
+						<Input
+							id="prepTime"
+							type="text"
+							placeholder="e.g., 15 min"
+							bind:value={prepTime}
+							class="mt-2"
+						/>
+					</div>
+					<div>
+						<Label for="cookTime" class="flex items-center gap-2">
+							<Flame class="h-4 w-4" />
+							Cook Time
+						</Label>
+						<Input
+							id="cookTime"
+							type="text"
+							placeholder="e.g., 30 min"
+							bind:value={cookTime}
+							class="mt-2"
+						/>
+					</div>
+					<div>
+						<Label for="difficulty">Difficulty</Label>
+						<NativeSelect
+							id="difficulty"
+							bind:value={difficulty}
+							class="mt-2 w-full"
+						>
+							<option value="">Select difficulty</option>
+							<option value="easy">Easy</option>
+							<option value="medium">Medium</option>
+							<option value="hard">Hard</option>
+						</NativeSelect>
 					</div>
 				</div>
 
