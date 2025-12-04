@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm';
 
 export type DayOfWeekPattern = {
 	dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
-	dayName: string;
+	dayName: string; // Deprecated: kept for backward compatibility, now contains dayOfWeek as string
 	categoryId: string;
 	categoryName: string;
 	count: number;
@@ -16,8 +16,6 @@ export type CategoryPatternSummary = {
 	topDays: { dayOfWeek: number; dayName: string; count: number }[];
 	totalCount: number;
 };
-
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export class AnalyticsService {
 	/**
@@ -60,7 +58,7 @@ export class AnalyticsService {
 
 				patterns.push({
 					dayOfWeek,
-					dayName: DAY_NAMES[dayOfWeek],
+					dayName: dayOfWeek.toString(),
 					categoryId: String(r.category_id),
 					categoryName: String(r.category_name),
 					count,
@@ -159,22 +157,22 @@ export class AnalyticsService {
 	 * Get a summary of cooking patterns for the user
 	 */
 	static async getCookingPatternsSummary(userId: string): Promise<{
-		topCategoriesByDay: Record<string, { categoryName: string; count: number }[]>;
+		topCategoriesByDay: Record<number, { categoryName: string; count: number }[]>;
 		totalEntriesAnalyzed: number;
 	}> {
 		const patterns = await this.getCategoryDayOfWeekPatterns(userId);
 
-		const topCategoriesByDay: Record<string, { categoryName: string; count: number }[]> = {};
+		const topCategoriesByDay: Record<number, { categoryName: string; count: number }[]> = {};
 
-		for (const dayName of DAY_NAMES) {
+		for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
 			const dayPatterns = patterns
-				.filter((p) => p.dayName === dayName)
+				.filter((p) => p.dayOfWeek === dayOfWeek)
 				.slice(0, 3)
 				.map((p) => ({
 					categoryName: p.categoryName,
 					count: p.count
 				}));
-			topCategoriesByDay[dayName] = dayPatterns;
+			topCategoriesByDay[dayOfWeek] = dayPatterns;
 		}
 
 		const totalEntriesAnalyzed = patterns.reduce((sum, p) => sum + p.count, 0);
@@ -197,7 +195,7 @@ export class AnalyticsService {
 		firstEntryDate: Date | null;
 		lastEntryDate: Date | null;
 		averageEntriesPerWeek: number;
-		mostActiveDay: string | null;
+		mostActiveDay: number | null;
 	}> {
 		try {
 			const [entriesStats, mealsCount, categoriesCount, entriesData] = await Promise.all([
@@ -254,7 +252,7 @@ export class AnalyticsService {
 				averageEntriesPerWeek = weeks > 0 ? Math.round((totalEntries / weeks) * 10) / 10 : 0;
 			}
 
-			const mostActiveDay = d ? DAY_NAMES[parseInt(String(d.day_of_week))] : null;
+			const mostActiveDay = d ? parseInt(String(d.day_of_week)) : null;
 
 			return {
 				totalEntries,
@@ -372,7 +370,6 @@ export class AnalyticsService {
 		Array<{
 			year: number;
 			month: number;
-			monthName: string;
 			count: number;
 		}>
 	> {
@@ -381,12 +378,11 @@ export class AnalyticsService {
 				SELECT 
 					EXTRACT(YEAR FROM date_cooked::date) as year,
 					EXTRACT(MONTH FROM date_cooked::date) as month,
-					TO_CHAR(date_cooked::date, 'Month') as month_name,
 					COUNT(*) as count
 				FROM meal_entries
 				WHERE user_id = ${userId}
 					AND date_cooked >= CURRENT_DATE - INTERVAL '12 months'
-				GROUP BY EXTRACT(YEAR FROM date_cooked::date), EXTRACT(MONTH FROM date_cooked::date), TO_CHAR(date_cooked::date, 'Month')
+				GROUP BY EXTRACT(YEAR FROM date_cooked::date), EXTRACT(MONTH FROM date_cooked::date)
 				ORDER BY year DESC, month DESC
 				LIMIT 12
 			`);
@@ -397,7 +393,6 @@ export class AnalyticsService {
 				return {
 					year: parseInt(String(r.year)),
 					month: parseInt(String(r.month)),
-					monthName: String(r.month_name).trim(),
 					count: parseInt(String(r.count))
 				};
 			});

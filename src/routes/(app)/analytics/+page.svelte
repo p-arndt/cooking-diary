@@ -13,6 +13,7 @@
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { formatDate } from '$lib/utils/date';
 	import * as m from '$lib/paraglide/messages.js';
+	import { getLocale } from '$lib/paraglide/runtime.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -26,6 +27,19 @@
 		m.common_days_saturday()
 	];
 	const TODAY_NAME = DAY_NAMES[new Date().getDay()];
+	const TODAY_DAY_OF_WEEK = new Date().getDay();
+
+	function getDayName(dayOfWeek: number): string {
+		return DAY_NAMES[dayOfWeek];
+	}
+
+	function getMonthName(month: number, year: number): string {
+		const locale = getLocale() === 'de' ? 'de-DE' : 'en-US';
+		const date = new Date(year, month - 1, 1);
+		return date.toLocaleDateString(locale, { month: 'long' });
+	}
+
+	const currentLocale = $derived(getLocale() === 'de' ? 'de-DE' : 'en-US');
 
 	const photoPercentage = $derived(
 		data.generalStats.totalEntries > 0
@@ -232,7 +246,7 @@
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">{m.analytics_firstEntry()}</span>
 								<span class="text-sm text-muted-foreground">
-									{formatDate(data.generalStats.firstEntryDate)}
+									{formatDate(data.generalStats.firstEntryDate, undefined, currentLocale)}
 								</span>
 							</div>
 						{/if}
@@ -240,14 +254,14 @@
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">{m.analytics_lastEntry()}</span>
 								<span class="text-sm text-muted-foreground">
-									{formatDate(data.generalStats.lastEntryDate)}
+									{formatDate(data.generalStats.lastEntryDate, undefined, currentLocale)}
 								</span>
 							</div>
 						{/if}
-						{#if data.generalStats.mostActiveDay}
+						{#if data.generalStats.mostActiveDay !== null}
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">{m.analytics_mostActiveDay()}</span>
-								<Badge variant="secondary">{data.generalStats.mostActiveDay}</Badge>
+								<Badge variant="secondary">{getDayName(data.generalStats.mostActiveDay)}</Badge>
 							</div>
 						{/if}
 					</div>
@@ -270,7 +284,7 @@
 							<div>
 								<div class="flex items-center justify-between mb-1">
 									<span class="text-sm font-medium">
-										{month.monthName} {month.year}
+										{getMonthName(month.month, month.year)} {month.year}
 									</span>
 									<span class="text-sm font-semibold">{month.count} {m.analytics_entries()}</span>
 								</div>
@@ -301,16 +315,16 @@
 			</CardHeader>
 			<CardContent>
 				<div class="grid gap-4 sm:grid-cols-2">
-					{#each DAY_NAMES as day}
-						{@const patterns = data.patternsSummary.topCategoriesByDay[day] || []}
+					{#each DAY_NAMES as dayName, dayOfWeek}
+						{@const patterns = data.patternsSummary.topCategoriesByDay[dayOfWeek] || []}
 						<div
-							class="rounded-lg border p-3 {day === TODAY_NAME
+							class="rounded-lg border p-3 {dayOfWeek === TODAY_DAY_OF_WEEK
 								? 'border-primary bg-primary/5'
 								: ''}"
 						>
 							<div class="mb-2 flex items-center gap-2">
-								<span class="font-medium">{day}</span>
-								{#if day === TODAY_NAME}
+								<span class="font-medium">{dayName}</span>
+								{#if dayOfWeek === TODAY_DAY_OF_WEEK}
 									<Badge variant="default" class="text-xs">{m.common_today()}</Badge>
 								{/if}
 							</div>
@@ -324,7 +338,7 @@
 												</Badge>
 											</Tooltip.Trigger>
 											<Tooltip.Content>
-												{m.analytics_cookedTimesOnDay({ count: pattern.count, day })}
+												{m.analytics_cookedTimesOnDay({ count: pattern.count, day: dayName })}
 											</Tooltip.Content>
 										</Tooltip.Root>
 									{/each}

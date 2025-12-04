@@ -147,7 +147,8 @@ export function isCurrentWeek(date: Date): boolean {
  */
 export function formatDate(
 	date: Date | string | null | undefined,
-	options?: Intl.DateTimeFormatOptions
+	options?: Intl.DateTimeFormatOptions,
+	locale?: string
 ): string {
 	const d = toDate(date);
 	if (!d || isNaN(d.getTime())) return '';
@@ -158,7 +159,9 @@ export function formatDate(
 		year: 'numeric'
 	};
 
-	return d.toLocaleDateString('en-US', options || defaultOptions);
+	const localeToUse = locale || 'en-US';
+
+	return d.toLocaleDateString(localeToUse, options || defaultOptions);
 }
 
 /**
