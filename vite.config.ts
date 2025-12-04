@@ -13,7 +13,7 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',
-			strategy: ['url', 'localStorage', 'preferredLanguage']
+			strategy: ['cookie', 'preferredLanguage']
 		}),
 		SvelteKitPWA({
 			strategies: 'generateSW',
