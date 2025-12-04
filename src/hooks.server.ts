@@ -5,6 +5,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
+import { paraglideMiddleware } from '$lib/paraglide/server';
 
 export const init: ServerInit = async () => {
 	try {
@@ -50,4 +51,15 @@ export const authHandle: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handle = sequence(betterAuthHandle, authHandle);
+// creating a handle to use the paraglide middleware
+const paraglideHandle: Handle = ({ event, resolve }) =>
+	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+		event.request = localizedRequest;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => {
+				return html.replace('%lang%', locale);
+			}
+		});
+	});
+
+export const handle = sequence(betterAuthHandle, authHandle, paraglideHandle);

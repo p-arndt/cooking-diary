@@ -5,7 +5,15 @@
 	import NavUser from '$lib/components/nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
-	import { LayoutDashboard, Heart, Users, ChefHat, TextAlignJustify, Settings, TrendingUp } from '@lucide/svelte';
+	import {
+		LayoutDashboard,
+		Heart,
+		Users,
+		ChefHat,
+		TextAlignJustify,
+		Settings,
+		TrendingUp
+	} from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import type { ComponentProps } from 'svelte';
 
@@ -80,10 +88,13 @@
 		<div
 			class="flex items-center {sidebar.open
 				? 'justify-start'
-				: 'justify-center'} gap-4 p-1 transition-all duration-300 ease-linear"
+				: 'justify-center'} gap-4 p-1"
 		>
 			<img src={cookindiarylogo} alt="{m.common_appName()} logo" class="max-w-9" />
 			<h1 class="text-xl font-bold {sidebar.open ? 'block' : 'hidden'}">{m.common_appName()}</h1>
+			{#if sidebar?.open}
+				<Sidebar.Trigger  />
+			{/if}
 		</div>
 	</Sidebar.Header>
 	<Sidebar.Content>

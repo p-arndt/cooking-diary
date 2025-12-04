@@ -11,10 +11,14 @@
 	} from '$lib/components/ui/card/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
-	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
-	import { Sparkles, Calendar, Clock, X, Check, Lock } from '@lucide/svelte';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { Sparkles, Calendar, Clock, X, Check, Lock, Settings as SettingsIcon, Globe, Palette } from '@lucide/svelte';
+	import SunIcon from '@lucide/svelte/icons/sun';
+	import MoonIcon from '@lucide/svelte/icons/moon';
 	import PasswordChangeForm from '$lib/components/password-change-form.svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import { setLocale, getLocale } from '$lib/paraglide/runtime.js';
+	import { toggleMode } from 'mode-watcher';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
@@ -24,7 +28,9 @@
 	let excludedCategoryIds = $state<string[]>(data.settings.suggestionExcludedCategoryIds || []);
 	let isSubmitting = $state(false);
 	let showSuccess = $state(false);
-	let activeTab = $state('suggestions');
+	let activeTab = $state('general');
+	let currentLanguage = $state<string>(getLocale());
+	let selectedDaysThreshold = $derived<string>(daysThreshold.toString());
 
 	const DAY_NAMES = [
 		m.common_days_sunday(),
@@ -66,6 +72,10 @@
 
 	<Tabs.Root bind:value={activeTab}>
 		<Tabs.List class="w-full justify-start">
+			<Tabs.Trigger value="general">
+				<SettingsIcon class="h-4 w-4" />
+				{m.settings_general()}
+			</Tabs.Trigger>
 			<Tabs.Trigger value="suggestions">
 				<Sparkles class="h-4 w-4" />
 				{m.settings_mealSuggestions()}
@@ -75,6 +85,84 @@
 				{m.settings_account()}
 			</Tabs.Trigger>
 		</Tabs.List>
+
+		<Tabs.Content value="general" class="mt-6">
+			<Card>
+				<CardHeader>
+					<CardTitle class="flex items-center gap-2">
+						<Globe class="h-5 w-5 text-blue-500" />
+						{m.settings_language()}
+					</CardTitle>
+					<CardDescription>
+						{m.settings_languageDescription()}
+					</CardDescription>
+				</CardHeader>
+				<CardContent class="space-y-6">
+					<div class="space-y-3">
+						<Label>{m.settings_selectLanguage()}</Label>
+						<Select.Root
+							type="single"
+							bind:value={currentLanguage}
+							onValueChange={(value: string) => {
+								setLocale(value as 'en' | 'de');
+							}}
+						>
+							<Select.Trigger class="w-full">
+								{currentLanguage === 'en' ? m.settings_languageEnglish() : m.settings_languageGerman()}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="en" label={m.settings_languageEnglish()}>
+									{m.settings_languageEnglish()}
+								</Select.Item>
+								<Select.Item value="de" label={m.settings_languageGerman()}>
+									{m.settings_languageGerman()}
+								</Select.Item>
+							</Select.Content>
+						</Select.Root>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card class="mt-6">
+				<CardHeader>
+					<CardTitle class="flex items-center gap-2">
+						<Palette class="h-5 w-5 text-purple-500" />
+						{m.settings_appearance()}
+					</CardTitle>
+					<CardDescription>
+						{m.settings_appearanceDescription()}
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div class="flex items-center justify-between rounded-lg border p-4">
+						<div class="space-y-0.5">
+							<Label class="flex items-center gap-2">
+								<Palette class="h-4 w-4" />
+								{m.settings_theme()}
+							</Label>
+							<p class="text-sm text-muted-foreground">
+								{m.settings_themeDescription()}
+							</p>
+						</div>
+						<Button
+							type="button"
+							variant="outline"
+							size="icon"
+							onclick={toggleMode}
+							class="h-10 w-10"
+						>
+							<SunIcon
+								class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all! dark:scale-0 dark:-rotate-90"
+							/>
+							<MoonIcon
+								class="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all! dark:scale-100 dark:rotate-0"
+							/>
+							<span class="sr-only">{m.settings_toggleTheme()}</span>
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		</Tabs.Content>
 
 		<Tabs.Content value="suggestions" class="mt-6">
 			<form
@@ -120,19 +208,40 @@
 									</p>
 								</div>
 							</div>
-							<NativeSelect
-								value={daysThreshold.toString()}
-								onchange={(e) => (daysThreshold = parseInt(e.currentTarget.value))}
-								class="w-full"
+							<Select.Root
+								type="single"
+								bind:value={selectedDaysThreshold}
+								onValueChange={(value) => {
+									daysThreshold = parseInt(value);
+								}}
 							>
-								<option value="0">{m.settings_showAllNoFilter()}</option>
-								<option value="3">{m.settings_days({ days: 3 })}</option>
-								<option value="7">{m.settings_days({ days: 7 })}</option>
-								<option value="14">{m.settings_daysDefault({ days: 14 })}</option>
-								<option value="21">{m.settings_days({ days: 21 })}</option>
-								<option value="30">{m.settings_days({ days: 30 })}</option>
-								<option value="60">{m.settings_days({ days: 60 })}</option>
-							</NativeSelect>
+								<Select.Trigger class="w-full">
+									{daysLabel}
+								</Select.Trigger>
+								<Select.Content>
+									<Select.Item value="0" label={m.settings_showAllNoFilter()}>
+										{m.settings_showAllNoFilter()}
+									</Select.Item>
+									<Select.Item value="3" label={m.settings_days({ days: 3 })}>
+										{m.settings_days({ days: 3 })}
+									</Select.Item>
+									<Select.Item value="7" label={m.settings_days({ days: 7 })}>
+										{m.settings_days({ days: 7 })}
+									</Select.Item>
+									<Select.Item value="14" label={m.settings_daysDefault({ days: 14 })}>
+										{m.settings_daysDefault({ days: 14 })}
+									</Select.Item>
+									<Select.Item value="21" label={m.settings_days({ days: 21 })}>
+										{m.settings_days({ days: 21 })}
+									</Select.Item>
+									<Select.Item value="30" label={m.settings_days({ days: 30 })}>
+										{m.settings_days({ days: 30 })}
+									</Select.Item>
+									<Select.Item value="60" label={m.settings_days({ days: 60 })}>
+										{m.settings_days({ days: 60 })}
+									</Select.Item>
+								</Select.Content>
+							</Select.Root>
 						</div>
 
 						<div class="flex items-center justify-between rounded-lg border p-4">

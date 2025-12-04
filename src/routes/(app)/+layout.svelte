@@ -3,6 +3,7 @@
 	import DarkModeToggle from '$lib/components/common/dark-mode-toggle.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import '../../app.css';
 	import type { LayoutData } from './$types';
 
@@ -12,25 +13,25 @@
 	};
 
 	let { data, children }: Props = $props();
+
+	let isSidebarOpen = $state(false);
 </script>
 
-<Sidebar.Provider>
+<Sidebar.Provider bind:open={isSidebarOpen}>
 	<AppSidebar {data} />
 	<Sidebar.Inset>
 		<header
-			class="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
+			class="flex h-10 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-10"
 		>
 			<div class="flex items-center gap-2 px-4">
-				<Sidebar.Trigger class="-ml-1" />
-				<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
-				<div class="flex flex-1 items-center justify-end">
-					<DarkModeToggle />
-				</div>
+				{#if !isSidebarOpen}
+					<Sidebar.Trigger class="transition-all duration-300 ease-linear" />
+				{/if}
 			</div>
 		</header>
 
 		<div class="flex flex-1 flex-col">
-			<main class="flex-1 overflow-y-auto mx-auto container">
+			<main class="container mx-auto flex-1 overflow-y-auto">
 				{@render children()}
 			</main>
 		</div>
