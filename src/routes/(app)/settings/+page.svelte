@@ -13,7 +13,8 @@
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Sparkles, Calendar, Clock, X, Check, TrendingUp } from '@lucide/svelte';
+	import { Sparkles, Calendar, Clock, X, Check, TrendingUp, Lock } from '@lucide/svelte';
+	import PasswordChangeForm from '$lib/components/password-change-form.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -232,4 +233,19 @@
 			</CardContent>
 		</Card>
 	{/if}
+
+	<Card>
+		<CardHeader>
+			<CardTitle class="flex items-center gap-2">
+				<Lock class="h-5 w-5 text-blue-500" />
+				{m.passwordChange_title()}
+			</CardTitle>
+			<CardDescription>
+				{m.passwordChange_description()}
+			</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<PasswordChangeForm />
+		</CardContent>
+	</Card>
 </div>
