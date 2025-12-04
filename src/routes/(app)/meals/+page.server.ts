@@ -9,13 +9,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	const search = url.searchParams.get('search') || '';
-	const categoryId = url.searchParams.get('category');
+	const categoryIds = url.searchParams.getAll('category');
 
 	let meals;
 	if (search) {
 		meals = await MealService.searchMeals(locals.user.id, search);
-	} else if (categoryId) {
-		meals = await MealService.getMealsByCategory(locals.user.id, categoryId);
+	} else if (categoryIds.length > 0) {
+		meals = await MealService.getMealsByCategories(locals.user.id, categoryIds);
 	} else {
 		meals = await MealService.getMealsByUserId(locals.user.id);
 	}
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		meals,
 		categories,
 		search,
-		categoryId
+		categoryId: categoryIds[0] || null
 	};
 };
 

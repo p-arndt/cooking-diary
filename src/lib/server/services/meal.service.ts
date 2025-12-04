@@ -49,13 +49,14 @@ export class MealService {
 	}
 
 	/**
-	 * Search meals by title
+	 * Search meals by title (case-insensitive)
 	 */
 	static async searchMeals(userId: string, searchTerm: string): Promise<MealWithCategories[]> {
+		const lowerSearch = searchTerm.toLowerCase();
 		const userMeals = await db
 			.select()
 			.from(meals)
-			.where(and(eq(meals.userId, userId), like(meals.title, `%${searchTerm}%`)))
+			.where(and(eq(meals.userId, userId), like(sql`LOWER(${meals.title})`, `%${lowerSearch}%`)))
 			.orderBy(asc(meals.title));
 
 		const mealsWithCategories = await Promise.all(
@@ -86,15 +87,26 @@ export class MealService {
 		userId: string,
 		categoryId: string
 	): Promise<MealWithCategories[]> {
+		return this.getMealsByCategories(userId, [categoryId]);
+	}
+
+	/**
+	 * Get meals by multiple categories (meals that have ANY of the selected categories)
+	 */
+	static async getMealsByCategories(
+		userId: string,
+		categoryIds: string[]
+	): Promise<MealWithCategories[]> {
+		if (categoryIds.length === 0) return this.getMealsByUserId(userId);
+
 		const mealIds = await db
-			.select({ mealId: mealToCategories.mealId })
+			.selectDistinct({ mealId: mealToCategories.mealId })
 			.from(mealToCategories)
-			.where(eq(mealToCategories.categoryId, categoryId));
+			.where(inArray(mealToCategories.categoryId, categoryIds));
 
 		if (mealIds.length === 0) return [];
 
 		const mealIdList = mealIds.map((m) => m.mealId);
-		if (mealIdList.length === 0) return [];
 
 		const userMeals = await db
 			.select()

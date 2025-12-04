@@ -1,6 +1,6 @@
 // src/lib/server/db/schema.ts
 import { relations } from 'drizzle-orm';
-import { boolean, date, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -62,6 +62,36 @@ export const verification = pgTable('verifications', {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+// -------------------------------
+// USER SETTINGS
+// -------------------------------
+export const userSettings = pgTable('user_settings', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' })
+		.unique(),
+	settings: jsonb('settings')
+		.$type<UserSettingsJson>()
+		.$defaultFn(() => ({}))
+		.notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export type UserSettingsJson = {
+	suggestionDaysThreshold?: number;
+	suggestionUseDayOfWeek?: boolean;
+	suggestionExcludedCategoryIds?: string[];
+};
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+	user: one(user, {
+		fields: [userSettings.userId],
+		references: [user.id]
+	})
+}));
 
 // -------------------------------
 // MEALS

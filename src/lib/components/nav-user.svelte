@@ -33,6 +33,7 @@
 	}
 </script>
 
+<Sidebar.Separator />
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
 		<DropdownMenu.Root>

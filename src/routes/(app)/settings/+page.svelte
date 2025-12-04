@@ -2,7 +2,13 @@
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
@@ -25,10 +31,6 @@
 		} else {
 			excludedCategoryIds = [...excludedCategoryIds, categoryId];
 		}
-	}
-
-	function getCategoryById(id: string) {
-		return data.categories.find((c) => c.id === id);
 	}
 
 	const DAY_NAMES = [
@@ -195,8 +197,12 @@
 				<div class="grid gap-4 sm:grid-cols-2">
 					{#each DAY_NAMES as day}
 						{@const patterns = data.patternsSummary.topCategoriesByDay[day] || []}
-						<div class="rounded-lg border p-3 {day === TODAY_NAME ? 'border-primary bg-primary/5' : ''}">
-							<div class="flex items-center gap-2 mb-2">
+						<div
+							class="rounded-lg border p-3 {day === TODAY_NAME
+								? 'border-primary bg-primary/5'
+								: ''}"
+						>
+							<div class="mb-2 flex items-center gap-2">
 								<span class="font-medium">{day}</span>
 								{#if day === TODAY_NAME}
 									<Badge variant="default" class="text-xs">{m.common_today()}</Badge>

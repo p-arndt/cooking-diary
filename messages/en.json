@@ -109,6 +109,7 @@
   "meals_subtitle": "Your meal library",
   "meals_searchPlaceholder": "Search meals...",
   "meals_allCategories": "All Categories",
+  "meals_categoriesSelected": "{count} selected",
   "meals_addMeal": "Add Meal",
   "meals_noMealsFound": "No meals found matching your filters",
   "meals_noMealsYet": "No meals yet. Create your first meal!",
@@ -172,6 +173,7 @@
   "categories_failedToCreate": "Failed to create category",
   "categories_failedToDelete": "Failed to delete category",
   "categories_noCategoriesAvailable": "No categories available",
+  "categories_searchPlaceholder": "Search categories...",
   "categories_create": "Create \"{name}\"",
 
   "settings_pageTitle": "Settings - Cooking Diary",

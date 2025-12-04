@@ -109,6 +109,7 @@
   "meals_subtitle": "Deine Rezeptsammlung",
   "meals_searchPlaceholder": "Gerichte suchen...",
   "meals_allCategories": "Alle Kategorien",
+  "meals_categoriesSelected": "{count} ausgewählt",
   "meals_addMeal": "Gericht hinzufügen",
   "meals_noMealsFound": "Keine Gerichte gefunden, die deinen Filtern entsprechen",
   "meals_noMealsYet": "Noch keine Gerichte. Erstelle dein erstes Gericht!",
@@ -172,6 +173,7 @@
   "categories_failedToCreate": "Kategorie konnte nicht erstellt werden",
   "categories_failedToDelete": "Kategorie konnte nicht gelöscht werden",
   "categories_noCategoriesAvailable": "Keine Kategorien verfügbar",
+  "categories_searchPlaceholder": "Kategorien suchen...",
   "categories_create": "\"{name}\" erstellen",
 
   "settings_pageTitle": "Einstellungen - Kochtagebuch",
