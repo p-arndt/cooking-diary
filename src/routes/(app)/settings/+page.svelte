@@ -9,6 +9,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Sparkles, Calendar, Clock, X, Check, TrendingUp } from '@lucide/svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -30,26 +31,34 @@
 		return data.categories.find((c) => c.id === id);
 	}
 
+	const DAY_NAMES = [
+		m.common_days_sunday(),
+		m.common_days_monday(),
+		m.common_days_tuesday(),
+		m.common_days_wednesday(),
+		m.common_days_thursday(),
+		m.common_days_friday(),
+		m.common_days_saturday()
+	];
+	const TODAY_NAME = DAY_NAMES[new Date().getDay()];
+
 	const daysLabel = $derived(
 		daysThreshold === 0
-			? 'Always show all meals'
+			? m.settings_alwaysShowAll()
 			: daysThreshold === 1
-				? 'Exclude meals cooked yesterday'
-				: `Exclude meals cooked in the last ${daysThreshold} days`
+				? m.settings_excludeYesterday()
+				: m.settings_excludeLastDays({ days: daysThreshold })
 	);
-
-	const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-	const TODAY_NAME = DAY_NAMES[new Date().getDay()];
 </script>
 
 <svelte:head>
-	<title>Settings - Cooking Diary</title>
+	<title>{m.settings_pageTitle()}</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-3xl space-y-6 px-4 py-8">
 	<div>
-		<h1 class="text-4xl font-bold tracking-tight">Settings</h1>
-		<p class="mt-1 text-muted-foreground">Customize your cooking diary experience</p>
+		<h1 class="text-4xl font-bold tracking-tight">{m.settings_title()}</h1>
+		<p class="mt-1 text-muted-foreground">{m.settings_subtitle()}</p>
 	</div>
 
 	<form
@@ -76,20 +85,19 @@
 			<CardHeader>
 				<CardTitle class="flex items-center gap-2">
 					<Sparkles class="h-5 w-5 text-amber-500" />
-					Meal Suggestions
+					{m.settings_mealSuggestions()}
 				</CardTitle>
 				<CardDescription>
-					Customize how the "What should I cook?" feature works
+					{m.settings_mealSuggestionsDesc()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-6">
-				<!-- Days Threshold -->
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<Label class="flex items-center gap-2">
 								<Clock class="h-4 w-4" />
-								Recently Cooked Threshold
+								{m.settings_recentlyCooked()}
 							</Label>
 							<p class="text-sm text-muted-foreground">
 								{daysLabel}
@@ -101,36 +109,34 @@
 						onchange={(e) => (daysThreshold = parseInt(e.currentTarget.value))}
 						class="w-full"
 					>
-						<option value="0">Show all meals (no filter)</option>
-						<option value="3">3 days</option>
-						<option value="7">7 days</option>
-						<option value="14">14 days (default)</option>
-						<option value="21">21 days</option>
-						<option value="30">30 days</option>
-						<option value="60">60 days</option>
+						<option value="0">{m.settings_showAllNoFilter()}</option>
+						<option value="3">{m.settings_days({ days: 3 })}</option>
+						<option value="7">{m.settings_days({ days: 7 })}</option>
+						<option value="14">{m.settings_daysDefault({ days: 14 })}</option>
+						<option value="21">{m.settings_days({ days: 21 })}</option>
+						<option value="30">{m.settings_days({ days: 30 })}</option>
+						<option value="60">{m.settings_days({ days: 60 })}</option>
 					</NativeSelect>
 				</div>
 
-				<!-- Day of Week -->
 				<div class="flex items-center justify-between rounded-lg border p-4">
 					<div class="space-y-0.5">
 						<Label class="flex items-center gap-2">
 							<Calendar class="h-4 w-4" />
-							Use Day-of-Week Patterns
+							{m.settings_dayOfWeek()}
 						</Label>
 						<p class="text-sm text-muted-foreground">
-							Prioritize categories you usually cook on {TODAY_NAME}s
+							{m.settings_dayOfWeekDesc({ day: TODAY_NAME })}
 						</p>
 					</div>
 					<Switch checked={useDayOfWeek} onCheckedChange={(v) => (useDayOfWeek = v)} />
 				</div>
 
-				<!-- Excluded Categories -->
 				<div class="space-y-3">
 					<div>
-						<Label>Excluded Categories</Label>
+						<Label>{m.settings_excludedCategories()}</Label>
 						<p class="text-sm text-muted-foreground">
-							Categories to never suggest (click to toggle)
+							{m.settings_excludedCategoriesDesc()}
 						</p>
 					</div>
 					<div class="flex flex-wrap gap-2">
@@ -150,7 +156,7 @@
 							</button>
 						{/each}
 						{#if data.categories.length === 0}
-							<p class="text-sm text-muted-foreground">No categories yet</p>
+							<p class="text-sm text-muted-foreground">{m.settings_noCategoriesYet()}</p>
 						{/if}
 					</div>
 				</div>
@@ -158,15 +164,15 @@
 				<div class="flex items-center gap-3 pt-2">
 					<Button type="submit" disabled={isSubmitting}>
 						{#if isSubmitting}
-							Saving...
+							{m.common_saving()}
 						{:else}
-							Save Settings
+							{m.settings_saveSettings()}
 						{/if}
 					</Button>
 					{#if showSuccess}
 						<span class="flex items-center gap-1 text-sm text-green-600">
 							<Check class="h-4 w-4" />
-							Settings saved!
+							{m.settings_settingsSaved()}
 						</span>
 					{/if}
 				</div>
@@ -174,16 +180,15 @@
 		</Card>
 	</form>
 
-	<!-- Cooking Patterns -->
 	{#if data.patternsSummary.totalEntriesAnalyzed > 0}
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center gap-2">
 					<TrendingUp class="h-5 w-5 text-blue-500" />
-					Your Cooking Patterns
+					{m.settings_cookingPatterns()}
 				</CardTitle>
 				<CardDescription>
-					Based on {data.patternsSummary.totalEntriesAnalyzed} cooking entries
+					{m.settings_basedOnEntries({ count: data.patternsSummary.totalEntriesAnalyzed })}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -194,7 +199,7 @@
 							<div class="flex items-center gap-2 mb-2">
 								<span class="font-medium">{day}</span>
 								{#if day === TODAY_NAME}
-									<Badge variant="default" class="text-xs">Today</Badge>
+									<Badge variant="default" class="text-xs">{m.common_today()}</Badge>
 								{/if}
 							</div>
 							{#if patterns.length > 0}
@@ -207,13 +212,13 @@
 												</Badge>
 											</Tooltip.Trigger>
 											<Tooltip.Content>
-												Cooked {pattern.count} times on {day}s
+												{m.settings_cookedTimesOnDay({ count: pattern.count, day })}
 											</Tooltip.Content>
 										</Tooltip.Root>
 									{/each}
 								</div>
 							{:else}
-								<p class="text-xs text-muted-foreground">No pattern yet</p>
+								<p class="text-xs text-muted-foreground">{m.settings_noPatternYet()}</p>
 							{/if}
 						</div>
 					{/each}
@@ -222,4 +227,3 @@
 		</Card>
 	{/if}
 </div>
-

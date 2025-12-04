@@ -10,6 +10,7 @@
 	import QuickAddEntryDialog from '$lib/components/quick-add-entry-dialog.svelte';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
 	import RandomMealSuggestion from '$lib/components/random-meal-suggestion.svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	type Props = {
 		data: PageData;
@@ -21,13 +22,11 @@
 	const currentMonth = $derived(new Date(data.currentMonth || new Date()));
 	let selectedDate = $state<Date | null>(new Date());
 
-	// Timeline infinite scroll state
 	let allTimelineEntries = $state([...data.timelineEntries]);
 	let hasMore = $state(data.hasMoreEntries);
 	let isLoadingMore = $state(false);
 	let loadMoreTrigger = $state<HTMLDivElement | null>(null);
 
-	// Reset entries when data changes (e.g., after adding new entry)
 	$effect(() => {
 		allTimelineEntries = [...data.timelineEntries];
 		hasMore = data.hasMoreEntries;
@@ -50,7 +49,6 @@
 		}
 	}
 
-	// Intersection Observer for infinite scroll
 	$effect(() => {
 		if (!loadMoreTrigger || view !== 'timeline') return;
 
@@ -68,7 +66,6 @@
 		return () => observer.disconnect();
 	});
 
-	// Meal search state
 	let mealSearchQuery = $state('');
 	let showMealSuggestions = $state(false);
 	let highlightedMealIndex = $state(-1);
@@ -120,7 +117,6 @@
 		}
 	}
 	
-	// Convert dateCooked strings to Date objects
 	const entriesWithDates = $derived(
 		data.entries.map((e) => ({
 			...e,
@@ -134,7 +130,6 @@
 			: []
 	);
 
-	// Group timeline entries by date
 	const timelineEntriesWithDates = $derived(
 		allTimelineEntries.map((e) => ({
 			...e,
@@ -187,48 +182,44 @@
 
 	function openAddEntry(date?: Date) {
 		if (date) {
-			// If date is provided, use full flow
 			const dateParam = `?date=${toDateString(date)}`;
 			goto(`/entries/add${dateParam}`);
 		} else {
-			// Otherwise show quick add dialog
 			showQuickAddDialog = true;
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Diary - Cooking Diary</title>
+	<title>{m.diary_pageTitle()}</title>
 </svelte:head>
 
 <div class="container mx-auto space-y-6 px-4 py-8" in:fade={{ duration: 300 }}>
-	<!-- Header -->
 	<div class="space-y-4">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-4xl font-bold tracking-tight">Cooking Diary</h1>
+				<h1 class="text-4xl font-bold tracking-tight">{m.diary_title()}</h1>
 				<p class="text-muted-foreground mt-1">
 					{#if data.searchedMeal}
-						Entries for "{data.searchedMeal.title}"
+						{m.diary_entriesFor({ title: data.searchedMeal.title })}
 					{:else if view === 'calendar'}
 						{getMonthYear(currentMonth)}
 					{:else}
-						Your cooking timeline
+						{m.diary_yourTimeline()}
 					{/if}
 				</p>
 			</div>
 			<Button variant="outline" onclick={toggleView} size="sm">
 				{#if view === 'calendar'}
 					<List class="mr-2 h-4 w-4" />
-					Timeline
+					{m.diary_timeline()}
 				{:else}
 					<CalendarIcon class="mr-2 h-4 w-4" />
-					Calendar
+					{m.diary_calendar()}
 				{/if}
 			</Button>
 		</div>
 
-		<!-- Meal Search -->
 		<div class="relative">
 			{#if data.searchedMeal}
 				<div class="flex w-full items-center gap-3 rounded-lg border bg-background px-4 py-3">
@@ -252,7 +243,7 @@
 						onfocus={() => (showMealSuggestions = true)}
 						onblur={() => setTimeout(() => { showMealSuggestions = false; highlightedMealIndex = -1; }, 200)}
 						oninput={() => { showMealSuggestions = true; highlightedMealIndex = -1; }}
-						placeholder="Search for a meal to see when you cooked it..."
+						placeholder={m.diary_searchPlaceholder()}
 						class="w-full bg-transparent outline-none placeholder:text-muted-foreground"
 					/>
 				</div>
@@ -285,13 +276,11 @@
 			{/if}
 		</div>
 
-		<!-- Random Meal Suggestion -->
 		{#if data.suggestionMeals.length > 0 && !data.searchedMeal}
 			<RandomMealSuggestion meals={data.suggestionMeals} />
 		{/if}
 	</div>
 
-	<!-- Search Results -->
 	{#if data.searchedMeal && data.searchedMealEntries}
 		<Card>
 			<CardHeader>
@@ -300,7 +289,7 @@
 						<img src={data.searchedMeal.defaultPhotoUrl} alt="" class="h-8 w-8 rounded object-cover" />
 					{/if}
 					{data.searchedMeal.title}
-					<Badge variant="secondary" class="ml-2">{data.searchedMealEntries.length} times</Badge>
+					<Badge variant="secondary" class="ml-2">{m.diary_times({ count: data.searchedMealEntries.length })}</Badge>
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
@@ -313,7 +302,7 @@
 									<CalendarIcon class="h-4 w-4 text-muted-foreground" />
 									<span class="font-medium">{formatDate(entryDate)}</span>
 									{#if isToday(entryDate)}
-										<Badge>Today</Badge>
+										<Badge>{m.common_today()}</Badge>
 									{/if}
 								</div>
 								{#if entry.notes}
@@ -323,7 +312,7 @@
 						{/each}
 					</div>
 				{:else}
-					<p class="text-muted-foreground">This meal hasn't been cooked yet.</p>
+					<p class="text-muted-foreground">{m.diary_notCookedYet()}</p>
 				{/if}
 			</CardContent>
 		</Card>
@@ -331,9 +320,7 @@
 
 	{#if !data.searchedMeal}
 		{#if view === 'calendar'}
-			<!-- Calendar View -->
 		<div class="grid gap-6 md:grid-cols-3">
-			<!-- Calendar -->
 			<Card class="md:col-span-2">
 				<CardHeader>
 					<div class="flex items-center justify-between">
@@ -350,13 +337,13 @@
 				</CardHeader>
 				<CardContent>
 					<div class="grid grid-cols-7 gap-1 text-center text-sm font-medium">
-						<div class="p-2">Mo</div>
-						<div class="p-2">Tu</div>
-						<div class="p-2">We</div>
-						<div class="p-2">Th</div>
-						<div class="p-2">Fr</div>
-						<div class="p-2">Sa</div>
-						<div class="p-2">Su</div>
+						<div class="p-2">{m.common_days_short_mo()}</div>
+						<div class="p-2">{m.common_days_short_tu()}</div>
+						<div class="p-2">{m.common_days_short_we()}</div>
+						<div class="p-2">{m.common_days_short_th()}</div>
+						<div class="p-2">{m.common_days_short_fr()}</div>
+						<div class="p-2">{m.common_days_short_sa()}</div>
+						<div class="p-2">{m.common_days_short_su()}</div>
 					</div>
 					<div class="grid grid-cols-7 gap-1">
 						{#each Array(42) as _, i}
@@ -386,14 +373,13 @@
 				</CardContent>
 			</Card>
 
-			<!-- Selected Day Entries -->
 			<Card>
 				<CardHeader>
 					<CardTitle>
 						{#if selectedDate}
 							{formatDate(selectedDate)}
 						{:else}
-							Select a date
+							{m.diary_selectDate()}
 						{/if}
 					</CardTitle>
 				</CardHeader>
@@ -404,27 +390,26 @@
 								<MealEntryCard {entry} />
 							{/each}
 						{:else}
-							<p class="text-sm text-muted-foreground">No entries for this date</p>
+							<p class="text-sm text-muted-foreground">{m.diary_noEntriesForDate()}</p>
 							<Button class="mt-2 w-full" onclick={() => openAddEntry(selectedDate || undefined)}>
 								<Plus class="mr-2 h-4 w-4" />
-								Add Entry
+								{m.diary_addEntry()}
 							</Button>
 						{/if}
 					{:else}
-						<p class="text-sm text-muted-foreground">Click on a date to view entries</p>
+						<p class="text-sm text-muted-foreground">{m.diary_clickToViewEntries()}</p>
 					{/if}
 				</CardContent>
 			</Card>
 		</div>
 	{:else}
-		<!-- Timeline View -->
 		<div class="space-y-6">
 			{#if timelineEntriesByDate.length > 0}
 				{#each timelineEntriesByDate as { date, entries }}
 					<div>
 						<h2 class="mb-3 text-lg font-semibold">
 							{#if isToday(date)}
-								Today
+								{m.common_today()}
 							{:else}
 								{formatDate(date)}
 							{/if}
@@ -437,25 +422,24 @@
 					</div>
 				{/each}
 
-				<!-- Load more trigger -->
 				<div bind:this={loadMoreTrigger} class="flex justify-center py-4">
 					{#if isLoadingMore}
 						<div class="flex items-center gap-2 text-muted-foreground">
 							<Loader2 class="h-5 w-5 animate-spin" />
-							<span>Loading more...</span>
+							<span>{m.diary_loadingMore()}</span>
 						</div>
 					{:else if hasMore}
 						<Button variant="ghost" onclick={loadMoreEntries}>
-							Load more
+							{m.diary_loadMore()}
 						</Button>
 					{:else}
-						<p class="text-sm text-muted-foreground">You've reached the end</p>
+						<p class="text-sm text-muted-foreground">{m.diary_reachedEnd()}</p>
 					{/if}
 				</div>
 			{:else}
 				<Card>
 					<CardContent class="pt-6">
-						<p class="text-center text-muted-foreground">No entries yet. Start cooking!</p>
+						<p class="text-center text-muted-foreground">{m.diary_noEntriesYet()}</p>
 					</CardContent>
 				</Card>
 			{/if}
@@ -464,14 +448,12 @@
 	{/if}
 </div>
 
-<!-- Floating Action Button -->
 <button
 	class="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl"
 	onclick={() => openAddEntry()}
-	aria-label="Add Entry"
+	aria-label={m.diary_addEntry()}
 >
 	<Plus class="h-6 w-6" />
 </button>
 
-<!-- Quick Add Dialog -->
 <QuickAddEntryDialog meals={data.meals} bind:open={showQuickAddDialog} />

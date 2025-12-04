@@ -8,6 +8,7 @@
 	import { authClient } from '$lib/auth/client';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import { LayoutDashboard, LogOut, Settings, User } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let {
 		user
@@ -71,23 +72,23 @@
 				<DropdownMenu.Group>
 					<DropdownMenu.Item onclick={() => goto('/profile')}>
 						<User />
-						Profile
+						{m.nav_profile()}
 					</DropdownMenu.Item>
 					<DropdownMenu.Item onclick={() => goto('/settings')}>
 						<Settings />
-						Settings
+						{m.nav_settings()}
 					</DropdownMenu.Item>
 					{#if user.isAdmin}
 						<DropdownMenu.Item onclick={() => goto('/admin')}>
 							<LayoutDashboard />
-							Admin Panel
+							{m.nav_adminPanel()}
 						</DropdownMenu.Item>
 					{/if}
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item onclick={onLogout}>
 					<LogOut />
-					Log out
+					{m.nav_logout()}
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

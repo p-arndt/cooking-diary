@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
 	import { authClient } from '$lib/auth/client';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Check, Eye, EyeOff, Lock, Mail, Shield, User, X } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 	import type { PageData } from './$types';
 
 	type Props = {
@@ -29,17 +29,17 @@
 		error = '';
 
 		if (!name.trim()) {
-			error = 'Name is required';
+			error = m.auth_error_nameRequired();
 			return;
 		}
 
 		if (!email.trim()) {
-			error = 'Email is required';
+			error = m.auth_error_emailRequired();
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			error = 'Passwords do not match';
+			error = m.auth_passwordsDoNotMatch();
 			return;
 		}
 
@@ -49,7 +49,7 @@
 
 			goto('/');
 		} catch (e: any) {
-			error = e.message || 'Registration failed';
+			error = e.message || m.auth_error_registrationFailed();
 		} finally {
 			loading = false;
 		}
@@ -57,7 +57,7 @@
 </script>
 
 <svelte:head>
-	<title>Create Account - Sentio</title>
+	<title>{m.auth_createAccount()} - {m.common_appName()}</title>
 </svelte:head>
 
 <div
@@ -68,14 +68,13 @@
 			<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
 				<User class="h-8 w-8 text-primary-foreground" />
 			</div>
-			<CardTitle class="text-2xl font-bold text-primary">Create Account</CardTitle>
-			<p class="mt-2 text-muted-foreground">Join us and start your journey</p>
+			<CardTitle class="text-2xl font-bold text-primary">{m.auth_createAccount()}</CardTitle>
+			<p class="mt-2 text-muted-foreground">{m.auth_joinUs()}</p>
 		</CardHeader>
 		<CardContent class="pt-6">
 			<form onsubmit={register} class="space-y-6">
-				<!-- Name Field -->
 				<div class="space-y-2">
-					<Label for="name" class="text-sm font-medium text-foreground">Name</Label>
+					<Label for="name" class="text-sm font-medium text-foreground">{m.auth_name()}</Label>
 					<div class="relative">
 						<User
 							class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-muted-foreground"
@@ -83,7 +82,7 @@
 						<Input
 							id="name"
 							type="text"
-							placeholder="Enter your name"
+							placeholder={m.auth_namePlaceholder()}
 							bind:value={name}
 							required
 							class="h-12 border-border bg-background pl-10 transition-colors focus:border-ring focus:ring-ring"
@@ -91,9 +90,8 @@
 					</div>
 				</div>
 
-				<!-- Email Field -->
 				<div class="space-y-2">
-					<Label for="email" class="text-sm font-medium text-foreground">Email Address</Label>
+					<Label for="email" class="text-sm font-medium text-foreground">{m.auth_email()}</Label>
 					<div class="relative">
 						<Mail
 							class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-muted-foreground"
@@ -101,7 +99,7 @@
 						<Input
 							id="email"
 							type="email"
-							placeholder="Enter your email"
+							placeholder={m.auth_emailPlaceholder()}
 							bind:value={email}
 							required
 							class="h-12 border-border bg-background pl-10 transition-colors focus:border-ring focus:ring-ring"
@@ -109,9 +107,8 @@
 					</div>
 				</div>
 
-				<!-- Password Field -->
 				<div class="space-y-2">
-					<Label for="password" class="text-sm font-medium text-foreground">Password</Label>
+					<Label for="password" class="text-sm font-medium text-foreground">{m.auth_password()}</Label>
 					<div class="relative">
 						<Lock
 							class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-muted-foreground"
@@ -119,7 +116,7 @@
 						<Input
 							id="password"
 							type={showPassword ? 'text' : 'password'}
-							placeholder="Create a strong password"
+							placeholder={m.auth_createStrongPassword()}
 							bind:value={password}
 							required
 							minlength={8}
@@ -139,10 +136,9 @@
 					</div>
 				</div>
 
-				<!-- Confirm Password Field -->
 				<div class="space-y-2">
 					<Label for="confirmPassword" class="text-sm font-medium text-foreground"
-						>Confirm Password</Label
+						>{m.auth_confirmPassword()}</Label
 					>
 					<div class="relative">
 						<Lock
@@ -151,7 +147,7 @@
 						<Input
 							id="confirmPassword"
 							type={showConfirmPassword ? 'text' : 'password'}
-							placeholder="Confirm your password"
+							placeholder={m.auth_confirmPasswordPlaceholder()}
 							bind:value={confirmPassword}
 							required
 							class="h-12 border-border bg-background pr-10 pl-10 transition-colors focus:border-ring focus:ring-ring"
@@ -171,17 +167,16 @@
 					{#if confirmPassword && password !== confirmPassword}
 						<p class="flex items-center gap-1 text-xs text-destructive">
 							<X class="h-4 w-4" />
-							Passwords do not match
+							{m.auth_passwordsDoNotMatch()}
 						</p>
 					{:else if confirmPassword && password === confirmPassword}
 						<p class="flex items-center gap-1 text-xs text-chart-4">
 							<Check class="h-4 w-4" />
-							Passwords match
+							{m.auth_passwordsMatch()}
 						</p>
 					{/if}
 				</div>
 
-				<!-- Error Message -->
 				{#if error}
 					<div
 						class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/10 p-4"
@@ -191,7 +186,6 @@
 					</div>
 				{/if}
 
-				<!-- Submit Button -->
 				<Button
 					type="submit"
 					disabled={loading}
@@ -202,22 +196,21 @@
 							<div
 								class="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"
 							></div>
-							Creating Account...
+							{m.auth_creatingAccount()}
 						</div>
 					{:else}
 						<div class="flex items-center gap-2">
 							<Shield class="h-5 w-5" />
-							Create Account
+							{m.auth_createAccount()}
 						</div>
 					{/if}
 				</Button>
 			</form>
 
-			<!-- Login Link -->
 			<div class="mt-6 text-center">
 				<p class="text-muted-foreground">
-					Already have an account?
-					<a href="/login" class="ml-1 font-medium text-primary hover:underline">Sign in here</a>
+					{m.auth_haveAccount()}
+					<a href="/login" class="ml-1 font-medium text-primary hover:underline">{m.auth_signInHere()}</a>
 				</p>
 			</div>
 		</CardContent>

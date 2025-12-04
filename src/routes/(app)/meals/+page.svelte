@@ -6,6 +6,7 @@
 	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
 	import { ChefHat, Plus, Search } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -32,25 +33,23 @@
 </script>
 
 <svelte:head>
-	<title>Meals - Cooking Diary</title>
+	<title>{m.meals_pageTitle()}</title>
 </svelte:head>
 
 <div class="container mx-auto space-y-6 px-4 py-8">
-	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-4xl font-bold tracking-tight">Meals</h1>
-			<p class="text-muted-foreground mt-1">Your meal library</p>
+			<h1 class="text-4xl font-bold tracking-tight">{m.meals_title()}</h1>
+			<p class="text-muted-foreground mt-1">{m.meals_subtitle()}</p>
 		</div>
 	</div>
 
-	<!-- Filters -->
 	<div class="flex flex-col gap-4 sm:flex-row">
 		<div class="relative flex-1">
 			<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				type="text"
-				placeholder="Search meals..."
+				placeholder={m.meals_searchPlaceholder()}
 				bind:value={searchQuery}
 				oninput={updateSearch}
 				class="pl-10"
@@ -61,17 +60,16 @@
 			onchange={updateSearch}
 			class="w-full sm:w-[200px]"
 		>
-			<option value="">All Categories</option>
+			<option value="">{m.meals_allCategories()}</option>
 			{#each data.categories as category}
 				<option value={category.id}>{category.name}</option>
 			{/each}
 		</NativeSelect>
 		{#if searchQuery || selectedCategory}
-			<Button variant="outline" onclick={clearFilters}>Clear</Button>
+			<Button variant="outline" onclick={clearFilters}>{m.common_clear()}</Button>
 		{/if}
 	</div>
 
-	<!-- Meals Grid -->
 	{#if data.meals.length > 0}
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each data.meals as meal}
@@ -85,15 +83,15 @@
 					<ChefHat class="mx-auto h-12 w-12 text-muted-foreground mb-4" />
 					<p class="text-muted-foreground mb-4">
 						{#if searchQuery || selectedCategory}
-							No meals found matching your filters
+							{m.meals_noMealsFound()}
 						{:else}
-							No meals yet. Create your first meal!
+							{m.meals_noMealsYet()}
 						{/if}
 					</p>
 					{#if !searchQuery && !selectedCategory}
 						<Button onclick={() => goto('/meals/new')}>
 							<Plus class="mr-2 h-4 w-4" />
-							Add Meal
+							{m.meals_addMeal()}
 						</Button>
 					{/if}
 				</div>
@@ -102,12 +100,10 @@
 	{/if}
 </div>
 
-<!-- Floating Action Button -->
 <button
 	class="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl"
 	onclick={() => goto('/meals/new')}
-	aria-label="Add Meal"
+	aria-label={m.meals_addMeal()}
 >
 	<Plus class="h-6 w-6" />
 </button>
-

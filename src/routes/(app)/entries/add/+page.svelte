@@ -10,6 +10,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { ArrowLeft, ArrowRight, Search, Plus, X } from '@lucide/svelte';
 	import { formatDate, toDateString } from '$lib/utils/date';
+	import * as m from '$lib/paraglide/messages.js';
 
 	type Props = {
 		data: PageData;
@@ -65,7 +66,6 @@
 		const files = Array.from(target.files || []);
 		if (files.length > 0) {
 			photoFiles = [...photoFiles, ...files];
-			// Create previews
 			files.forEach((file) => {
 				const reader = new FileReader();
 				reader.onload = (e) => {
@@ -85,11 +85,10 @@
 </script>
 
 <svelte:head>
-	<title>Add Entry - Cooking Diary</title>
+	<title>{m.entries_pageTitle()}</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-2xl px-4 py-8">
-	<!-- Progress Steps -->
 	<div class="mb-8">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-2">
@@ -100,7 +99,7 @@
 				>
 					1
 				</div>
-				<span class="text-sm font-medium">Pick Date</span>
+				<span class="text-sm font-medium">{m.entries_step1_label()}</span>
 			</div>
 			<div class="h-1 flex-1 bg-muted mx-2"></div>
 			<div class="flex items-center gap-2">
@@ -111,7 +110,7 @@
 				>
 					2
 				</div>
-				<span class="text-sm font-medium">Choose Meal</span>
+				<span class="text-sm font-medium">{m.entries_step2_label()}</span>
 			</div>
 			<div class="h-1 flex-1 bg-muted mx-2"></div>
 			<div class="flex items-center gap-2">
@@ -122,7 +121,7 @@
 				>
 					3
 				</div>
-				<span class="text-sm font-medium">Details</span>
+				<span class="text-sm font-medium">{m.entries_step3_label()}</span>
 			</div>
 		</div>
 	</div>
@@ -131,20 +130,19 @@
 		<CardHeader>
 			<CardTitle>
 				{#if step === 1}
-					Add Entry - Pick Date
+					{m.entries_step1_title()}
 				{:else if step === 2}
-					Add Entry - Choose Meal
+					{m.entries_step2_title()}
 				{:else}
-					Add Entry - Details
+					{m.entries_step3_title()}
 				{/if}
 			</CardTitle>
 		</CardHeader>
 		<CardContent>
 			{#if step === 1}
-				<!-- Step 1: Pick Date -->
 				<div class="space-y-4">
 					<div>
-						<Label for="date">Select Date</Label>
+						<Label for="date">{m.entries_selectDate()}</Label>
 						<Input
 							id="date"
 							type="date"
@@ -156,24 +154,23 @@
 						/>
 					</div>
 					<div class="flex justify-end gap-2">
-						<Button variant="outline" onclick={() => goto('/')}>Cancel</Button>
+						<Button variant="outline" onclick={() => goto('/')}>{m.common_cancel()}</Button>
 						<Button onclick={nextStep}>
-							Next
+							{m.common_next()}
 							<ArrowRight class="ml-2 h-4 w-4" />
 						</Button>
 					</div>
 				</div>
 			{:else if step === 2}
-				<!-- Step 2: Choose Meal -->
 				<div class="space-y-4">
 					<div>
-						<Label for="search">Search Meals</Label>
+						<Label for="search">{m.entries_searchMeals()}</Label>
 						<div class="relative mt-2">
 							<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								id="search"
 								type="text"
-								placeholder="Search meals..."
+								placeholder={m.entries_searchMealsPlaceholder()}
 								bind:value={searchQuery}
 								class="pl-10"
 							/>
@@ -182,7 +179,7 @@
 
 					{#if data.recentMeals.length > 0 && !searchQuery}
 						<div>
-							<h3 class="mb-2 font-semibold">Recent Meals</h3>
+							<h3 class="mb-2 font-semibold">{m.entries_recentMeals()}</h3>
 							<div class="space-y-2">
 								{#each data.recentMeals as meal}
 									<button
@@ -205,7 +202,7 @@
 												{/if}
 											</div>
 											{#if meal.defaultPhotoUrl}
-												<span class="ml-2">📷</span>
+												<span class="ml-2">{m.mealCard_photoIcon()}</span>
 											{/if}
 										</div>
 									</button>
@@ -215,7 +212,7 @@
 					{/if}
 
 					<div>
-						<h3 class="mb-2 font-semibold">All Meals</h3>
+						<h3 class="mb-2 font-semibold">{m.entries_allMeals()}</h3>
 						{#if filteredMeals.length > 0}
 							<div class="space-y-2 max-h-96 overflow-y-auto">
 								{#each filteredMeals as meal}
@@ -239,34 +236,33 @@
 												{/if}
 											</div>
 											{#if meal.defaultPhotoUrl}
-												<span class="ml-2">📷</span>
+												<span class="ml-2">{m.mealCard_photoIcon()}</span>
 											{/if}
 										</div>
 									</button>
 								{/each}
 							</div>
 						{:else}
-							<p class="py-8 text-center text-muted-foreground">No meals found</p>
+							<p class="py-8 text-center text-muted-foreground">{m.entries_noMealsFound()}</p>
 						{/if}
 					</div>
 
 					<div class="flex justify-between gap-2">
 						<Button variant="outline" onclick={prevStep}>
 							<ArrowLeft class="mr-2 h-4 w-4" />
-							Back
+							{m.common_back()}
 						</Button>
 						<Button variant="outline" onclick={() => goto('/meals/new')}>
 							<Plus class="mr-2 h-4 w-4" />
-							Create New Meal
+							{m.entries_createNewMeal()}
 						</Button>
 					</div>
 				</div>
 			{:else if step === 3}
-				<!-- Step 3: Entry Details -->
 				{#if selectedMeal}
 					<div class="space-y-4">
 						<div>
-							<Label>Meal</Label>
+							<Label>{m.entries_meal()}</Label>
 							<p class="mt-1 font-semibold">{selectedMeal.title}</p>
 							{#if selectedMeal.categories.length > 0}
 								<div class="mt-1 flex flex-wrap gap-1">
@@ -280,15 +276,15 @@
 						</div>
 
 						<div>
-							<Label>Date</Label>
+							<Label>{m.entries_date()}</Label>
 							<p class="mt-1">{formatDate(selectedDate)}</p>
 						</div>
 
 						<div>
-							<Label for="notes">Notes (optional)</Label>
+							<Label for="notes">{m.entries_notesOptional()}</Label>
 							<Textarea
 								id="notes"
-								placeholder="Add any notes about this cooking session..."
+								placeholder={m.entries_notesPlaceholder()}
 								bind:value={notes}
 								class="mt-2"
 								rows={4}
@@ -296,7 +292,7 @@
 						</div>
 
 						<div>
-							<Label>Photos (optional)</Label>
+							<Label>{m.entries_photosOptional()}</Label>
 							<div class="mt-2 space-y-3">
 								{#if photoPreviews.length > 0 || photoUrls.length > 0}
 									<div class="flex flex-wrap gap-2">
@@ -304,7 +300,7 @@
 											<div class="relative">
 												<img
 													src={preview}
-													alt="Photo preview {index + 1}"
+													alt="{m.entries_photoPreview()} {index + 1}"
 													class="h-24 w-24 rounded-lg object-cover border"
 												/>
 												<button
@@ -350,7 +346,7 @@
 							use:enhance={({ formData, cancel }) => {
 								if (!selectedMealId || !selectedDate) {
 									cancel();
-									alert('Please select a meal and date');
+									alert(m.entries_pleaseSelectMealAndDate());
 									return;
 								}
 
@@ -367,7 +363,7 @@
 								if (result.type === 'success') {
 									goto('/');
 								} else if (result.type === 'failure') {
-									alert(result.data?.error || 'Failed to create entry');
+									alert(result.data?.error || m.entries_failedToCreate());
 								}
 							};
 							}}
@@ -375,9 +371,9 @@
 							<div class="flex justify-between gap-2">
 								<Button type="button" variant="outline" onclick={prevStep}>
 									<ArrowLeft class="mr-2 h-4 w-4" />
-									Back
+									{m.common_back()}
 								</Button>
-								<Button type="submit">Save Entry</Button>
+								<Button type="submit">{m.entries_saveEntry()}</Button>
 							</div>
 						</form>
 					</div>
@@ -386,4 +382,3 @@
 		</CardContent>
 	</Card>
 </div>
-

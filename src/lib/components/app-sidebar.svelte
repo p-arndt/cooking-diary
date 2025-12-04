@@ -6,6 +6,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import { LayoutDashboard, Heart, Users, ChefHat, TextAlignJustify } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 	import type { ComponentProps } from 'svelte';
 
 	type LayoutData = {
@@ -37,21 +38,21 @@
 
 	const navigation = $derived([
 		{
-			title: 'Dashboard',
+			title: m.nav_dashboard(),
 			url: '/',
 			icon: LayoutDashboard,
 			isActive: isActive('/'),
 			items: []
 		},
 		{
-			title: 'Meals',
+			title: m.nav_meals(),
 			url: '/meals',
 			icon: ChefHat,
 			isActive: isActive('/meals'),
 			items: []
 		},
 		{
-			title: 'Categories',
+			title: m.nav_categories(),
 			url: '/categories',
 			icon: TextAlignJustify,
 			isActive: isActive('/categories'),
@@ -67,8 +68,8 @@
 				? 'justify-start'
 				: 'justify-center'} gap-4 p-1 transition-all duration-300 ease-linear"
 		>
-			<img src={cookindiarylogo} alt="Cooking Diary logo" class="max-w-9" />
-			<h1 class="text-xl font-bold {sidebar.open ? 'block' : 'hidden'}">Cooking Diary</h1>
+			<img src={cookindiarylogo} alt="{m.common_appName()} logo" class="max-w-9" />
+			<h1 class="text-xl font-bold {sidebar.open ? 'block' : 'hidden'}">{m.common_appName()}</h1>
 		</div>
 	</Sidebar.Header>
 	<Sidebar.Content>

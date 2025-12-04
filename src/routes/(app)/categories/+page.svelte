@@ -8,6 +8,7 @@
 	import { Plus, Edit, Trash2 } from '@lucide/svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -29,23 +30,21 @@
 </script>
 
 <svelte:head>
-	<title>Categories - Cooking Diary</title>
+	<title>{m.categories_pageTitle()}</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-4xl font-bold tracking-tight">Categories</h1>
-			<p class="mt-1 text-muted-foreground">Manage your meal categories</p>
+			<h1 class="text-4xl font-bold tracking-tight">{m.categories_title()}</h1>
+			<p class="mt-1 text-muted-foreground">{m.categories_subtitle()}</p>
 		</div>
 		<Button onclick={() => (showAddDialog = true)}>
 			<Plus class="mr-2 h-4 w-4" />
-			Add Category
+			{m.categories_addCategory()}
 		</Button>
 	</div>
 
-	<!-- Categories List -->
 	{#if data.categories.length > 0}
 		<Card>
 			<CardContent>
@@ -53,7 +52,6 @@
 					{#each data.categories as category}
 						<div class="flex items-center justify-between px-4 py-3">
 							{#if editingCategory?.id === category.id}
-								<!-- Edit Mode -->
 								<form
 									method="POST"
 									action="?/edit"
@@ -66,19 +64,18 @@
 											if (result.type === 'success') {
 												cancelEdit();
 											} else if (result.type === 'failure') {
-												alert(result.data?.error || 'Failed to update category');
+												alert(result.data?.error || m.categories_failedToUpdate());
 											}
 										};
 									}}
 								>
 									<Input bind:value={editingName} class="flex-1" />
-									<Button type="submit" size="sm">Save</Button>
+									<Button type="submit" size="sm">{m.common_save()}</Button>
 									<Button type="button" size="sm" variant="outline" onclick={cancelEdit}
-										>Cancel</Button
+										>{m.common_cancel()}</Button
 									>
 								</form>
 							{:else}
-								<!-- View Mode -->
 								<span class="font-medium">{category.name}</span>
 								<div class="flex gap-1">
 									<Button
@@ -108,10 +105,10 @@
 		<Card>
 			<CardContent class="py-12">
 				<div class="text-center">
-					<p class="mb-4 text-muted-foreground">No categories yet. Create your first one!</p>
+					<p class="mb-4 text-muted-foreground">{m.categories_noCategoriesYet()}</p>
 					<Button onclick={() => (showAddDialog = true)}>
 						<Plus class="mr-2 h-4 w-4" />
-						Add Category
+						{m.categories_addCategory()}
 					</Button>
 				</div>
 			</CardContent>
@@ -119,11 +116,10 @@
 	{/if}
 </div>
 
-<!-- Add Category Dialog -->
 <Dialog.Root bind:open={showAddDialog}>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title>Add Category</Dialog.Title>
+			<Dialog.Title>{m.categories_addCategory()}</Dialog.Title>
 		</Dialog.Header>
 		<form
 			method="POST"
@@ -136,18 +132,18 @@
 						newCategoryName = '';
 						showAddDialog = false;
 					} else if (result.type === 'failure') {
-						alert(result.data?.error || 'Failed to create category');
+						alert(result.data?.error || m.categories_failedToCreate());
 					}
 				};
 			}}
 		>
 			<div class="space-y-4">
 				<div>
-					<Label for="categoryName">Category Name</Label>
+					<Label for="categoryName">{m.categories_categoryName()}</Label>
 					<Input
 						id="categoryName"
 						type="text"
-						placeholder="e.g., Pasta, Vegan, Dessert"
+						placeholder={m.categories_categoryNamePlaceholder()}
 						bind:value={newCategoryName}
 						class="mt-2"
 					/>
@@ -159,29 +155,27 @@
 							variant="outline"
 							onclick={() => {
 								newCategoryName = '';
-							}}>Cancel</Button
+							}}>{m.common_cancel()}</Button
 						>
 					</Dialog.Close>
-					<Button type="submit">Add</Button>
+					<Button type="submit">{m.common_add()}</Button>
 				</div>
 			</div>
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
 
-<!-- Delete Confirmation Dialog -->
 <AlertDialog.Root open={deleteCategoryId !== null}>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Delete Category</AlertDialog.Title>
+			<AlertDialog.Title>{m.categories_deleteTitle()}</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to delete this category? This will remove it from all meals, but won't
-				delete the meals themselves.
+				{m.categories_deleteDescription()}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>
-				<Button variant="outline" onclick={() => (deleteCategoryId = null)}>Cancel</Button>
+				<Button variant="outline" onclick={() => (deleteCategoryId = null)}>{m.common_cancel()}</Button>
 			</AlertDialog.Cancel>
 			<form
 				method="POST"
@@ -195,13 +189,13 @@
 						if (result.type === 'success') {
 							deleteCategoryId = null;
 						} else if (result.type === 'failure') {
-							alert(result.data?.error || 'Failed to delete category');
+							alert(result.data?.error || m.categories_failedToDelete());
 						}
 					};
 				}}
 			>
 				<AlertDialog.Action>
-					<Button type="submit" variant="destructive">Delete</Button>
+					<Button type="submit" variant="destructive">{m.common_delete()}</Button>
 				</AlertDialog.Action>
 			</form>
 		</AlertDialog.Footer>

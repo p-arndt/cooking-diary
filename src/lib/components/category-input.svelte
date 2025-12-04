@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { X } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	type Category = {
 		id: string;
@@ -20,7 +21,7 @@
 		selectedCategoryIds,
 		onChange,
 		onCreateCategory,
-		placeholder = 'Type to add categories...'
+		placeholder = m.meals_form_categoriesPlaceholder()
 	}: Props = $props();
 
 	let inputValue = $state('');
@@ -35,7 +36,6 @@
 		const unselected = categories.filter((c) => !selectedCategoryIds.includes(c.id));
 
 		if (!inputValue.trim()) {
-			// Show all unselected categories when input is empty
 			return unselected;
 		}
 
@@ -67,14 +67,12 @@
 		const categoryName = (name || inputValue).trim();
 		if (!categoryName || isCreating || !onCreateCategory) return;
 
-		// Check if category already exists
 		const existing = categories.find((c) => c.name.toLowerCase() === categoryName.toLowerCase());
 		if (existing) {
 			await addCategory(existing.id);
 			return;
 		}
 
-		// Create new category
 		isCreating = true;
 		try {
 			const newCategory = await onCreateCategory(categoryName);
@@ -96,16 +94,12 @@
 		if (e.key === 'Enter') {
 			e.preventDefault();
 			if (highlightedIndex >= 0 && highlightedIndex < filteredCategories.length) {
-				// Select highlighted suggestion
 				addCategory(filteredCategories[highlightedIndex].id);
 			} else if (showCreateOption && highlightedIndex === filteredCategories.length) {
-				// Create new category
 				createAndAddCategory();
 			} else if (inputValue.trim() && filteredCategories.length === 0) {
-				// Create if no suggestions
 				createAndAddCategory();
 			} else if (filteredCategories.length > 0) {
-				// Add first suggestion
 				addCategory(filteredCategories[0].id);
 			}
 		} else if (e.key === 'ArrowDown') {
@@ -122,10 +116,8 @@
 			showSuggestions = false;
 			highlightedIndex = -1;
 		} else if (e.key === 'Backspace' && !inputValue && selectedCategories.length > 0) {
-			// Remove last category on backspace
 			removeCategory(selectedCategories[selectedCategories.length - 1].id);
 		} else {
-			// Reset highlight when typing
 			highlightedIndex = -1;
 			showSuggestions = true;
 		}
@@ -136,7 +128,6 @@
 	}
 
 	function handleInputBlur() {
-		// Delay closing to allow clicks on suggestions
 		setTimeout(() => {
 			showSuggestions = false;
 			highlightedIndex = -1;
@@ -215,11 +206,11 @@
 								onmousedown={(e) => e.preventDefault()}
 							>
 								<span class="mr-1">+</span>
-								Create "{inputValue.trim()}"
+								{m.categories_create({ name: inputValue.trim() })}
 							</button>
 						{/if}
 						{#if filteredCategories.length === 0 && !showCreateOption && !inputValue.trim()}
-							<div class="px-2 py-1.5 text-sm text-muted-foreground">No categories available</div>
+							<div class="px-2 py-1.5 text-sm text-muted-foreground">{m.categories_noCategoriesAvailable()}</div>
 						{/if}
 					</div>
 				</div>

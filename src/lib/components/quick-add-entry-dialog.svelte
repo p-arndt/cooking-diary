@@ -13,6 +13,7 @@
 	import { X, Calendar as CalendarIcon, ChefHat, ChevronDown, Plus } from '@lucide/svelte';
 	import { formatDate, toDateString } from '$lib/utils/date';
 	import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date';
+	import * as m from '$lib/paraglide/messages.js';
 
 	type Meal = {
 		id: string;
@@ -46,7 +47,6 @@
 	let isInitialized = $state(false);
 	let previousCalendarDate = $state<CalendarDate | null>(null);
 
-	// Sync calendarDate with selectedDate on mount
 	$effect(() => {
 		if (!isInitialized && selectedDate) {
 			const dateStr = toDateString(selectedDate);
@@ -63,7 +63,6 @@
 		}
 	});
 
-	// Update selectedDate when calendarDate changes (and close popover if open)
 	$effect(() => {
 		if (
 			isInitialized &&
@@ -187,8 +186,8 @@
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Quick Add Entry</Dialog.Title>
-			<Dialog.Description>Quickly add a meal entry to your diary</Dialog.Description>
+			<Dialog.Title>{m.quickAdd_title()}</Dialog.Title>
+			<Dialog.Description>{m.quickAdd_description()}</Dialog.Description>
 		</Dialog.Header>
 
 		<form
@@ -198,7 +197,7 @@
 			use:enhance={({ formData, cancel }) => {
 				if (!selectedMealId) {
 					cancel();
-					alert('Please select a meal');
+					alert(m.quickAdd_pleaseSelectMeal());
 					return;
 				}
 
@@ -214,15 +213,14 @@
 						onOpenChange?.(false);
 						await invalidateAll();
 					} else if (result.type === 'failure') {
-						alert(result.data?.error || 'Failed to create entry');
+						alert(result.data?.error || m.quickAdd_failedToCreate());
 					}
 				};
 			}}
 		>
 			<div class="space-y-4">
-				<!-- Date Selection -->
 				<div>
-					<Label>Date</Label>
+					<Label>{m.quickAdd_date()}</Label>
 					<Popover.Root bind:open={datePickerOpen}>
 						<Popover.Trigger>
 							<Button type="button" variant="outline" class="mt-2 w-full justify-start text-left font-normal">
@@ -230,7 +228,7 @@
 								{#if calendarDate}
 									{formatDate(selectedDate)}
 								{:else}
-									<span class="text-muted-foreground">Pick a date</span>
+									<span class="text-muted-foreground">{m.common_pickDate()}</span>
 								{/if}
 							</Button>
 						</Popover.Trigger>
@@ -239,9 +237,8 @@
 						</Popover.Content>
 					</Popover.Root>
 				</div>
-				<!-- Meal Selection -->
 				<div>
-					<Label>Meal *</Label>
+					<Label>{m.quickAdd_mealRequired()}</Label>
 					<div class="relative mt-2">
 						{#if selectedMeal}
 							<div
@@ -293,7 +290,7 @@
 										showMealSuggestions = true;
 										highlightedMealIndex = -1;
 									}}
-									placeholder="Search meals..."
+									placeholder={m.quickAdd_searchMealsPlaceholder()}
 									class="w-full border-0 bg-transparent p-0 text-base outline-none placeholder:text-muted-foreground md:text-sm"
 								/>
 							</div>
@@ -340,7 +337,7 @@
 									{/each}
 									<div class="my-1 border-t"></div>
 								{:else if mealSearchQuery.trim()}
-									<p class="px-2 py-1.5 text-sm text-muted-foreground">No meals found</p>
+									<p class="px-2 py-1.5 text-sm text-muted-foreground">{m.quickAdd_noMealsFound()}</p>
 									<div class="my-1 border-t"></div>
 								{/if}
 								<button
@@ -354,7 +351,7 @@
 								>
 									<div class="flex items-center gap-2 text-primary">
 										<Plus class="h-4 w-4" />
-										<span>Create new meal</span>
+										<span>{m.quickAdd_createNewMeal()}</span>
 									</div>
 								</button>
 							</div>
@@ -363,11 +360,10 @@
 					</div>
 				</div>
 
-				<!-- Optional Fields (Collapsible) -->
 				<Collapsible.Root bind:open={showOptionalFields}>
 					<Collapsible.Trigger>
 						<div class="flex items-center justify-between space-x-2">
-							<span class="text-sm font-normal text-muted-foreground">Optional fields</span>
+							<span class="text-sm font-normal text-muted-foreground">{m.quickAdd_optionalFields()}</span>
 							<ChevronDown
 								class="h-4 w-4 transition-transform duration-200 {showOptionalFields
 									? 'rotate-180'
@@ -376,22 +372,20 @@
 						</div>
 					</Collapsible.Trigger>
 					<Collapsible.Content class="space-y-4 pt-2">
-						<!-- Notes -->
 						<div>
-							<Label for="notes">Notes (optional)</Label>
+							<Label for="notes">{m.quickAdd_notesOptional()}</Label>
 						<Textarea
 							id="notes"
 							name="notes"
-							placeholder="Add any notes..."
+							placeholder={m.quickAdd_notesPlaceholder()}
 							bind:value={notes}
 							class="mt-2"
 							rows={3}
 						/>
 						</div>
 
-						<!-- Photo -->
 						<div>
-							<Label>Photo (optional)</Label>
+							<Label>{m.quickAdd_photoOptional()}</Label>
 							<div class="mt-2 space-y-2">
 								{#if photoPreview}
 									<div class="relative inline-block">
@@ -424,10 +418,10 @@
 
 			<Dialog.Footer class="pt-4">
 				<Button type="button" variant="outline" disabled={isSubmitting} onclick={() => { open = false; }}>
-					Cancel
+					{m.common_cancel()}
 				</Button>
 				<Button type="submit" disabled={isSubmitting || !selectedMealId}>
-					{isSubmitting ? 'Adding...' : 'Add Entry'}
+					{isSubmitting ? m.quickAdd_adding() : m.quickAdd_addEntry()}
 				</Button>
 			</Dialog.Footer>
 		</form>

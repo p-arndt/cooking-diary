@@ -4,6 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { ChefHat, Shuffle, Clock, Flame, Gauge, Sparkles, X } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	type Meal = {
 		id: string;
@@ -63,11 +64,11 @@
 
 	const difficultyLabel = $derived(
 		suggestedMeal?.difficulty === 'easy'
-			? 'Easy'
+			? m.common_difficulty_easy()
 			: suggestedMeal?.difficulty === 'medium'
-				? 'Medium'
+				? m.common_difficulty_medium()
 				: suggestedMeal?.difficulty === 'hard'
-					? 'Hard'
+					? m.common_difficulty_hard()
 					: null
 	);
 
@@ -91,7 +92,7 @@
 			disabled={meals.length === 0}
 		>
 			<Sparkles class="h-5 w-5 text-amber-500" />
-			<span>What should I cook today?</span>
+			<span>{m.randomMeal_whatShouldICook()}</span>
 		</Button>
 	{:else}
 		<Card class="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
@@ -120,9 +121,9 @@
 						<div class="min-w-0 flex-1">
 							<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
 								{#if isShuffling}
-									Picking a meal...
+									{m.randomMeal_pickingMeal()}
 								{:else}
-									How about this?
+									{m.randomMeal_howAboutThis()}
 								{/if}
 							</p>
 							<h3 class="text-lg font-bold truncate {isShuffling ? 'animate-pulse' : ''}">
@@ -164,10 +165,10 @@
 					{#if !isShuffling}
 						<div class="mt-4 flex gap-2">
 							<Button size="sm" onclick={cookMeal} class="flex-1">
-								Cook Today
+								{m.randomMeal_cookToday()}
 							</Button>
 							<Button size="sm" variant="outline" onclick={viewMeal}>
-								View
+								{m.common_view()}
 							</Button>
 							<Button size="sm" variant="ghost" onclick={getRandomMeal}>
 								<Shuffle class="h-4 w-4" />
@@ -179,4 +180,3 @@
 		</Card>
 	{/if}
 </div>
-

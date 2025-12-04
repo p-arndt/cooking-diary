@@ -5,16 +5,17 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { ArrowLeft, Edit, ChefHat, Clock, Flame, Gauge } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
 
 	const difficultyLabel = $derived(
 		data.meal.difficulty === 'easy'
-			? 'Easy'
+			? m.common_difficulty_easy()
 			: data.meal.difficulty === 'medium'
-				? 'Medium'
+				? m.common_difficulty_medium()
 				: data.meal.difficulty === 'hard'
-					? 'Hard'
+					? m.common_difficulty_hard()
 					: null
 	);
 
@@ -35,17 +36,15 @@
 </script>
 
 <svelte:head>
-	<title>{data.meal.title} - Cooking Diary</title>
+	<title>{data.meal.title} - {m.common_appName()}</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-	<!-- Back Button -->
 	<Button variant="ghost" onclick={() => goto('/meals')}>
 		<ArrowLeft class="mr-2 h-4 w-4" />
-		Back to Meals
+		{m.meals_backToMeals()}
 	</Button>
 
-	<!-- Meal Header -->
 	<div class="flex items-start justify-between gap-4">
 		<div class="flex-1">
 			<h1 class="text-4xl font-bold tracking-tight">{data.meal.title}</h1>
@@ -59,11 +58,10 @@
 		</div>
 		<Button variant="outline" onclick={() => goto(`/meals/${data.meal.id}/edit`)}>
 			<Edit class="mr-2 h-4 w-4" />
-			Edit Meal
+			{m.meals_editMeal()}
 		</Button>
 	</div>
 
-	<!-- Meal Photo -->
 	{#if data.meal.defaultPhotoUrl}
 		<div class="aspect-video w-full overflow-hidden rounded-xl border bg-muted">
 			<img
@@ -78,14 +76,13 @@
 		</div>
 	{/if}
 
-	<!-- Time & Effort -->
 	{#if data.meal.prepTime || data.meal.cookTime || data.meal.difficulty}
 		<div class="flex flex-wrap gap-4">
 			{#if data.meal.prepTime}
 				<div class="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
 					<Clock class="h-5 w-5 text-muted-foreground" />
 					<div>
-						<p class="text-xs text-muted-foreground">Prep Time</p>
+						<p class="text-xs text-muted-foreground">{m.common_time_prepTime()}</p>
 						<p class="font-medium">{data.meal.prepTime}</p>
 					</div>
 				</div>
@@ -94,7 +91,7 @@
 				<div class="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
 					<Flame class="h-5 w-5 text-muted-foreground" />
 					<div>
-						<p class="text-xs text-muted-foreground">Cook Time</p>
+						<p class="text-xs text-muted-foreground">{m.common_time_cookTime()}</p>
 						<p class="font-medium">{data.meal.cookTime}</p>
 					</div>
 				</div>
@@ -103,7 +100,7 @@
 				<div class="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
 					<Gauge class="h-5 w-5 {difficultyColor}" />
 					<div>
-						<p class="text-xs text-muted-foreground">Difficulty</p>
+						<p class="text-xs text-muted-foreground">{m.common_time_difficulty()}</p>
 						<p class="font-medium {difficultyColor}">{difficultyLabel}</p>
 					</div>
 				</div>
@@ -111,11 +108,10 @@
 		</div>
 	{/if}
 
-	<!-- Default Notes -->
 	{#if data.meal.defaultNotes}
 		<Card>
 			<CardHeader>
-				<CardTitle>Default Notes</CardTitle>
+				<CardTitle>{m.meals_defaultNotes()}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<p class="text-muted-foreground whitespace-pre-wrap">{data.meal.defaultNotes}</p>
@@ -123,14 +119,12 @@
 		</Card>
 	{/if}
 
-	<!-- Actions -->
 	<div class="flex gap-2">
 		<Button size="lg" onclick={cookToday}>
-			Cooked Today
+			{m.meals_cookedToday()}
 		</Button>
 		<Button variant="outline" size="lg" onclick={() => goto(`/entries/add?mealId=${data.meal.id}`)}>
-			Add Entry
+			{m.diary_addEntry()}
 		</Button>
 	</div>
 </div>
-

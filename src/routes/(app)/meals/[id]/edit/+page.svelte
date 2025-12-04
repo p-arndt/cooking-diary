@@ -10,6 +10,7 @@
 	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
 	import CategoryInput from '$lib/components/category-input.svelte';
 	import { ArrowLeft, X, Clock, Flame } from '@lucide/svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -70,19 +71,18 @@
 </script>
 
 <svelte:head>
-	<title>Edit {data.meal.title} - Cooking Diary</title>
+	<title>{m.common_edit()} {data.meal.title} - {m.common_appName()}</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-2xl space-y-6 px-4 py-8">
-	<!-- Back Button -->
 	<Button variant="ghost" onclick={() => goto(`/meals/${data.meal.id}`)}>
 		<ArrowLeft class="mr-2 h-4 w-4" />
-		Back to Meal
+		{m.meals_backToMeal()}
 	</Button>
 
 	<Card>
 		<CardHeader>
-			<CardTitle>Edit Meal</CardTitle>
+			<CardTitle>{m.meals_editMealTitle()}</CardTitle>
 		</CardHeader>
 		<CardContent>
 			<form
@@ -91,7 +91,7 @@
 				use:enhance={({ formData, cancel }) => {
 					if (!title.trim()) {
 						cancel();
-						alert('Please enter a meal title');
+						alert(m.meals_form_titleRequired());
 						return;
 					}
 
@@ -116,17 +116,17 @@
 						if (result.type === 'success' && result.data?.mealId) {
 							goto(`/meals/${result.data.mealId}`);
 						} else if (result.type === 'failure') {
-							alert(result.data?.error || 'Failed to update meal');
+							alert(result.data?.error || m.meals_form_failedToUpdate());
 						}
 					};
 				}}
 			>
 				<div>
-					<Label for="title">Title *</Label>
+					<Label for="title">{m.meals_form_title()} *</Label>
 					<Input
 						id="title"
 						type="text"
-						placeholder="e.g., Spaghetti Carbonara"
+						placeholder={m.meals_form_titlePlaceholder()}
 						bind:value={title}
 						required
 						class="mt-2"
@@ -134,7 +134,7 @@
 				</div>
 
 				<div>
-					<Label>Categories</Label>
+					<Label>{m.meals_form_categories()}</Label>
 					<div class="mt-2">
 						<CategoryInput
 							categories={categories}
@@ -143,7 +143,7 @@
 								selectedCategoryIds = ids;
 							}}
 							onCreateCategory={createCategory}
-							placeholder="Type to add categories (press Enter or comma to create)"
+							placeholder={m.meals_form_categoriesPlaceholder()}
 						/>
 					</div>
 				</div>
@@ -152,12 +152,12 @@
 					<div>
 						<Label for="prepTime" class="flex items-center gap-2">
 							<Clock class="h-4 w-4" />
-							Prep Time
+							{m.common_time_prepTime()}
 						</Label>
 						<Input
 							id="prepTime"
 							type="text"
-							placeholder="e.g., 15 min"
+							placeholder={m.meals_form_prepTimePlaceholder()}
 							bind:value={prepTime}
 							class="mt-2"
 						/>
@@ -165,36 +165,36 @@
 					<div>
 						<Label for="cookTime" class="flex items-center gap-2">
 							<Flame class="h-4 w-4" />
-							Cook Time
+							{m.common_time_cookTime()}
 						</Label>
 						<Input
 							id="cookTime"
 							type="text"
-							placeholder="e.g., 30 min"
+							placeholder={m.meals_form_cookTimePlaceholder()}
 							bind:value={cookTime}
 							class="mt-2"
 						/>
 					</div>
 					<div>
-						<Label for="difficulty">Difficulty</Label>
+						<Label for="difficulty">{m.common_time_difficulty()}</Label>
 						<NativeSelect
 							id="difficulty"
 							bind:value={difficulty}
 							class="mt-2 w-full"
 						>
-							<option value="">Select difficulty</option>
-							<option value="easy">Easy</option>
-							<option value="medium">Medium</option>
-							<option value="hard">Hard</option>
+							<option value="">{m.common_difficulty_select()}</option>
+							<option value="easy">{m.common_difficulty_easy()}</option>
+							<option value="medium">{m.common_difficulty_medium()}</option>
+							<option value="hard">{m.common_difficulty_hard()}</option>
 						</NativeSelect>
 					</div>
 				</div>
 
 				<div>
-					<Label for="defaultNotes">Default Notes</Label>
+					<Label for="defaultNotes">{m.meals_form_defaultNotes()}</Label>
 					<Textarea
 						id="defaultNotes"
-						placeholder="Add default notes for this meal..."
+						placeholder={m.meals_form_defaultNotesPlaceholder()}
 						bind:value={defaultNotes}
 						class="mt-2"
 						rows={4}
@@ -202,13 +202,13 @@
 				</div>
 
 				<div>
-					<Label>Photo</Label>
+					<Label>{m.meals_form_photo()}</Label>
 					<div class="mt-2 space-y-3">
 						{#if photoPreview}
 							<div class="relative inline-block">
 								<img
 									src={photoPreview}
-									alt="Meal preview"
+									alt={m.meals_form_mealPreview()}
 									class="h-32 w-32 rounded-lg object-cover border"
 								/>
 								<button
@@ -232,14 +232,13 @@
 
 				<div class="flex justify-end gap-2">
 					<Button type="button" variant="outline" onclick={() => goto(`/meals/${data.meal.id}`)} disabled={isSubmitting}>
-						Cancel
+						{m.common_cancel()}
 					</Button>
 					<Button type="submit" disabled={isSubmitting}>
-						{isSubmitting ? 'Saving...' : 'Save Changes'}
+						{isSubmitting ? m.common_saving() : m.meals_form_saveChanges()}
 					</Button>
 				</div>
 			</form>
 		</CardContent>
 	</Card>
 </div>
-

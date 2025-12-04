@@ -7,6 +7,7 @@
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let {
 		items
@@ -26,7 +27,6 @@
 	const isMobile = new IsMobile();
 
 	async function handleClick(url: string, e?: MouseEvent) {
-		// If clicking on the chevron, don't navigate
 		if (e && (e.target as HTMLElement).closest('svg')) {
 			return;
 		}
@@ -39,7 +39,7 @@
 </script>
 
 <Sidebar.Group>
-	<Sidebar.GroupLabel>Navigation</Sidebar.GroupLabel>
+	<Sidebar.GroupLabel>{m.nav_navigation()}</Sidebar.GroupLabel>
 	<Sidebar.Menu class="space-y-2">
 		{#each items as item (item.title)}
 			<Sidebar.MenuItem>
