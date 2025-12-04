@@ -356,7 +356,7 @@
 				</div>
 				<div>
 					<Label>{m.quickAdd_mealRequired()}</Label>
-					<div class="relative mt-2">
+					<div class="relative mt-2" style="overflow: visible;">
 						{#if selectedMeal}
 							<div
 								class="flex min-h-9 w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs ring-offset-background transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
@@ -414,9 +414,10 @@
 						{/if}
 					{#if showMealSuggestions}
 						<div
-							class="absolute top-full z-50 mt-1.5 max-h-[300px] w-full overflow-auto rounded-md border bg-popover shadow-lg"
+							class="absolute top-full z-[100] mt-1.5 max-h-[150px] w-full rounded-md border bg-popover shadow-lg md:max-h-[300px]"
+							style="touch-action: pan-y;"
 						>
-							<div class="p-1">
+							<div class="max-h-[150px] overflow-y-scroll overflow-x-hidden p-1 md:max-h-[300px]" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
 								{#if filteredMeals.length > 0}
 									{#each filteredMeals as meal, index}
 										<button
@@ -427,7 +428,6 @@
 												: ''}"
 											onclick={() => selectMeal(meal.id)}
 											onmouseenter={() => (highlightedMealIndex = index)}
-											onmousedown={(e) => e.preventDefault()}
 										>
 											<div class="flex items-center gap-2">
 												{#if meal.defaultPhotoUrl}
@@ -464,7 +464,6 @@
 										open = false;
 										goto('/meals/new');
 									}}
-									onmousedown={(e) => e.preventDefault()}
 								>
 									<div class="flex items-center gap-2 text-primary">
 										<Plus class="h-4 w-4" />
