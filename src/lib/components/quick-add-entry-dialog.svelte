@@ -22,13 +22,24 @@
 		defaultPhotoUrl: string | null;
 	};
 
+	type Entry = {
+		id: string;
+		meal: Meal;
+		notes: string | null;
+		photoUrls: string[] | null;
+		dateCooked: Date | string | undefined;
+	};
+
 	type Props = {
 		meals: Meal[];
 		open?: boolean;
 		onOpenChange?: (open: boolean) => void;
+		entry?: Entry | null;
 	};
 
-	let { meals, open = $bindable(false), onOpenChange }: Props = $props();
+	let { meals, open = $bindable(false), onOpenChange, entry = null }: Props = $props();
+
+	const isEditMode = $derived(entry !== null);
 
 	let selectedMealId = $state<string | null>(null);
 	let selectedDate = $state<Date>(new Date());
@@ -40,15 +51,32 @@
 	let showMealSuggestions = $state(false);
 	let highlightedMealIndex = $state(-1);
 	let isSubmitting = $state(false);
-	let photoFile = $state<File | null>(null);
-	let photoPreview = $state<string | null>(null);
+	let photoFiles = $state<File[]>([]);
+	let photoPreviews = $state<string[]>([]);
 	let showOptionalFields = $state(false);
 
 	let isInitialized = $state(false);
 	let previousCalendarDate = $state<CalendarDate | null>(null);
 
 	$effect(() => {
-		if (!isInitialized && selectedDate) {
+		if (entry && !isInitialized && entry.dateCooked) {
+			selectedMealId = entry.meal.id;
+			const entryDate = typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked;
+			selectedDate = entryDate;
+			notes = entry.notes || '';
+			photoPreviews = entry.photoUrls || [];
+			const dateStr = toDateString(entryDate);
+			if (dateStr) {
+				try {
+					calendarDate = parseDate(dateStr);
+					previousCalendarDate = calendarDate;
+				} catch {
+					calendarDate = today(getLocalTimeZone());
+					previousCalendarDate = calendarDate;
+				}
+			}
+			isInitialized = true;
+		} else if (!isInitialized && selectedDate) {
 			const dateStr = toDateString(selectedDate);
 			if (dateStr) {
 				try {
@@ -143,34 +171,59 @@
 
 	function handlePhotoChange(e: Event) {
 		const target = e.target as HTMLInputElement;
-		const file = target.files?.[0];
-		if (file) {
-			photoFile = file;
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				photoPreview = e.target?.result as string;
-			};
-			reader.readAsDataURL(file);
+		const files = Array.from(target.files || []);
+		if (files.length > 0) {
+			photoFiles = [...photoFiles, ...files];
+			files.forEach((file) => {
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					photoPreviews = [...photoPreviews, e.target?.result as string];
+				};
+				reader.readAsDataURL(file);
+			});
 		}
 	}
 
-	function removePhoto() {
-		photoFile = null;
-		photoPreview = null;
+	function removePhoto(index: number) {
+		const existingUrlsLength = entry?.photoUrls?.length || 0;
+		if (index < existingUrlsLength) {
+			photoPreviews = photoPreviews.filter((_, i) => i !== index);
+		} else {
+			const fileIndex = index - existingUrlsLength;
+			photoFiles = photoFiles.filter((_, i) => i !== fileIndex);
+			photoPreviews = photoPreviews.filter((_, i) => i !== index);
+		}
 	}
 
 	function resetForm() {
-		selectedMealId = null;
-		selectedDate = new Date();
-		calendarDate = today(getLocalTimeZone());
-		notes = '';
+		if (entry && entry.dateCooked) {
+			selectedMealId = entry.meal.id;
+			const entryDate = typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked;
+			selectedDate = entryDate;
+			notes = entry.notes || '';
+			photoPreviews = entry.photoUrls || [];
+			const dateStr = toDateString(entryDate);
+			if (dateStr) {
+				try {
+					calendarDate = parseDate(dateStr);
+				} catch {
+					calendarDate = today(getLocalTimeZone());
+				}
+			}
+		} else {
+			selectedMealId = null;
+			selectedDate = new Date();
+			calendarDate = today(getLocalTimeZone());
+			notes = '';
+			photoPreviews = [];
+		}
 		mealSearchQuery = '';
-		photoFile = null;
-		photoPreview = null;
+		photoFiles = [];
 		datePickerOpen = false;
 		showMealSuggestions = false;
 		highlightedMealIndex = -1;
 		showOptionalFields = false;
+		isInitialized = false;
 	}
 
 
@@ -183,17 +236,17 @@
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={handleOpenChange}>
+	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>{m.quickAdd_title()}</Dialog.Title>
-			<Dialog.Description>{m.quickAdd_description()}</Dialog.Description>
+			<Dialog.Title>{isEditMode ? m.quickAdd_editTitle() : m.quickAdd_title()}</Dialog.Title>
+			<Dialog.Description>{isEditMode ? m.quickAdd_editDescription() : m.quickAdd_description()}</Dialog.Description>
 		</Dialog.Header>
 
 		<form
 			method="POST"
-			action="/entries/add"
-			enctype="multipart/form-data"
+			action={isEditMode ? undefined : '/entries/add'}
+			enctype={isEditMode ? undefined : 'multipart/form-data'}
 			use:enhance={({ formData, cancel }) => {
 				if (!selectedMealId) {
 					cancel();
@@ -202,20 +255,83 @@
 				}
 
 				isSubmitting = true;
-				formData.append('mealId', selectedMealId);
-				formData.append('dateCooked', toDateString(selectedDate) || '');
 
-				return async ({ result }) => {
-					isSubmitting = false;
-					if (result.type === 'success') {
-						resetForm();
-						open = false;
-						onOpenChange?.(false);
-						await invalidateAll();
-					} else if (result.type === 'failure') {
-						alert(result.data?.error || m.quickAdd_failedToCreate());
+				if (isEditMode && entry) {
+					const existingPhotoUrls = entry.photoUrls || [];
+					const newPhotoUrls: string[] = [];
+
+					for (let i = 0; i < photoPreviews.length; i++) {
+						const preview = photoPreviews[i];
+						if (preview.startsWith('http') || preview.startsWith('/files/')) {
+							newPhotoUrls.push(preview);
+						}
 					}
-				};
+
+					return async () => {
+						try {
+							for (const file of photoFiles) {
+								const uploadFormData = new FormData();
+								uploadFormData.append('file', file);
+								const uploadResponse = await fetch('/api/files', {
+									method: 'POST',
+									body: uploadFormData
+								});
+								if (uploadResponse.ok) {
+									const result = await uploadResponse.json();
+									newPhotoUrls.push(result.url);
+								}
+							}
+
+							const response = await fetch('/api/entries', {
+								method: 'PATCH',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									id: entry.id,
+									mealId: selectedMealId,
+									dateCooked: toDateString(selectedDate) || '',
+									notes: notes || null,
+									photoUrls: newPhotoUrls
+								})
+							});
+
+							isSubmitting = false;
+							if (response.ok) {
+								resetForm();
+								open = false;
+								onOpenChange?.(false);
+								await invalidateAll();
+							} else {
+								const error = await response.json();
+								alert(error.error || m.quickAdd_failedToUpdate());
+							}
+						} catch (error) {
+							isSubmitting = false;
+							console.error('Error updating entry:', error);
+							alert(m.quickAdd_failedToUpdate());
+						}
+					};
+				} else {
+					formData.append('mealId', selectedMealId);
+					formData.append('dateCooked', toDateString(selectedDate) || '');
+					if (notes) formData.append('notes', notes);
+					if (photoFiles.length > 0) {
+						photoFiles.forEach((file) => {
+							formData.append('photos', file);
+						});
+					}
+
+					return async ({ result }) => {
+						isSubmitting = false;
+						if (result.type === 'success') {
+							resetForm();
+							open = false;
+							onOpenChange?.(false);
+							await invalidateAll();
+						} else if (result.type === 'failure') {
+							alert(result.data?.error || m.quickAdd_failedToCreate());
+						}
+					};
+				}
 			}}
 		>
 			<div class="space-y-4">
@@ -236,6 +352,7 @@
 							<Calendar bind:value={calendarDate} type="single" />
 						</Popover.Content>
 					</Popover.Root>
+					<p class="mt-1 text-sm text-muted-foreground">{m.quickAdd_dateHint()}</p>
 				</div>
 				<div>
 					<Label>{m.quickAdd_mealRequired()}</Label>
@@ -374,42 +491,47 @@
 					<Collapsible.Content class="space-y-4 pt-2">
 						<div>
 							<Label for="notes">{m.quickAdd_notesOptional()}</Label>
-						<Textarea
-							id="notes"
-							name="notes"
-							placeholder={m.quickAdd_notesPlaceholder()}
-							bind:value={notes}
-							class="mt-2"
-							rows={3}
-						/>
+							<Textarea
+								id="notes"
+								name="notes"
+								placeholder={m.quickAdd_notesPlaceholder()}
+								bind:value={notes}
+								class="mt-2"
+								rows={3}
+							/>
 						</div>
 
 						<div>
 							<Label>{m.quickAdd_photoOptional()}</Label>
-							<div class="mt-2 space-y-2">
-								{#if photoPreview}
-									<div class="relative inline-block">
-										<img
-											src={photoPreview}
-											alt="preview"
-											class="h-24 w-24 rounded-lg border object-cover"
-										/>
-										<button
-											type="button"
-											onclick={removePhoto}
-											class="text-destructive-foreground absolute -top-2 -right-2 rounded-full bg-destructive p-1 hover:bg-destructive/90"
-										>
-											<X class="h-3 w-3" />
-										</button>
+							<div class="mt-2 space-y-3">
+								{#if photoPreviews.length > 0}
+									<div class="flex flex-wrap gap-2">
+										{#each photoPreviews as preview, index}
+											<div class="relative">
+												<img
+													src={preview}
+													alt="{m.entries_photoPreview()} {index + 1}"
+													class="h-24 w-24 rounded-lg object-cover border"
+												/>
+												<button
+													type="button"
+													onclick={() => removePhoto(index)}
+													class="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
+												>
+													<X class="h-3 w-3" />
+												</button>
+											</div>
+										{/each}
 									</div>
 								{/if}
-							<Input
-								type="file"
-								name="photos"
-								accept="image/*"
-								onchange={handlePhotoChange}
-								class="cursor-pointer"
-							/>
+								<Input
+									type="file"
+									name="photos"
+									accept="image/*"
+									multiple
+									onchange={handlePhotoChange}
+									class="cursor-pointer"
+								/>
 							</div>
 						</div>
 					</Collapsible.Content>
@@ -420,9 +542,74 @@
 				<Button type="button" variant="outline" disabled={isSubmitting} onclick={() => { open = false; }}>
 					{m.common_cancel()}
 				</Button>
-				<Button type="submit" disabled={isSubmitting || !selectedMealId}>
-					{isSubmitting ? m.quickAdd_adding() : m.quickAdd_addEntry()}
-				</Button>
+				{#if isEditMode}
+					<Button 
+						type="button" 
+						disabled={isSubmitting || !selectedMealId} 
+						onclick={async () => {
+							if (!selectedMealId || !entry) return;
+							
+							isSubmitting = true;
+							try {
+								const existingPhotoUrls = entry.photoUrls || [];
+								const newPhotoUrls: string[] = [];
+
+								for (let i = 0; i < photoPreviews.length; i++) {
+									const preview = photoPreviews[i];
+									if (preview.startsWith('http') || preview.startsWith('/files/')) {
+										newPhotoUrls.push(preview);
+									}
+								}
+
+								for (const file of photoFiles) {
+									const uploadFormData = new FormData();
+									uploadFormData.append('file', file);
+									const uploadResponse = await fetch('/api/files', {
+										method: 'POST',
+										body: uploadFormData
+									});
+									if (uploadResponse.ok) {
+										const result = await uploadResponse.json();
+										newPhotoUrls.push(result.url);
+									}
+								}
+
+								const response = await fetch('/api/entries', {
+									method: 'PATCH',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({
+										id: entry.id,
+										mealId: selectedMealId,
+										dateCooked: toDateString(selectedDate) || '',
+										notes: notes || null,
+										photoUrls: newPhotoUrls
+									})
+								});
+
+								isSubmitting = false;
+								if (response.ok) {
+									resetForm();
+									open = false;
+									onOpenChange?.(false);
+									await invalidateAll();
+								} else {
+									const error = await response.json();
+									alert(error.error || m.quickAdd_failedToUpdate());
+								}
+							} catch (error) {
+								isSubmitting = false;
+								console.error('Error updating entry:', error);
+								alert(m.quickAdd_failedToUpdate());
+							}
+						}}
+					>
+						{isSubmitting ? m.common_saving() : m.common_save()}
+					</Button>
+				{:else}
+					<Button type="submit" disabled={isSubmitting || !selectedMealId}>
+						{isSubmitting ? m.quickAdd_adding() : m.quickAdd_addEntry()}
+					</Button>
+				{/if}
 			</Dialog.Footer>
 		</form>
 	</Dialog.Content>

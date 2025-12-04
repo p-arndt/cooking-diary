@@ -1,10 +1,15 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, locals }) => {
+	// check better auth session
+	if (!locals.user) {
+		throw redirect(307, '/login');
+	}
+
 	const filename = params.filename;
 	if (!filename) {
 		throw error(400, 'Filename required');
@@ -24,7 +29,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	try {
 		const file = await readFile(filePath);
 		const ext = filename.split('.').pop()?.toLowerCase();
-		
+
 		let contentType = 'application/octet-stream';
 		if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg';
 		else if (ext === 'png') contentType = 'image/png';
@@ -42,4 +47,3 @@ export const GET: RequestHandler = async ({ params }) => {
 		throw error(500, 'Error reading file');
 	}
 };
-

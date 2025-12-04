@@ -5,7 +5,7 @@
 	import NavUser from '$lib/components/nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
-	import { LayoutDashboard, Heart, Users, ChefHat, TextAlignJustify, Settings } from '@lucide/svelte';
+	import { LayoutDashboard, Heart, Users, ChefHat, TextAlignJustify, Settings, TrendingUp } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import type { ComponentProps } from 'svelte';
 
@@ -59,7 +59,14 @@
 			items: []
 		},
 		{
-			title: 'Settings',
+			title: m.nav_analytics(),
+			url: '/analytics',
+			icon: TrendingUp,
+			isActive: isActive('/analytics'),
+			items: []
+		},
+		{
+			title: m.nav_settings(),
 			url: '/settings',
 			icon: Settings,
 			isActive: isActive('/settings'),

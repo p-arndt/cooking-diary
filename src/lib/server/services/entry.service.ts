@@ -64,6 +64,7 @@ export class EntryService {
 
 				return {
 					...entry,
+					dateCooked: new Date(entry.dateCooked),
 					meal: {
 						...meal[0],
 						categories: mealCategories
@@ -109,6 +110,7 @@ export class EntryService {
 
 				return {
 					...entry,
+					dateCooked: new Date(entry.dateCooked),
 					meal: {
 						...meal[0],
 						categories: mealCategories
@@ -170,7 +172,10 @@ export class EntryService {
 			})
 		);
 
-		return { entries: entriesWithMeals, hasMore };
+		return { 
+			entries: entriesWithMeals.map(e => ({ ...e, dateCooked: new Date(e.dateCooked) })), 
+			hasMore 
+		};
 	}
 
 	/**
@@ -232,6 +237,7 @@ export class EntryService {
 
 		return {
 			...newEntry,
+			dateCooked: new Date(newEntry.dateCooked),
 			meal: {
 				...meal[0],
 				categories: mealCategories
@@ -246,6 +252,8 @@ export class EntryService {
 		entryId: string,
 		userId: string,
 		data: {
+			mealId?: string;
+			dateCooked?: Date | string;
 			notes?: string | null;
 			photoUrls?: string[];
 		}
@@ -262,6 +270,13 @@ export class EntryService {
 			updatedAt: new Date()
 		};
 
+		if (data.mealId !== undefined) updateData.mealId = data.mealId;
+		if (data.dateCooked !== undefined) {
+			const dateStr = typeof data.dateCooked === 'string' 
+				? data.dateCooked 
+				: data.dateCooked.toISOString().split('T')[0];
+			updateData.dateCooked = dateStr;
+		}
 		if (data.notes !== undefined) updateData.notes = data.notes;
 		if (data.photoUrls !== undefined) updateData.photoUrls = data.photoUrls;
 
@@ -271,7 +286,8 @@ export class EntryService {
 			.where(eq(mealEntries.id, entryId))
 			.returning();
 
-		const meal = await db.select().from(meals).where(eq(meals.id, updated.mealId)).limit(1);
+		const finalMealId = data.mealId || existing[0].mealId;
+		const meal = await db.select().from(meals).where(eq(meals.id, finalMealId)).limit(1);
 
 		if (!meal[0]) {
 			throw new Error(`Meal not found: ${updated.mealId}`);
@@ -288,6 +304,7 @@ export class EntryService {
 
 		return {
 			...updated,
+			dateCooked: new Date(updated.dateCooked),
 			meal: {
 				...meal[0],
 				categories: mealCategories
@@ -338,6 +355,7 @@ export class EntryService {
 
 		return entries.map((entry) => ({
 			...entry,
+			dateCooked: new Date(entry.dateCooked),
 			meal: {
 				...meal[0],
 				categories: mealCategories

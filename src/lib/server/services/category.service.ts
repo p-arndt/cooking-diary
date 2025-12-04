@@ -1,6 +1,15 @@
 import { db } from '$lib/server/db';
-import { categories } from '$lib/server/db/schema';
+import { categories, mealToCategories, meals } from '$lib/server/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
+import type { MealWithCategories } from './meal.service';
+
+export type CategoryWithMeals = {
+	id: string;
+	userId: string;
+	name: string;
+	createdAt: Date;
+	meals: Array<{ id: string; title: string }>;
+};
 
 export class CategoryService {
 	/**
@@ -12,6 +21,38 @@ export class CategoryService {
 			.from(categories)
 			.where(eq(categories.userId, userId))
 			.orderBy(asc(categories.name));
+	}
+
+	/**
+	 * Get all categories for a user with their meals
+	 */
+	static async getCategoriesWithMealsByUserId(userId: string): Promise<CategoryWithMeals[]> {
+		const userCategories = await db
+			.select()
+			.from(categories)
+			.where(eq(categories.userId, userId))
+			.orderBy(asc(categories.name));
+
+		const categoriesWithMeals = await Promise.all(
+			userCategories.map(async (category) => {
+				const categoryMeals = await db
+					.select({
+						id: meals.id,
+						title: meals.title
+					})
+					.from(mealToCategories)
+					.innerJoin(meals, eq(mealToCategories.mealId, meals.id))
+					.where(and(eq(mealToCategories.categoryId, category.id), eq(meals.userId, userId)))
+					.orderBy(asc(meals.title));
+
+				return {
+					...category,
+					meals: categoryMeals
+				};
+			})
+		);
+
+		return categoriesWithMeals;
 	}
 
 	/**

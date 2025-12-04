@@ -1,6 +1,5 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-
   "common_appName": "Cooking Diary",
   "common_loading": "Loading...",
   "common_saving": "Saving...",
@@ -23,7 +22,6 @@
   "common_noResults": "No results found",
   "common_required": "Required",
   "common_optional": "optional",
-
   "common_days_sunday": "Sunday",
   "common_days_monday": "Monday",
   "common_days_tuesday": "Tuesday",
@@ -38,16 +36,13 @@
   "common_days_short_fr": "Fr",
   "common_days_short_sa": "Sa",
   "common_days_short_su": "Su",
-
   "common_difficulty_easy": "Easy",
   "common_difficulty_medium": "Medium",
   "common_difficulty_hard": "Hard",
   "common_difficulty_select": "Select difficulty",
-
   "common_time_prepTime": "Prep Time",
   "common_time_cookTime": "Cook Time",
   "common_time_difficulty": "Difficulty",
-
   "nav_navigation": "Navigation",
   "nav_dashboard": "Dashboard",
   "nav_meals": "Meals",
@@ -56,7 +51,6 @@
   "nav_settings": "Settings",
   "nav_adminPanel": "Admin Panel",
   "nav_logout": "Log out",
-
   "auth_welcome": "Welcome",
   "auth_signInToAccount": "Sign in to your account",
   "auth_createAccount": "Create Account",
@@ -85,7 +79,6 @@
   "auth_error_nameRequired": "Name is required",
   "auth_error_loginFailed": "Login failed",
   "auth_error_registrationFailed": "Registration failed",
-
   "passwordReset_forgotPassword": "Forgot Password",
   "passwordReset_enterEmailToReset": "Enter your email address and we'll send you a link to reset your password.",
   "passwordReset_sendResetLink": "Send Reset Link",
@@ -105,7 +98,6 @@
   "passwordReset_error_invalidToken": "Invalid or expired reset token",
   "passwordReset_error_tokenMissing": "No reset token provided. Please request a new password reset link.",
   "passwordReset_error_minLength": "Password must be at least 8 characters long",
-
   "passwordChange_title": "Change Password",
   "passwordChange_description": "Update your account password. All other sessions will be revoked.",
   "passwordChange_currentPassword": "Current Password",
@@ -118,7 +110,6 @@
   "passwordChange_error_currentRequired": "Current password is required",
   "passwordChange_error_failed": "Failed to change password. Please check your current password.",
   "passwordChange_error_samePassword": "New password must be different from current password",
-
   "diary_pageTitle": "Diary - Cooking Diary",
   "diary_title": "Cooking Diary",
   "diary_yourTimeline": "Your cooking timeline",
@@ -136,7 +127,6 @@
   "diary_noEntriesYet": "No entries yet. Start cooking!",
   "diary_times": "{count} times",
   "diary_notCookedYet": "This meal hasn't been cooked yet.",
-
   "meals_pageTitle": "Meals - Cooking Diary",
   "meals_title": "Meals",
   "meals_subtitle": "Your meal library",
@@ -168,7 +158,6 @@
   "meals_form_saveChanges": "Save Changes",
   "meals_form_failedToCreate": "Failed to create meal",
   "meals_form_failedToUpdate": "Failed to update meal",
-
   "entries_pageTitle": "Add Entry - Cooking Diary",
   "entries_step1_title": "Add Entry - Pick Date",
   "entries_step2_title": "Add Entry - Choose Meal",
@@ -192,7 +181,15 @@
   "entries_saveEntry": "Save Entry",
   "entries_pleaseSelectMealAndDate": "Please select a meal and date",
   "entries_failedToCreate": "Failed to create entry",
-
+  "entries_failedToUpdate": "Failed to update entry",
+  "entries_failedToDelete": "Failed to delete entry",
+  "entries_edit": "Edit",
+  "entries_delete": "Delete",
+  "entries_editEntry": "Edit Entry",
+  "entries_editEntryDescription": "Update the notes and photos for this entry",
+  "entries_deleteTitle": "Delete Entry",
+  "entries_deleteDescription": "Are you sure you want to delete this entry? This action cannot be undone.",
+  "entries_dateHint": "You can select any date, including past dates to add entries you forgot to log",
   "categories_pageTitle": "Categories - Cooking Diary",
   "categories_title": "Categories",
   "categories_subtitle": "Manage your meal categories",
@@ -208,7 +205,9 @@
   "categories_noCategoriesAvailable": "No categories available",
   "categories_searchPlaceholder": "Search categories...",
   "categories_create": "Create \"{name}\"",
-
+  "categories_mealCount_one": "{count} meal",
+  "categories_mealCount_other": "{count} meals",
+  "categories_noMeals": "No meals in this category",
   "settings_pageTitle": "Settings - Cooking Diary",
   "settings_title": "Settings",
   "settings_subtitle": "Customize your cooking diary experience",
@@ -232,7 +231,6 @@
   "settings_basedOnEntries": "Based on {count} cooking entries",
   "settings_cookedTimesOnDay": "Cooked {count} times on {day}s",
   "settings_noPatternYet": "No pattern yet",
-
   "quickAdd_title": "Quick Add Entry",
   "quickAdd_description": "Quickly add a meal entry to your diary",
   "quickAdd_date": "Date",
@@ -248,11 +246,47 @@
   "quickAdd_addEntry": "Add Entry",
   "quickAdd_pleaseSelectMeal": "Please select a meal",
   "quickAdd_failedToCreate": "Failed to create entry",
-
+  "quickAdd_failedToUpdate": "Failed to update entry",
+  "quickAdd_editTitle": "Edit Entry",
+  "quickAdd_editDescription": "Update the meal, date, notes, and photos for this entry",
+  "quickAdd_dateHint": "You can select any date, including past dates to add entries you forgot to log",
   "randomMeal_whatShouldICook": "What should I cook today?",
   "randomMeal_pickingMeal": "Picking a meal...",
   "randomMeal_howAboutThis": "How about this?",
   "randomMeal_cookToday": "Cook Today",
-
-  "mealCard_photoIcon": "📷"
+  "mealCard_photoIcon": "📷",
+  "settings_account": "Account",
+  "nav_analytics": "Analytics",
+  "analytics_pageTitle": "Analytics - Cooking Diary",
+  "analytics_title": "Analytics",
+  "analytics_subtitle": "Insights into your cooking habits and patterns",
+  "analytics_cookingPatterns": "Your Cooking Patterns",
+  "analytics_basedOnEntries": "Based on {count} cooking entries",
+  "analytics_cookedTimesOnDay": "Cooked {count} times on {day}s",
+  "analytics_noPatternYet": "No pattern yet",
+  "analytics_needMoreEntries": "Start adding entries to see your cooking patterns here",
+  "analytics_totalEntries": "Total Entries",
+  "analytics_totalMeals": "Total Meals",
+  "analytics_totalCategories": "Total Categories",
+  "analytics_avgPerWeek": "Avg per Week",
+  "analytics_topMeals": "Most Cooked Meals",
+  "analytics_topMealsDescription": "Your most frequently cooked meals",
+  "analytics_categoryUsage": "Category Usage",
+  "analytics_categoryUsageDescription": "How often you cook meals from each category",
+  "analytics_photoStats": "Photo Statistics",
+  "analytics_photoStatsDescription": "How many entries include photos",
+  "analytics_timeframe": "Timeframe",
+  "analytics_timeframeDescription": "Your cooking activity timeline",
+  "analytics_monthlyActivity": "Monthly Activity",
+  "analytics_monthlyActivityDescription": "Entries per month over the last year",
+  "analytics_entriesWithPhotos": "Entries with Photos",
+  "analytics_entriesWithNotes": "Entries with Notes",
+  "analytics_firstEntry": "First Entry",
+  "analytics_lastEntry": "Last Entry",
+  "analytics_mostActiveDay": "Most Active Day",
+  "analytics_times": "{count} times",
+  "analytics_mealsInCategory": "{count} meal{count === 1 ? '' : 's'}",
+  "analytics_of": "of",
+  "analytics_entries": "entries",
+  "analytics_noData": "No data available"
 }

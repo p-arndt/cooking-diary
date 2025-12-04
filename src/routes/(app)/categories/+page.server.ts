@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/login');
 	}
 
-	const categories = await CategoryService.getCategoriesByUserId(locals.user.id);
+	const categories = await CategoryService.getCategoriesWithMealsByUserId(locals.user.id);
 
 	return {
 		user: locals.user,

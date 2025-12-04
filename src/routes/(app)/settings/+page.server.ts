@@ -2,24 +2,21 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { SettingsService } from '$lib/server/services/settings.service';
 import { CategoryService } from '$lib/server/services/category.service';
-import { AnalyticsService } from '$lib/server/services/analytics.service';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
 
-	const [settings, categories, patternsSummary] = await Promise.all([
+	const [settings, categories] = await Promise.all([
 		SettingsService.getSettings(locals.user.id),
-		CategoryService.getCategoriesByUserId(locals.user.id),
-		AnalyticsService.getCookingPatternsSummary(locals.user.id)
+		CategoryService.getCategoriesByUserId(locals.user.id)
 	]);
 
 	return {
 		user: locals.user,
 		settings,
-		categories,
-		patternsSummary
+		categories
 	};
 };
 

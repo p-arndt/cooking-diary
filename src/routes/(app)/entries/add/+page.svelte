@@ -152,6 +152,7 @@
 							}}
 							class="mt-2"
 						/>
+						<p class="mt-1 text-sm text-muted-foreground">{m.entries_dateHint()}</p>
 					</div>
 					<div class="flex justify-end gap-2">
 						<Button variant="outline" onclick={() => goto('/')}>{m.common_cancel()}</Button>

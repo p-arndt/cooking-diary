@@ -1,6 +1,5 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-
   "common_appName": "Kochtagebuch",
   "common_loading": "Wird geladen...",
   "common_saving": "Wird gespeichert...",
@@ -23,7 +22,6 @@
   "common_noResults": "Keine Ergebnisse gefunden",
   "common_required": "Erforderlich",
   "common_optional": "optional",
-
   "common_days_sunday": "Sonntag",
   "common_days_monday": "Montag",
   "common_days_tuesday": "Dienstag",
@@ -38,16 +36,13 @@
   "common_days_short_fr": "Fr",
   "common_days_short_sa": "Sa",
   "common_days_short_su": "So",
-
   "common_difficulty_easy": "Einfach",
   "common_difficulty_medium": "Mittel",
   "common_difficulty_hard": "Schwer",
   "common_difficulty_select": "Schwierigkeit wählen",
-
   "common_time_prepTime": "Vorbereitungszeit",
   "common_time_cookTime": "Kochzeit",
   "common_time_difficulty": "Schwierigkeit",
-
   "nav_navigation": "Navigation",
   "nav_dashboard": "Dashboard",
   "nav_meals": "Gerichte",
@@ -56,7 +51,6 @@
   "nav_settings": "Einstellungen",
   "nav_adminPanel": "Admin-Bereich",
   "nav_logout": "Abmelden",
-
   "auth_welcome": "Willkommen",
   "auth_signInToAccount": "Melden Sie sich bei Ihrem Konto an",
   "auth_createAccount": "Konto erstellen",
@@ -85,7 +79,6 @@
   "auth_error_nameRequired": "Name ist erforderlich",
   "auth_error_loginFailed": "Anmeldung fehlgeschlagen",
   "auth_error_registrationFailed": "Registrierung fehlgeschlagen",
-
   "passwordReset_forgotPassword": "Passwort vergessen",
   "passwordReset_enterEmailToReset": "Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.",
   "passwordReset_sendResetLink": "Reset-Link senden",
@@ -105,7 +98,6 @@
   "passwordReset_error_invalidToken": "Ungültiger oder abgelaufener Reset-Token",
   "passwordReset_error_tokenMissing": "Kein Reset-Token vorhanden. Bitte fordere einen neuen Passwort-Reset-Link an.",
   "passwordReset_error_minLength": "Passwort muss mindestens 8 Zeichen lang sein",
-
   "passwordChange_title": "Passwort ändern",
   "passwordChange_description": "Aktualisiere dein Kontopasswort. Alle anderen Sitzungen werden beendet.",
   "passwordChange_currentPassword": "Aktuelles Passwort",
@@ -118,7 +110,6 @@
   "passwordChange_error_currentRequired": "Aktuelles Passwort ist erforderlich",
   "passwordChange_error_failed": "Passwort konnte nicht geändert werden. Bitte überprüfe dein aktuelles Passwort.",
   "passwordChange_error_samePassword": "Neues Passwort muss sich vom aktuellen Passwort unterscheiden",
-
   "diary_pageTitle": "Tagebuch - Kochtagebuch",
   "diary_title": "Kochtagebuch",
   "diary_yourTimeline": "Deine Koch-Timeline",
@@ -136,7 +127,6 @@
   "diary_noEntriesYet": "Noch keine Einträge. Fang an zu kochen!",
   "diary_times": "{count} mal",
   "diary_notCookedYet": "Dieses Gericht wurde noch nicht gekocht.",
-
   "meals_pageTitle": "Gerichte - Kochtagebuch",
   "meals_title": "Gerichte",
   "meals_subtitle": "Deine Rezeptsammlung",
@@ -168,7 +158,6 @@
   "meals_form_saveChanges": "Änderungen speichern",
   "meals_form_failedToCreate": "Gericht konnte nicht erstellt werden",
   "meals_form_failedToUpdate": "Gericht konnte nicht aktualisiert werden",
-
   "entries_pageTitle": "Eintrag hinzufügen - Kochtagebuch",
   "entries_step1_title": "Eintrag hinzufügen - Datum wählen",
   "entries_step2_title": "Eintrag hinzufügen - Gericht wählen",
@@ -192,7 +181,15 @@
   "entries_saveEntry": "Eintrag speichern",
   "entries_pleaseSelectMealAndDate": "Bitte wähle ein Gericht und ein Datum",
   "entries_failedToCreate": "Eintrag konnte nicht erstellt werden",
-
+  "entries_failedToUpdate": "Eintrag konnte nicht aktualisiert werden",
+  "entries_failedToDelete": "Eintrag konnte nicht gelöscht werden",
+  "entries_edit": "Bearbeiten",
+  "entries_delete": "Löschen",
+  "entries_editEntry": "Eintrag bearbeiten",
+  "entries_editEntryDescription": "Aktualisiere die Notizen und Fotos für diesen Eintrag",
+  "entries_deleteTitle": "Eintrag löschen",
+  "entries_deleteDescription": "Bist du sicher, dass du diesen Eintrag löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "entries_dateHint": "Du kannst jedes Datum auswählen, auch vergangene Daten, um Einträge hinzuzufügen, die du vergessen hast zu loggen",
   "categories_pageTitle": "Kategorien - Kochtagebuch",
   "categories_title": "Kategorien",
   "categories_subtitle": "Verwalte deine Gerichtkategorien",
@@ -208,7 +205,9 @@
   "categories_noCategoriesAvailable": "Keine Kategorien verfügbar",
   "categories_searchPlaceholder": "Kategorien suchen...",
   "categories_create": "\"{name}\" erstellen",
-
+  "categories_mealCount_one": "{count} Gericht",
+  "categories_mealCount_other": "{count} Gerichte",
+  "categories_noMeals": "Keine Gerichte in dieser Kategorie",
   "settings_pageTitle": "Einstellungen - Kochtagebuch",
   "settings_title": "Einstellungen",
   "settings_subtitle": "Passe dein Kochtagebuch an",
@@ -232,7 +231,6 @@
   "settings_basedOnEntries": "Basierend auf {count} Kocheinträgen",
   "settings_cookedTimesOnDay": "{count} mal {day}s gekocht",
   "settings_noPatternYet": "Noch kein Muster",
-
   "quickAdd_title": "Schneller Eintrag",
   "quickAdd_description": "Füge schnell einen Gerichteintrag zu deinem Tagebuch hinzu",
   "quickAdd_date": "Datum",
@@ -248,11 +246,47 @@
   "quickAdd_addEntry": "Eintrag hinzufügen",
   "quickAdd_pleaseSelectMeal": "Bitte wähle ein Gericht",
   "quickAdd_failedToCreate": "Eintrag konnte nicht erstellt werden",
-
+  "quickAdd_failedToUpdate": "Eintrag konnte nicht aktualisiert werden",
+  "quickAdd_editTitle": "Eintrag bearbeiten",
+  "quickAdd_editDescription": "Aktualisiere das Gericht, Datum, Notizen und Fotos für diesen Eintrag",
+  "quickAdd_dateHint": "Du kannst jedes Datum auswählen, auch vergangene Daten, um Einträge hinzuzufügen, die du vergessen hast zu loggen",
   "randomMeal_whatShouldICook": "Was soll ich heute kochen?",
   "randomMeal_pickingMeal": "Wähle ein Gericht...",
   "randomMeal_howAboutThis": "Wie wäre es damit?",
   "randomMeal_cookToday": "Heute kochen",
-
-  "mealCard_photoIcon": "📷"
+  "mealCard_photoIcon": "📷",
+  "settings_account": "Konto",
+  "nav_analytics": "Analysen",
+  "analytics_pageTitle": "Analysen - Kochtagebuch",
+  "analytics_title": "Analysen",
+  "analytics_subtitle": "Einblicke in deine Kochgewohnheiten und Muster",
+  "analytics_cookingPatterns": "Deine Kochmuster",
+  "analytics_basedOnEntries": "Basierend auf {count} Kocheinträgen",
+  "analytics_cookedTimesOnDay": "{count} mal {day}s gekocht",
+  "analytics_noPatternYet": "Noch kein Muster",
+  "analytics_needMoreEntries": "Beginne Einträge hinzuzufügen, um deine Kochmuster hier zu sehen",
+  "analytics_totalEntries": "Gesamte Einträge",
+  "analytics_totalMeals": "Gesamte Gerichte",
+  "analytics_totalCategories": "Gesamte Kategorien",
+  "analytics_avgPerWeek": "Ø pro Woche",
+  "analytics_topMeals": "Häufigste Gerichte",
+  "analytics_topMealsDescription": "Deine am häufigsten gekochten Gerichte",
+  "analytics_categoryUsage": "Kategorienutzung",
+  "analytics_categoryUsageDescription": "Wie oft du Gerichte aus jeder Kategorie kochst",
+  "analytics_photoStats": "Foto-Statistiken",
+  "analytics_photoStatsDescription": "Wie viele Einträge Fotos enthalten",
+  "analytics_timeframe": "Zeitraum",
+  "analytics_timeframeDescription": "Deine Kochaktivitäts-Timeline",
+  "analytics_monthlyActivity": "Monatliche Aktivität",
+  "analytics_monthlyActivityDescription": "Einträge pro Monat im letzten Jahr",
+  "analytics_entriesWithPhotos": "Einträge mit Fotos",
+  "analytics_entriesWithNotes": "Einträge mit Notizen",
+  "analytics_firstEntry": "Erster Eintrag",
+  "analytics_lastEntry": "Letzter Eintrag",
+  "analytics_mostActiveDay": "Aktivster Tag",
+  "analytics_times": "{count} mal",
+  "analytics_mealsInCategory": "{count} Gericht{count === 1 ? '' : 'e'}",
+  "analytics_of": "von",
+  "analytics_entries": "Einträgen",
+  "analytics_noData": "Keine Daten verfügbar"
 }

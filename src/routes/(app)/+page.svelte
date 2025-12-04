@@ -387,7 +387,7 @@
 					{#if selectedDate}
 						{#if entriesForSelectedDate.length > 0}
 							{#each entriesForSelectedDate as entry}
-								<MealEntryCard {entry} />
+								<MealEntryCard {entry} meals={data.meals} />
 							{/each}
 						{:else}
 							<p class="text-sm text-muted-foreground">{m.diary_noEntriesForDate()}</p>
@@ -416,7 +416,7 @@
 						</h2>
 						<div class="space-y-3">
 							{#each entries as entry}
-								<MealEntryCard {entry} />
+								<MealEntryCard {entry} meals={data.meals} />
 							{/each}
 						</div>
 					</div>

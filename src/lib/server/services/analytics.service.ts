@@ -184,5 +184,227 @@ export class AnalyticsService {
 			totalEntriesAnalyzed
 		};
 	}
+
+	/**
+	 * Get general statistics for the user
+	 */
+	static async getGeneralStatistics(userId: string): Promise<{
+		totalEntries: number;
+		totalMeals: number;
+		totalCategories: number;
+		entriesWithPhotos: number;
+		entriesWithNotes: number;
+		firstEntryDate: Date | null;
+		lastEntryDate: Date | null;
+		averageEntriesPerWeek: number;
+		mostActiveDay: string | null;
+	}> {
+		try {
+			const [entriesStats, mealsCount, categoriesCount, entriesData] = await Promise.all([
+				db.execute(sql`
+					SELECT 
+						COUNT(*)::int as total,
+						COUNT(CASE WHEN photo_urls IS NOT NULL AND array_length(photo_urls, 1) > 0 THEN 1 END)::int as with_photos,
+						COUNT(CASE WHEN notes IS NOT NULL AND notes != '' THEN 1 END)::int as with_notes,
+						MIN(date_cooked)::date as first_date,
+						MAX(date_cooked)::date as last_date
+					FROM meal_entries
+					WHERE user_id = ${userId}
+				`),
+				db.execute(sql`
+					SELECT COUNT(*)::int as total
+					FROM meals
+					WHERE user_id = ${userId}
+				`),
+				db.execute(sql`
+					SELECT COUNT(DISTINCT c.id)::int as total
+					FROM categories c
+					WHERE c.user_id = ${userId}
+				`),
+				db.execute(sql`
+					SELECT 
+						EXTRACT(DOW FROM date_cooked::date)::int as day_of_week,
+						COUNT(*)::int as count
+					FROM meal_entries
+					WHERE user_id = ${userId}
+					GROUP BY EXTRACT(DOW FROM date_cooked::date)
+					ORDER BY count DESC
+					LIMIT 1
+				`)
+			]);
+
+			const entriesResult = Array.isArray(entriesStats) ? entriesStats : [entriesStats];
+			const mealsResult = Array.isArray(mealsCount) ? mealsCount : [mealsCount];
+			const categoriesResult = Array.isArray(categoriesCount) ? categoriesCount : [categoriesCount];
+			const dayResult = Array.isArray(entriesData) ? entriesData : entriesData ? [entriesData] : [];
+
+			const e = (entriesResult[0] || {}) as Record<string, unknown>;
+			const m = (mealsResult[0] || {}) as Record<string, unknown>;
+			const c = (categoriesResult[0] || {}) as Record<string, unknown>;
+			const d = (dayResult[0] || {}) as Record<string, unknown> | undefined;
+
+			const totalEntries = parseInt(String(e.total || 0));
+			const firstDate = e.first_date ? new Date(String(e.first_date)) : null;
+			const lastDate = e.last_date ? new Date(String(e.last_date)) : null;
+
+			let averageEntriesPerWeek = 0;
+			if (firstDate && lastDate && totalEntries > 0) {
+				const daysDiff = Math.max(1, Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)));
+				const weeks = daysDiff / 7;
+				averageEntriesPerWeek = weeks > 0 ? Math.round((totalEntries / weeks) * 10) / 10 : 0;
+			}
+
+			const mostActiveDay = d ? DAY_NAMES[parseInt(String(d.day_of_week))] : null;
+
+			return {
+				totalEntries,
+				totalMeals: parseInt(String(m.total || 0)),
+				totalCategories: parseInt(String(c.total || 0)),
+				entriesWithPhotos: parseInt(String(e.with_photos || 0)),
+				entriesWithNotes: parseInt(String(e.with_notes || 0)),
+				firstEntryDate: firstDate,
+				lastEntryDate: lastDate,
+				averageEntriesPerWeek,
+				mostActiveDay
+			};
+		} catch (error) {
+			console.error('Error getting general statistics:', error);
+			return {
+				totalEntries: 0,
+				totalMeals: 0,
+				totalCategories: 0,
+				entriesWithPhotos: 0,
+				entriesWithNotes: 0,
+				firstEntryDate: null,
+				lastEntryDate: null,
+				averageEntriesPerWeek: 0,
+				mostActiveDay: null
+			};
+		}
+	}
+
+	/**
+	 * Get top meals by entry count
+	 */
+	static async getTopMeals(userId: string, limit: number = 10): Promise<
+		Array<{
+			mealId: string;
+			mealTitle: string;
+			count: number;
+		}>
+	> {
+		try {
+			const result = await db.execute(sql`
+				SELECT 
+					m.id as meal_id,
+					m.title as meal_title,
+					COUNT(*) as count
+				FROM meal_entries me
+				INNER JOIN meals m ON m.id = me.meal_id
+				WHERE me.user_id = ${userId}
+				GROUP BY m.id, m.title
+				ORDER BY count DESC
+				LIMIT ${limit}
+			`);
+
+			const rows = Array.isArray(result) ? result : [];
+			return rows.map((row) => {
+				const r = row as Record<string, unknown>;
+				return {
+					mealId: String(r.meal_id),
+					mealTitle: String(r.meal_title),
+					count: parseInt(String(r.count))
+				};
+			});
+		} catch (error) {
+			console.error('Error getting top meals:', error);
+			return [];
+		}
+	}
+
+	/**
+	 * Get category usage statistics
+	 */
+	static async getCategoryStatistics(userId: string): Promise<
+		Array<{
+			categoryId: string;
+			categoryName: string;
+			entryCount: number;
+			mealCount: number;
+		}>
+	> {
+		try {
+			const result = await db.execute(sql`
+				SELECT 
+					c.id as category_id,
+					c.name as category_name,
+					COUNT(DISTINCT me.id) as entry_count,
+					COUNT(DISTINCT m.id) as meal_count
+				FROM categories c
+				LEFT JOIN meal_to_categories mtc ON mtc.category_id = c.id
+				LEFT JOIN meals m ON m.id = mtc.meal_id AND m.user_id = ${userId}
+				LEFT JOIN meal_entries me ON me.meal_id = m.id AND me.user_id = ${userId}
+				WHERE c.user_id = ${userId}
+				GROUP BY c.id, c.name
+				ORDER BY entry_count DESC, meal_count DESC
+			`);
+
+			const rows = Array.isArray(result) ? result : [];
+			return rows.map((row) => {
+				const r = row as Record<string, unknown>;
+				return {
+					categoryId: String(r.category_id),
+					categoryName: String(r.category_name),
+					entryCount: parseInt(String(r.entry_count || 0)),
+					mealCount: parseInt(String(r.meal_count || 0))
+				};
+			});
+		} catch (error) {
+			console.error('Error getting category statistics:', error);
+			return [];
+		}
+	}
+
+	/**
+	 * Get entries per month for the last 12 months
+	 */
+	static async getMonthlyStatistics(userId: string): Promise<
+		Array<{
+			year: number;
+			month: number;
+			monthName: string;
+			count: number;
+		}>
+	> {
+		try {
+			const result = await db.execute(sql`
+				SELECT 
+					EXTRACT(YEAR FROM date_cooked::date) as year,
+					EXTRACT(MONTH FROM date_cooked::date) as month,
+					TO_CHAR(date_cooked::date, 'Month') as month_name,
+					COUNT(*) as count
+				FROM meal_entries
+				WHERE user_id = ${userId}
+					AND date_cooked >= CURRENT_DATE - INTERVAL '12 months'
+				GROUP BY EXTRACT(YEAR FROM date_cooked::date), EXTRACT(MONTH FROM date_cooked::date), TO_CHAR(date_cooked::date, 'Month')
+				ORDER BY year DESC, month DESC
+				LIMIT 12
+			`);
+
+			const rows = Array.isArray(result) ? result : [];
+			return rows.map((row) => {
+				const r = row as Record<string, unknown>;
+				return {
+					year: parseInt(String(r.year)),
+					month: parseInt(String(r.month)),
+					monthName: String(r.month_name).trim(),
+					count: parseInt(String(r.count))
+				};
+			});
+		} catch (error) {
+			console.error('Error getting monthly statistics:', error);
+			return [];
+		}
+	}
 }
 
