@@ -47,12 +47,12 @@
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div>
-			<h1 class="text-4xl font-bold tracking-tight">{m.categories_title()}</h1>
+			<h1 class="text-3xl sm:text-4xl font-bold tracking-tight">{m.categories_title()}</h1>
 			<p class="mt-1 text-muted-foreground">{m.categories_subtitle()}</p>
 		</div>
-		<Button onclick={() => (showAddDialog = true)}>
+		<Button onclick={() => (showAddDialog = true)} class="w-full sm:w-auto">
 			<Plus class="mr-2 h-4 w-4" />
 			{m.categories_addCategory()}
 		</Button>
@@ -60,11 +60,11 @@
 
 	{#if data.categories.length > 0}
 		<Card>
-			<CardContent>
+			<CardContent class="p-0">
 				<div class="divide-y">
 					{#each data.categories as category}
-						<div class="px-4 py-3">
-							<div class="flex items-center justify-between">
+						<div class="px-3 py-3 sm:px-4">
+							<div class="flex items-center justify-between gap-2">
 								{#if editingCategory?.id === category.id}
 									<form
 										method="POST"
@@ -90,47 +90,49 @@
 										>
 									</form>
 								{:else}
-									<div class="flex flex-1 items-center gap-2">
+									<div class="flex flex-1 min-w-0 items-center gap-2">
 										{#if category.meals.length > 0}
 											<button
 												type="button"
 												onclick={() => toggleCategory(category.id)}
-												class="flex items-center justify-center rounded-sm p-1 transition-colors hover:bg-accent"
+												class="flex items-center justify-center rounded-sm p-2 -ml-2 transition-colors hover:bg-accent touch-manipulation"
 											>
 												{#if expandedCategories.has(category.id)}
-													<ChevronDown class="h-4 w-4" />
+													<ChevronDown class="h-5 w-5" />
 												{:else}
-													<ChevronRight class="h-4 w-4" />
+													<ChevronRight class="h-5 w-5" />
 												{/if}
 											</button>
 										{:else}
-											<div class="w-6"></div>
+											<div class="w-6 sm:w-6"></div>
 										{/if}
-										<span class="font-medium">{category.name}</span>
+										<span class="font-medium truncate flex-1 min-w-0">{category.name}</span>
 										{#if category.meals.length > 0}
-											<Badge variant="secondary" class="text-xs">
+											<Badge variant="secondary" class="text-xs shrink-0">
 												{category.meals.length === 1
 													? m.categories_mealCount_one({ count: category.meals.length })
 													: m.categories_mealCount_other({ count: category.meals.length })}
 											</Badge>
 										{/if}
 									</div>
-									<div class="flex gap-1">
+									<div class="flex gap-2 shrink-0">
 										<Button
 											size="icon"
 											variant="ghost"
-											class="h-8 w-8"
+											class="h-10 w-10 sm:h-9 sm:w-9 touch-manipulation"
 											onclick={() => startEdit(category)}
+											aria-label={m.common_edit()}
 										>
-											<Edit class="h-4 w-4" />
+											<Edit class="h-5 w-5 sm:h-4 sm:w-4" />
 										</Button>
 										<Button
 											size="icon"
 											variant="ghost"
-											class="h-8 w-8 text-destructive hover:text-destructive"
+											class="h-10 w-10 sm:h-9 sm:w-9 text-destructive hover:text-destructive touch-manipulation"
 											onclick={() => (deleteCategoryId = category.id)}
+											aria-label={m.common_delete()}
 										>
-											<Trash2 class="h-4 w-4" />
+											<Trash2 class="h-5 w-5 sm:h-4 sm:w-4" />
 										</Button>
 									</div>
 								{/if}
@@ -139,20 +141,20 @@
 								<Collapsible.Root open={expandedCategories.has(category.id)}>
 									<Collapsible.Content>
 										{#if category.meals.length > 0}
-											<div class="ml-8 mt-2 space-y-1">
+											<div class="ml-6 sm:ml-8 mt-2 space-y-1">
 												{#each category.meals as meal}
 													<button
 														type="button"
 														onclick={() => goto(`/meals/${meal.id}`)}
-														class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+														class="flex w-full items-center gap-2 rounded-md px-2 py-2 sm:py-1.5 text-left text-sm transition-colors hover:bg-accent active:bg-accent touch-manipulation"
 													>
-														<ChefHat class="h-4 w-4 text-muted-foreground" />
-														<span class="flex-1">{meal.title}</span>
+														<ChefHat class="h-4 w-4 text-muted-foreground shrink-0" />
+														<span class="flex-1 truncate">{meal.title}</span>
 													</button>
 												{/each}
 											</div>
 										{:else}
-											<div class="ml-8 mt-2 text-sm text-muted-foreground">
+											<div class="ml-6 sm:ml-8 mt-2 text-sm text-muted-foreground">
 												{m.categories_noMeals()}
 											</div>
 										{/if}

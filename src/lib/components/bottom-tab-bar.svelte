@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import { m } from '$lib/paraglide/messages';
-	import { LayoutDashboard, ChefHat, TextAlignJustify, Settings, TrendingUp } from '@lucide/svelte';
+	import { ChefHat, LayoutDashboard, Settings, TextAlignJustify, TrendingUp } from '@lucide/svelte';
 
 	type NavItem = {
 		title: string;
