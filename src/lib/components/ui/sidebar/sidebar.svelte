@@ -34,27 +34,7 @@
 		{@render children?.()}
 	</div>
 {:else if sidebar.isMobile}
-	<Sheet.Root
-		bind:open={() => sidebar.openMobile, (v) => sidebar.setOpenMobile(v)}
-		{...restProps}
-	>
-		<Sheet.Content
-			data-sidebar="sidebar"
-			data-slot="sidebar"
-			data-mobile="true"
-			class="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-			style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE};"
-			{side}
-		>
-			<Sheet.Header class="sr-only">
-				<Sheet.Title>Sidebar</Sheet.Title>
-				<Sheet.Description>Displays the mobile sidebar.</Sheet.Description>
-			</Sheet.Header>
-			<div class="flex h-full w-full flex-col">
-				{@render children?.()}
-			</div>
-		</Sheet.Content>
-	</Sheet.Root>
+	<!-- Mobile sidebar hidden - using bottom tab bar instead -->
 {:else}
 	<div
 		bind:this={ref}

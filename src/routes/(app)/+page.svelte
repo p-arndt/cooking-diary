@@ -10,6 +10,7 @@
 	import QuickAddEntryDialog from '$lib/components/quick-add-entry-dialog.svelte';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
 	import RandomMealSuggestion from '$lib/components/random-meal-suggestion.svelte';
+	import FloatingActionButton from '$lib/components/floating-action-button.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	type Props = {
@@ -448,12 +449,6 @@
 	{/if}
 </div>
 
-<button
-	class="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl"
-	onclick={() => openAddEntry()}
-	aria-label={m.diary_addEntry()}
->
-	<Plus class="h-6 w-6" />
-</button>
+<FloatingActionButton icon={Plus} label={m.diary_addEntry()} onclick={() => openAddEntry()} />
 
 <QuickAddEntryDialog meals={data.meals} bind:open={showQuickAddDialog} />

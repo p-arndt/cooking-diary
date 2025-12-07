@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
+	import FloatingActionButton from '$lib/components/floating-action-button.svelte';
 	import { Check, ChefHat, ChevronsUpDown, Plus, Search, X } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import type { PageData } from './$types';
@@ -199,10 +200,4 @@
 	{/if}
 </div>
 
-<button
-	class="fixed right-8 bottom-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl"
-	onclick={() => goto('/meals/new')}
-	aria-label={m.meals_addMeal()}
->
-	<Plus class="h-6 w-6" />
-</button>
+<FloatingActionButton icon={Plus} label={m.meals_addMeal()} onclick={() => goto('/meals/new')} />
