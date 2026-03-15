@@ -40,7 +40,9 @@ export const authHandle: Handle = async ({ event, resolve }) => {
 
 	const urlPathname = event.url.pathname;
 
-	if (!session?.user?.id && urlPathname !== '/login' && urlPathname !== '/register') {
+	const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
+
+	if (!session?.user?.id && !publicPaths.includes(urlPathname)) {
 		return redirect(302, '/login');
 	}
 
