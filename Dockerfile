@@ -22,7 +22,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod
 
 
-FROM gcr.io/distroless/nodejs24-debian12:nonroot AS production
+FROM gcr.io/distroless/nodejs24-debian13:nonroot AS production
 WORKDIR /app
 
 COPY --from=prod-dependencies /app/node_modules /app/node_modules
