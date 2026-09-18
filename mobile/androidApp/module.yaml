@@ -1,0 +1,20 @@
+product: android/app
+
+dependencies:
+  - //shared
+  - $libs.androidx.activity.compose
+  - $compose.preview
+  - $compose.uiTooling
+
+settings:
+  compose: enabled
+  android:
+    namespace: de.parndt.cooking_diary
+    applicationId: de.parndt.cooking_diary
+    # Google Play rejects uploads whose versionCode isn't higher than the last one.
+    versionCode: 1
+    versionName: 1.0.0
+    # Release builds are signed with the upload key referenced in keystore.properties
+    # (gitignored, copy keystore.properties.example). Debug builds use the debug key.
+    signing:
+      enabled: true

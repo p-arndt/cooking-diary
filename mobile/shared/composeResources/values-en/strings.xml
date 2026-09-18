@@ -1,0 +1,153 @@
+<resources>
+    <string name="app_name">Cooking Diary</string>
+    <string name="login_welcome">Welcome back</string>
+    <string name="login_create_account">Create account</string>
+    <string name="login_subtitle">Your personal diary for everything you cook.</string>
+    <string name="login_server">Server</string>
+    <string name="login_name">Name</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_submit">Sign in</string>
+    <string name="login_register_submit">Sign up</string>
+    <string name="login_to_register">No account yet? Sign up</string>
+    <string name="login_to_login">Already have an account? Sign in</string>
+    <string name="login_failed">Sign-in failed</string>
+    <string name="error_network">Server unreachable</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="retry">Try again</string>
+    <string name="nav_diary">Diary</string>
+    <string name="nav_meals">Meals</string>
+    <string name="nav_analytics">Stats</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_add_entry">Add entry</string>
+    <string name="greeting_morning">Good morning, %1$s</string>
+    <string name="greeting_afternoon">Good afternoon, %1$s</string>
+    <string name="greeting_evening">Good evening, %1$s</string>
+    <string name="suggest_title">What should I cook today?</string>
+    <string name="suggest_subtitle">Get inspired by your own dishes</string>
+    <string name="suggest_shuffle">Shuffle</string>
+    <string name="suggest_picking">Picking a meal…</string>
+    <string name="suggest_how_about">How about this?</string>
+    <string name="suggest_cook_today">Cook today</string>
+    <string name="suggest_empty">Add meals to get suggestions</string>
+    <string name="stat_entries">Entries</string>
+    <string name="stat_meals">Meals</string>
+    <string name="stat_per_week">per week</string>
+    <string name="stat_categories">Categories</string>
+    <string name="stat_with_photos">with photo</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="diary_empty">No entries yet. Start cooking!</string>
+    <string name="diary_end">You\'ve reached the end</string>
+    <string name="meals_search">Search meals…</string>
+    <string name="meals_empty">No meals yet</string>
+    <string name="meals_new">New meal</string>
+    <string name="meals_edit">Edit meal</string>
+    <string name="meals_cooked_times">Cooked %1$d×</string>
+    <string name="meals_never_cooked">Never cooked</string>
+    <string name="meals_history">Cooked on</string>
+    <string name="meals_notes">Notes</string>
+    <string name="meals_delete_confirm">Delete meal? All its entries will be deleted too.</string>
+    <string name="field_title">Title</string>
+    <string name="field_notes">Notes</string>
+    <string name="field_prep_time">Prep time</string>
+    <string name="field_cook_time">Cook time</string>
+    <string name="field_difficulty">Difficulty</string>
+    <string name="field_categories">Categories</string>
+    <string name="field_photo">Photo</string>
+    <string name="field_date">Date</string>
+    <string name="field_meal">Meal</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_medium">Medium</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="add">Add</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="entry_new">New entry</string>
+    <string name="entry_edit">Edit entry</string>
+    <string name="entry_pick_meal">What did you cook?</string>
+    <string name="entry_new_meal_named">Create “%1$s” as a new meal</string>
+    <string name="entry_add_photo">Add photo</string>
+    <string name="entry_notes_placeholder">How was it? What would you change next time?</string>
+    <string name="entry_delete_confirm">Really delete this entry?</string>
+    <string name="entry_other_date">Other date</string>
+    <string name="entry_uploading">Uploading photo…</string>
+    <string name="analytics_title">Stats</string>
+    <string name="analytics_monthly">Entries per month</string>
+    <string name="analytics_top_meals">Favourite meals</string>
+    <string name="analytics_categories">Categories</string>
+    <string name="analytics_most_active">Most active day</string>
+    <string name="analytics_empty">No data yet – go cook something!</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_suggestions">Suggestions</string>
+    <string name="settings_days_threshold">Skip meals cooked in the last %1$d days</string>
+    <string name="settings_use_weekday">Consider day of week</string>
+    <string name="settings_use_weekday_hint">Prefers categories you often cook on this weekday</string>
+    <string name="settings_excluded">Never suggest these categories</string>
+    <string name="settings_categories">Manage categories</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="settings_server">Connected to %1$s</string>
+    <string name="categories_title">Categories</string>
+    <string name="categories_new">New category</string>
+    <string name="categories_meal_count">%1$d meals</string>
+    <string name="categories_delete_confirm">Delete category “%1$s”?</string>
+    <string name="categories_empty">No categories yet</string>
+    <string-array name="weekdays">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string-array name="months_long">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+    <string name="diary_view_week">Week</string>
+    <string name="diary_view_month">Month</string>
+    <string name="diary_view_timeline">Timeline</string>
+    <string name="diary_week_empty">No entries this week</string>
+    <string name="diary_day_empty">No entries on this day</string>
+    <string name="diary_prev">Previous</string>
+    <string name="diary_next">Next</string>
+    <string-array name="weekdays_short">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+</resources>
