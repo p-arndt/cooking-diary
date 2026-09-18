@@ -77,14 +77,14 @@
 	}
 </script>
 
-<form onsubmit={changePassword} class="space-y-6">
+<form onsubmit={changePassword} class="space-y-5">
 	<div class="space-y-2">
 		<Label for="currentPassword" class="text-sm font-medium text-foreground">
 			{m.passwordChange_currentPassword()}
 		</Label>
 		<div class="relative">
 			<Lock
-				class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-muted-foreground"
+				class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
 			/>
 			<Input
 				id="currentPassword"
@@ -93,12 +93,12 @@
 				bind:value={currentPassword}
 				required
 				disabled={loading}
-				class="h-12 border-border bg-background pr-10 pl-10 transition-colors focus:border-ring focus:ring-ring"
+				class="h-12 pr-11 pl-11"
 			/>
 			<button
 				type="button"
 				onclick={() => (showCurrentPassword = !showCurrentPassword)}
-				class="absolute top-1/2 right-3 -translate-y-1/2 transform text-muted-foreground transition-colors hover:text-foreground"
+				class="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
 			>
 				{#if showCurrentPassword}
 					<EyeOff class="h-5 w-5" />
@@ -115,7 +115,7 @@
 		</Label>
 		<div class="relative">
 			<Lock
-				class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-muted-foreground"
+				class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
 			/>
 			<Input
 				id="newPassword"
@@ -124,12 +124,12 @@
 				bind:value={newPassword}
 				required
 				disabled={loading}
-				class="h-12 border-border bg-background pr-10 pl-10 transition-colors focus:border-ring focus:ring-ring"
+				class="h-12 pr-11 pl-11"
 			/>
 			<button
 				type="button"
 				onclick={() => (showNewPassword = !showNewPassword)}
-				class="absolute top-1/2 right-3 -translate-y-1/2 transform text-muted-foreground transition-colors hover:text-foreground"
+				class="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
 			>
 				{#if showNewPassword}
 					<EyeOff class="h-5 w-5" />
@@ -147,7 +147,7 @@
 		</Label>
 		<div class="relative">
 			<Lock
-				class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-muted-foreground"
+				class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
 			/>
 			<Input
 				id="confirmPassword"
@@ -156,12 +156,12 @@
 				bind:value={confirmPassword}
 				required
 				disabled={loading}
-				class="h-12 border-border bg-background pr-10 pl-10 transition-colors focus:border-ring focus:ring-ring"
+				class="h-12 pr-11 pl-11"
 			/>
 			<button
 				type="button"
 				onclick={() => (showConfirmPassword = !showConfirmPassword)}
-				class="absolute top-1/2 right-3 -translate-y-1/2 transform text-muted-foreground transition-colors hover:text-foreground"
+				class="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
 			>
 				{#if showConfirmPassword}
 					<EyeOff class="h-5 w-5" />
@@ -173,7 +173,7 @@
 		{#if confirmPassword}
 			<p
 				class="text-xs {passwordsMatch
-					? 'text-green-600'
+					? 'text-success'
 					: 'text-destructive'}"
 			>
 				{#if passwordsMatch}
@@ -187,7 +187,7 @@
 
 	{#if error}
 		<div
-			class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/10 p-4"
+			class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4"
 		>
 			<AlertCircle class="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 			<p class="text-sm text-destructive">{error}</p>
@@ -196,10 +196,10 @@
 
 	{#if success}
 		<div
-			class="flex items-start gap-3 rounded-lg border border-green-500/20 bg-green-500/10 p-4"
+			class="flex items-start gap-3 rounded-2xl bg-success/15 p-4"
 		>
-			<CheckCircle class="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-			<p class="text-sm text-green-600">{m.passwordChange_success()}</p>
+			<CheckCircle class="mt-0.5 h-5 w-5 shrink-0 text-success" />
+			<p class="text-sm text-success">{m.passwordChange_success()}</p>
 		</div>
 	{/if}
 

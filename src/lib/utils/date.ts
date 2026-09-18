@@ -1,5 +1,15 @@
 // ==================== DATE UTILITIES ====================
 
+import { getLocale } from '$lib/paraglide/runtime';
+
+function currentLocale(): string {
+	try {
+		return getLocale();
+	} catch {
+		return 'en';
+	}
+}
+
 /**
  * Convert a date string or Date object to a Date object
  */
@@ -159,7 +169,7 @@ export function formatDate(
 		year: 'numeric'
 	};
 
-	const localeToUse = locale || 'en-US';
+	const localeToUse = locale || currentLocale();
 
 	return d.toLocaleDateString(localeToUse, options || defaultOptions);
 }
@@ -227,7 +237,7 @@ export function getMonthGrid(date: Date | string): Date[] {
  */
 export function getMonthYear(date: Date | string): string {
 	const d = toDate(date) || new Date();
-	return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+	return d.toLocaleDateString(currentLocale(), { month: 'long', year: 'numeric' });
 }
 
 /**
@@ -279,7 +289,7 @@ export function formatDayDate(date: Date | string | null | undefined): string {
 export function formatMonthYear(date: Date | string | null | undefined): string {
 	const d = toDate(date);
 	if (!d || isNaN(d.getTime())) return '';
-	return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+	return d.toLocaleDateString(currentLocale(), { month: 'long', year: 'numeric' });
 }
 
 /**

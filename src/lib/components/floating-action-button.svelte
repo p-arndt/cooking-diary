@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		icon?: Component;
@@ -37,11 +38,11 @@
 </script>
 
 <button
-	class={[
-		'fixed right-4 bottom-18 z-100 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl md:bottom-8',
+	class={cn(
+		'fixed right-5 bottom-28 z-40 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lifted transition-all duration-300 hover:-translate-y-0.5 active:scale-95 md:right-8 md:bottom-8',
 		showFab ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-20 opacity-0',
 		className
-	]}
+	)}
 	{onclick}
 	aria-label={label}
 >

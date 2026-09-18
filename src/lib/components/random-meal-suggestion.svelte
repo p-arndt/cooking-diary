@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent } from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { ChefHat, Shuffle, Clock, Flame, Gauge, Sparkles, X } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -72,111 +70,104 @@
 					: null
 	);
 
-	const difficultyColor = $derived(
-		suggestedMeal?.difficulty === 'easy'
-			? 'text-green-600'
-			: suggestedMeal?.difficulty === 'medium'
-				? 'text-yellow-600'
-				: suggestedMeal?.difficulty === 'hard'
-					? 'text-red-600'
-					: ''
-	);
 </script>
 
-<div class="space-y-4">
-	{#if !showSuggestion}
-		<Button
-			variant="outline"
-			class="w-full gap-2 border-dashed py-6"
-			onclick={getRandomMeal}
-			disabled={meals.length === 0}
-		>
-			<Sparkles class="h-5 w-5 text-amber-500" />
-			<span>{m.randomMeal_whatShouldICook()}</span>
-		</Button>
-	{:else}
-		<Card class="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-			<button
-				class="absolute right-2 top-2 rounded-full p-1 hover:bg-muted"
-				onclick={closeSuggestion}
+<div
+	class="relative h-full min-h-44 overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-accent-variant p-5 text-primary-foreground shadow-lifted"
+>
+	<ChefHat class="pointer-events-none absolute -right-6 -bottom-8 size-44 rotate-[-12deg] opacity-15" />
+
+	{#if !showSuggestion || !suggestedMeal}
+		<div class="relative flex h-full flex-col justify-between gap-6">
+			<div>
+				<div class="mb-3 inline-flex size-9 items-center justify-center rounded-2xl bg-primary-foreground/10">
+					<Sparkles class="size-4.5" />
+				</div>
+				<h2 class="max-w-xs text-2xl leading-tight font-extrabold">{m.randomMeal_whatShouldICook()}</h2>
+				<p class="mt-1 text-sm opacity-75">{m.randomMeal_subtitle()}</p>
+			</div>
+			<Button
+				class="w-fit bg-primary-foreground text-white hover:bg-primary-foreground/90"
+				onclick={getRandomMeal}
+				disabled={meals.length === 0}
 			>
-				<X class="h-4 w-4" />
-			</button>
-			<CardContent class="pt-6">
-				{#if suggestedMeal}
-					<div class="flex items-start gap-4">
-						{#if suggestedMeal.defaultPhotoUrl}
-							<div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-muted {isShuffling ? 'animate-pulse' : ''}">
-								<img
-									src={suggestedMeal.defaultPhotoUrl}
-									alt={suggestedMeal.title}
-									class="h-full w-full object-cover"
-								/>
-							</div>
-						{:else}
-							<div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-muted {isShuffling ? 'animate-pulse' : ''}">
-								<ChefHat class="h-10 w-10 text-muted-foreground" />
-							</div>
-						{/if}
-						<div class="min-w-0 flex-1">
-							<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-								{#if isShuffling}
-									{m.randomMeal_pickingMeal()}
-								{:else}
-									{m.randomMeal_howAboutThis()}
-								{/if}
-							</p>
-							<h3 class="text-lg font-bold truncate {isShuffling ? 'animate-pulse' : ''}">
-								{suggestedMeal.title}
-							</h3>
-							{#if suggestedMeal.categories.length > 0}
-								<div class="mt-1 flex flex-wrap gap-1">
-									{#each suggestedMeal.categories.slice(0, 3) as category}
-										<Badge variant="secondary" class="text-xs">
-											{category.name}
-										</Badge>
-									{/each}
-								</div>
-							{/if}
-							{#if suggestedMeal.prepTime || suggestedMeal.cookTime || difficultyLabel}
-								<div class="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
-									{#if suggestedMeal.prepTime}
-										<span class="flex items-center gap-1">
-											<Clock class="h-3.5 w-3.5" />
-											{suggestedMeal.prepTime}
-										</span>
-									{/if}
-									{#if suggestedMeal.cookTime}
-										<span class="flex items-center gap-1">
-											<Flame class="h-3.5 w-3.5" />
-											{suggestedMeal.cookTime}
-										</span>
-									{/if}
-									{#if difficultyLabel}
-										<span class="flex items-center gap-1 {difficultyColor}">
-											<Gauge class="h-3.5 w-3.5" />
-											{difficultyLabel}
-										</span>
-									{/if}
-								</div>
-							{/if}
-						</div>
-					</div>
-					{#if !isShuffling}
-						<div class="mt-4 flex gap-2">
-							<Button size="sm" onclick={cookMeal} class="flex-1">
-								{m.randomMeal_cookToday()}
-							</Button>
-							<Button size="sm" variant="outline" onclick={viewMeal}>
-								{m.common_view()}
-							</Button>
-							<Button size="sm" variant="ghost" onclick={getRandomMeal}>
-								<Shuffle class="h-4 w-4" />
-							</Button>
+				<Shuffle />
+				{m.randomMeal_shuffle()}
+			</Button>
+		</div>
+	{:else}
+		<button
+			class="absolute top-3 right-3 z-10 rounded-full bg-primary-foreground/10 p-1.5 transition-colors hover:bg-primary-foreground/20"
+			onclick={closeSuggestion}
+			aria-label={m.common_close()}
+		>
+			<X class="size-4" />
+		</button>
+		<div class="relative flex h-full flex-col justify-between gap-4">
+			<div class="flex items-center gap-4">
+				<div class={['size-24 shrink-0 overflow-hidden rounded-2xl bg-primary-foreground/10 ring-4 ring-primary-foreground/10', isShuffling && 'animate-pulse']}>
+					{#if suggestedMeal.defaultPhotoUrl}
+						<img src={suggestedMeal.defaultPhotoUrl} alt={suggestedMeal.title} class="size-full object-cover" />
+					{:else}
+						<div class="flex size-full items-center justify-center">
+							<ChefHat class="size-10" />
 						</div>
 					{/if}
-				{/if}
-			</CardContent>
-		</Card>
+				</div>
+				<div class="min-w-0 flex-1 pr-6">
+					<p class="text-xs font-semibold tracking-wide uppercase opacity-70">
+						{isShuffling ? m.randomMeal_pickingMeal() : m.randomMeal_howAboutThis()}
+					</p>
+					<h3 class={['mt-0.5 line-clamp-2 text-xl leading-tight font-extrabold', isShuffling && 'animate-pulse']}>
+						{suggestedMeal.title}
+					</h3>
+					{#if suggestedMeal.prepTime || suggestedMeal.cookTime || difficultyLabel}
+						<div class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
+							{#if suggestedMeal.prepTime}
+								<span class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1">
+									<Clock class="size-3" />
+									{suggestedMeal.prepTime}
+								</span>
+							{/if}
+							{#if suggestedMeal.cookTime}
+								<span class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1">
+									<Flame class="size-3" />
+									{suggestedMeal.cookTime}
+								</span>
+							{/if}
+							{#if difficultyLabel}
+								<span class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1">
+									<Gauge class="size-3" />
+									{difficultyLabel}
+								</span>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			</div>
+			{#if !isShuffling}
+				<div class="flex gap-2">
+					<Button onclick={cookMeal} class="flex-1 bg-primary-foreground text-white hover:bg-primary-foreground/90">
+						{m.randomMeal_cookToday()}
+					</Button>
+					<Button
+						variant="ghost"
+						onclick={viewMeal}
+						class="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
+					>
+						{m.common_view()}
+					</Button>
+					<Button
+						variant="ghost"
+						size="icon"
+						onclick={getRandomMeal}
+						aria-label={m.randomMeal_shuffle()}
+						class="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
+					>
+						<Shuffle />
+					</Button>
+				</div>
+			{/if}
+		</div>
 	{/if}
 </div>

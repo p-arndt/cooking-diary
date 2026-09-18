@@ -4,14 +4,14 @@ import { EntryService } from '$lib/server/services/entry.service';
 import { MealService } from '$lib/server/services/meal.service';
 import { SettingsService } from '$lib/server/services/settings.service';
 import { AnalyticsService } from '$lib/server/services/analytics.service';
-import { getMonthStart, getMonthEnd } from '$lib/utils/date';
+import { addDays, getMonthEnd, getMonthStart, getWeekStart, toDateString } from '$lib/utils/date';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
 
-	const view = url.searchParams.get('view') || 'timeline'; // 'calendar' or 'timeline'
+	const view = url.searchParams.get('view') || 'week'; // 'week', 'calendar' or 'timeline'
 	const monthParam = url.searchParams.get('month');
 	const searchMealId = url.searchParams.get('meal');
 	
@@ -32,6 +32,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		monthStart,
 		monthEnd
 	);
+
+	// Week boundaries as plain YYYY-MM-DD strings: parsing those yields UTC midnight,
+	// which is what getEntriesByDateRange expects when it slices toISOString()
+	const weekParam = url.searchParams.get('week');
+	const weekStartDate = getWeekStart(weekParam ? new Date(`${weekParam}T00:00:00`) : new Date());
+	const weekStart = toDateString(weekStartDate)!;
+	const weekEnd = toDateString(addDays(weekStartDate, 6))!;
+	const weekEntries =
+		view === 'week'
+			? await EntryService.getEntriesByDateRange(locals.user.id, new Date(weekStart), new Date(weekEnd))
+			: [];
 
 	// For timeline view, get paginated entries
 	const timelineData = view === 'timeline' 
@@ -64,6 +75,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		preferredCategoryIds
 	});
 
+	const stats = await AnalyticsService.getGeneralStatistics(locals.user.id);
+
 	// Get entries for searched meal
 	const searchedMealEntries = searchMealId 
 		? await EntryService.getEntriesByMealId(locals.user.id, searchMealId)
@@ -81,10 +94,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		hasMoreEntries,
 		datesWithEntries,
 		currentMonth: currentDate.toISOString(),
+		weekStart,
+		weekEntries,
 		meals,
 		suggestionMeals,
 		searchMealId,
 		searchedMeal,
-		searchedMealEntries
+		searchedMealEntries,
+		stats: {
+			totalEntries: stats.totalEntries,
+			totalMeals: stats.totalMeals,
+			averageEntriesPerWeek: stats.averageEntriesPerWeek
+		}
 	};
 };

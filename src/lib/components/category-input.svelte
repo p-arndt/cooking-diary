@@ -137,14 +137,14 @@
 
 <div class="space-y-2">
 	<div
-		class="flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1 text-base shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:text-sm dark:bg-input/30"
+		class="flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-1.5 text-base ring-offset-background transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:text-sm dark:bg-input/30"
 	>
 		{#each selectedCategories as category}
-			<Badge class="gap-1 px-2 py-0.5 text-xs font-medium">
+			<Badge class="gap-1 rounded-full py-1 pr-1 pl-2.5 text-xs font-semibold">
 				{category.name}
 				<button
 					type="button"
-					class="ml-0.5 rounded-sm p-0.5 transition-colors hover:bg-muted/80"
+					class="rounded-full p-0.5 transition-colors hover:bg-primary-foreground/15"
 					onclick={(e) => {
 						e.stopPropagation();
 						removeCategory(category.id);
@@ -172,16 +172,16 @@
 			/>
 			{#if showSuggestions && (filteredCategories.length > 0 || showCreateOption)}
 				<div
-					class="absolute top-full z-50 mt-1.5 max-h-[300px] w-full overflow-auto rounded-md border bg-popover shadow-lg"
+					class="absolute top-full z-50 mt-2 max-h-[300px] w-full overflow-auto rounded-2xl border bg-popover shadow-lifted"
 				>
-					<div class="p-1">
+					<div class="p-1.5">
 						{#if filteredCategories.length > 0}
 							{#each filteredCategories as category, index}
 								<button
 									type="button"
-									class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground {highlightedIndex ===
+									class="w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-secondary {highlightedIndex ===
 									index
-										? 'bg-accent text-accent-foreground'
+										? 'bg-secondary'
 										: ''}"
 									onclick={() => addCategory(category.id)}
 									onmouseenter={() => (highlightedIndex = index)}
@@ -197,9 +197,9 @@
 							{/if}
 							<button
 								type="button"
-								class="w-full rounded-sm px-2 py-1.5 text-left text-sm font-medium text-primary transition-colors hover:bg-accent hover:text-accent-foreground {highlightedIndex ===
+								class="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary/10 {highlightedIndex ===
 								filteredCategories.length
-									? 'bg-accent text-accent-foreground'
+									? 'bg-primary/10'
 									: ''}"
 								onclick={() => createAndAddCategory()}
 								onmouseenter={() => (highlightedIndex = filteredCategories.length)}

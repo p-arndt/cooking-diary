@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { Card, CardContent } from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Pencil, Trash2, MoreVertical } from '@lucide/svelte';
-	import { ChefHat } from '@lucide/svelte';
+	import { ChefHat, MoreVertical, Pencil, Trash2 } from '@lucide/svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import QuickAddEntryDialog from '$lib/components/quick-add-entry-dialog.svelte';
@@ -74,72 +70,81 @@
 	}
 </script>
 
-<Card class={onclick ? 'cursor-pointer transition-all hover:shadow-md' : ''} {onclick}>
-	<CardContent>
-		<div class="flex items-start gap-4">
-			{#if photoUrl}
-				<div class="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-					<img src={photoUrl} alt={displayMeal?.title} class="h-full w-full object-cover" />
-				</div>
-			{:else}
-				<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-muted">
-					<ChefHat class="h-8 w-8 text-muted-foreground" />
-				</div>
-			{/if}
-			<div class="flex-1">
-				<div class="flex items-start justify-between gap-2">
-					<div class="flex-1">
-						<h3 class="font-semibold">{displayMeal?.title}</h3>
-						{#if displayMeal && displayMeal.categories.length > 0}
-							<div class="mt-1 flex flex-wrap gap-1">
-								{#each displayMeal.categories as category}
-									<Badge variant="secondary" class="text-xs">
-										{category.name}
-									</Badge>
-								{/each}
-							</div>
-						{/if}
-						{#if notes}
-							<p class="mt-2 text-sm text-muted-foreground">{notes}</p>
-						{/if}
-					</div>
-					{#if entry}
-						<DropdownMenu.Root>
-							<DropdownMenu.Trigger>
-								<MoreVertical class="h-4 w-4" />
-							</DropdownMenu.Trigger>
-							<DropdownMenu.Content align="end">
-								<DropdownMenu.Item
-									onclick={(e) => {
-										e.stopPropagation();
-										showEditDialog = true;
-									}}
-								>
-									<Pencil class="mr-2 h-4 w-4" />
-									{m.entries_edit()}
-								</DropdownMenu.Item>
-								<DropdownMenu.Item
-									variant="destructive"
-									onclick={(e) => {
-										e.stopPropagation();
-										showDeleteDialog = true;
-									}}
-								>
-									<Trash2 class="mr-2 h-4 w-4" />
-									{m.entries_delete()}
-								</DropdownMenu.Item>
-							</DropdownMenu.Content>
-						</DropdownMenu.Root>
-					{/if}
-				</div>
+<div
+	class={[
+		'group relative flex items-center gap-4 rounded-3xl border border-border/60 bg-card p-3 shadow-soft transition-all',
+		onclick && 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lifted'
+	]}
+	role={onclick ? 'button' : undefined}
+	tabindex={onclick ? 0 : undefined}
+	{onclick}
+	onkeydown={(e) => onclick && (e.key === 'Enter' || e.key === ' ') && onclick()}
+>
+	<div class="size-20 shrink-0 overflow-hidden rounded-2xl bg-secondary">
+		{#if photoUrl}
+			<img
+				src={photoUrl}
+				alt={displayMeal?.title}
+				loading="lazy"
+				class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+			/>
+		{:else}
+			<div class="flex size-full items-center justify-center bg-gradient-to-br from-primary/25 to-accent/15">
+				<ChefHat class="size-8 text-primary" />
 			</div>
-		</div>
-	</CardContent>
-</Card>
+		{/if}
+	</div>
 
-{#if entry && meals.length > 0}
-	<QuickAddEntryDialog {meals} bind:open={showEditDialog} {entry} />
-{/if}
+	<div class="min-w-0 flex-1 py-1">
+		<h3 class="truncate text-base font-bold">{displayMeal?.title}</h3>
+		{#if displayMeal && displayMeal.categories.length > 0}
+			<div class="mt-1.5 flex flex-wrap gap-1">
+				{#each displayMeal.categories.slice(0, 3) as category (category.id)}
+					<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-secondary-foreground">
+						{category.name}
+					</span>
+				{/each}
+			</div>
+		{/if}
+		{#if notes}
+			<p class="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{notes}</p>
+		{/if}
+	</div>
+
+	{#if entry}
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger
+				class="self-start rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+				aria-label={m.entries_edit()}
+			>
+				<MoreVertical class="size-4" />
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content align="end" class="rounded-2xl">
+				<DropdownMenu.Item
+					class="rounded-xl"
+					onclick={(e) => {
+						e.stopPropagation();
+						showEditDialog = true;
+					}}
+				>
+					<Pencil class="mr-2 size-4" />
+					{m.entries_edit()}
+				</DropdownMenu.Item>
+				<DropdownMenu.Item
+					class="rounded-xl"
+					variant="destructive"
+					onclick={(e) => {
+						e.stopPropagation();
+						showDeleteDialog = true;
+					}}
+				>
+					<Trash2 class="mr-2 size-4" />
+					{m.entries_delete()}
+				</DropdownMenu.Item>
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+	{/if}
+</div>
 
 <AlertDialog.Root open={showDeleteDialog}>
 	<AlertDialog.Content>

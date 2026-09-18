@@ -5,15 +5,7 @@
 	import NavUser from '$lib/components/nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
-	import {
-		LayoutDashboard,
-		Heart,
-		Users,
-		ChefHat,
-		TextAlignJustify,
-		Settings,
-		TrendingUp
-	} from '@lucide/svelte';
+	import { BookOpen, ChefHat, Settings, Tags, TrendingUp } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import type { ComponentProps } from 'svelte';
 
@@ -31,6 +23,7 @@
 		data: LayoutData;
 		ref?: ComponentProps<typeof Sidebar.Root>['ref'];
 		collapsible?: ComponentProps<typeof Sidebar.Root>['collapsible'];
+		variant?: ComponentProps<typeof Sidebar.Root>['variant'];
 	};
 
 	let { data, ref = $bindable(null), collapsible = 'icon', ...restProps }: Props = $props();
@@ -48,7 +41,7 @@
 		{
 			title: m.nav_dashboard(),
 			url: '/',
-			icon: LayoutDashboard,
+			icon: BookOpen,
 			isActive: isActive('/'),
 			items: []
 		},
@@ -62,7 +55,7 @@
 		{
 			title: m.nav_categories(),
 			url: '/categories',
-			icon: TextAlignJustify,
+			icon: Tags,
 			isActive: isActive('/categories'),
 			items: []
 		},
@@ -85,16 +78,15 @@
 
 <Sidebar.Root {collapsible} bind:ref {...restProps}>
 	<Sidebar.Header>
-		<div
-			class="flex items-center {sidebar.open
-				? 'justify-start'
-				: 'justify-center'} gap-4 p-1"
-		>
-			<img src={cookindiarylogo} alt="{m.common_appName()} logo" class="max-w-9" />
-			<h1 class="text-xl font-bold {sidebar.open ? 'block' : 'hidden'}">{m.common_appName()}</h1>
-			{#if sidebar?.open}
-				<Sidebar.Trigger  />
-			{/if}
+		<div class="flex items-center gap-3 p-1 {sidebar.open ? 'justify-start' : 'justify-center'}">
+			<img
+				src={cookindiarylogo}
+				alt="{m.common_appName()} logo"
+				class="size-9 rounded-xl bg-primary/15 p-1"
+			/>
+			<span class="text-lg font-extrabold tracking-tight {sidebar.open ? 'block' : 'hidden'}">
+				{m.common_appName()}
+			</span>
 		</div>
 	</Sidebar.Header>
 	<Sidebar.Content>

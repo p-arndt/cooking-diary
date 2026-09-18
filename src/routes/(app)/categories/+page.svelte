@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { Plus, Edit, Trash2, ChevronDown, ChevronRight, ChefHat } from '@lucide/svelte';
+	import { ArrowLeft, ChefHat, ChevronDown, Pencil, Plus, Tags, Trash2 } from '@lucide/svelte';
+	import PageHeader from '$lib/components/page-header.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
@@ -21,6 +19,14 @@
 	let newCategoryName = $state('');
 	let showAddDialog = $state(false);
 	let expandedCategories = $state<Set<string>>(new Set());
+
+	const tints = [
+		'bg-primary/15 text-primary',
+		'bg-accent/15 text-accent',
+		'bg-chart-2/15 text-chart-2',
+		'bg-chart-4/15 text-chart-4',
+		'bg-chart-5/15 text-chart-5'
+	];
 
 	function startEdit(category: { id: string; name: string }) {
 		editingCategory = category;
@@ -46,138 +52,139 @@
 	<title>{m.categories_pageTitle()}</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-		<div>
-			<h1 class="text-3xl sm:text-4xl font-bold tracking-tight">{m.categories_title()}</h1>
-			<p class="mt-1 text-muted-foreground">{m.categories_subtitle()}</p>
-		</div>
-		<Button onclick={() => (showAddDialog = true)} class="w-full sm:w-auto">
-			<Plus class="mr-2 h-4 w-4" />
-			{m.categories_addCategory()}
-		</Button>
-	</div>
+<div class="mx-auto max-w-3xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
+	<a
+		href="/meals"
+		class="inline-flex items-center gap-2 rounded-full bg-secondary py-1.5 pr-4 pl-3 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/70 md:hidden"
+	>
+		<ArrowLeft class="size-4" />
+		{m.meals_backToMeals()}
+	</a>
+
+	<PageHeader title={m.categories_title()} subtitle={m.categories_subtitle()}>
+		{#snippet actions()}
+			<Button onclick={() => (showAddDialog = true)} size="icon" class="md:hidden" aria-label={m.categories_addCategory()}>
+				<Plus />
+			</Button>
+			<Button onclick={() => (showAddDialog = true)} class="hidden md:inline-flex">
+				<Plus />
+				{m.categories_addCategory()}
+			</Button>
+		{/snippet}
+	</PageHeader>
 
 	{#if data.categories.length > 0}
-		<Card>
-			<CardContent class="p-0">
-				<div class="divide-y">
-					{#each data.categories as category}
-						<div class="px-3 py-3 sm:px-4">
-							<div class="flex items-center justify-between gap-2">
-								{#if editingCategory?.id === category.id}
-									<form
-										method="POST"
-										action="?/edit"
-										class="flex flex-1 items-center gap-2"
-										use:enhance={({ formData }) => {
-											formData.append('id', category.id);
-											formData.append('name', editingName.trim());
+		<div class="space-y-3">
+			{#each data.categories as category, index (category.id)}
+				{@const expanded = expandedCategories.has(category.id)}
+				<div class="rounded-3xl border border-border/60 bg-card p-3 shadow-soft">
+					<div class="flex items-center gap-3">
+						{#if editingCategory?.id === category.id}
+							<form
+								method="POST"
+								action="?/edit"
+								class="flex flex-1 flex-wrap items-center gap-2"
+								use:enhance={({ formData }) => {
+									formData.append('id', category.id);
+									formData.append('name', editingName.trim());
 
-											return async ({ result }) => {
-												if (result.type === 'success') {
-													cancelEdit();
-												} else if (result.type === 'failure') {
-													alert(result.data?.error || m.categories_failedToUpdate());
-												}
-											};
-										}}
-									>
-										<Input bind:value={editingName} class="flex-1" />
-										<Button type="submit" size="sm">{m.common_save()}</Button>
-										<Button type="button" size="sm" variant="outline" onclick={cancelEdit}
-											>{m.common_cancel()}</Button
-										>
-									</form>
-								{:else}
-									<div class="flex flex-1 min-w-0 items-center gap-2">
-										{#if category.meals.length > 0}
-											<button
-												type="button"
-												onclick={() => toggleCategory(category.id)}
-												class="flex items-center justify-center rounded-sm p-2 -ml-2 transition-colors hover:bg-accent touch-manipulation"
-											>
-												{#if expandedCategories.has(category.id)}
-													<ChevronDown class="h-5 w-5" />
-												{:else}
-													<ChevronRight class="h-5 w-5" />
-												{/if}
-											</button>
-										{:else}
-											<div class="w-6 sm:w-6"></div>
-										{/if}
-										<span class="font-medium truncate flex-1 min-w-0">{category.name}</span>
-										{#if category.meals.length > 0}
-											<Badge variant="secondary" class="text-xs shrink-0">
-												{category.meals.length === 1
-													? m.categories_mealCount_one({ count: category.meals.length })
-													: m.categories_mealCount_other({ count: category.meals.length })}
-											</Badge>
-										{/if}
-									</div>
-									<div class="flex gap-2 shrink-0">
-										<Button
-											size="icon"
-											variant="ghost"
-											class="h-10 w-10 sm:h-9 sm:w-9 touch-manipulation"
-											onclick={() => startEdit(category)}
-											aria-label={m.common_edit()}
-										>
-											<Edit class="h-5 w-5 sm:h-4 sm:w-4" />
-										</Button>
-										<Button
-											size="icon"
-											variant="ghost"
-											class="h-10 w-10 sm:h-9 sm:w-9 text-destructive hover:text-destructive touch-manipulation"
-											onclick={() => (deleteCategoryId = category.id)}
-											aria-label={m.common_delete()}
-										>
-											<Trash2 class="h-5 w-5 sm:h-4 sm:w-4" />
-										</Button>
-									</div>
+									return async ({ result }) => {
+										if (result.type === 'success') {
+											cancelEdit();
+										} else if (result.type === 'failure') {
+											alert(result.data?.error || m.categories_failedToUpdate());
+										}
+									};
+								}}
+							>
+								<Input bind:value={editingName} class="min-w-40 flex-1" />
+								<Button type="submit">{m.common_save()}</Button>
+								<Button type="button" variant="outline" onclick={cancelEdit}>{m.common_cancel()}</Button>
+							</form>
+						{:else}
+							<button
+								type="button"
+								onclick={() => category.meals.length > 0 && toggleCategory(category.id)}
+								class="flex min-w-0 flex-1 items-center gap-3 rounded-2xl text-left touch-manipulation"
+								aria-expanded={category.meals.length > 0 ? expanded : undefined}
+							>
+								<span
+									class={[
+										'flex size-11 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold uppercase',
+										tints[index % tints.length]
+									]}
+								>
+									{category.name.charAt(0)}
+								</span>
+								<span class="min-w-0 flex-1">
+									<span class="block truncate font-bold">{category.name}</span>
+									<span class="block text-xs font-medium text-muted-foreground">
+										{category.meals.length === 1
+											? m.categories_mealCount_one({ count: category.meals.length })
+											: m.categories_mealCount_other({ count: category.meals.length })}
+									</span>
+								</span>
+								{#if category.meals.length > 0}
+									<ChevronDown
+										class={['size-5 shrink-0 text-muted-foreground transition-transform', expanded && 'rotate-180']}
+									/>
 								{/if}
+							</button>
+							<div class="flex shrink-0 gap-1">
+								<Button
+									size="icon"
+									variant="ghost"
+									class="touch-manipulation"
+									onclick={() => startEdit(category)}
+									aria-label={m.common_edit()}
+								>
+									<Pencil />
+								</Button>
+								<Button
+									size="icon"
+									variant="ghost"
+									class="text-destructive hover:text-destructive touch-manipulation"
+									onclick={() => (deleteCategoryId = category.id)}
+									aria-label={m.common_delete()}
+								>
+									<Trash2 />
+								</Button>
 							</div>
-							{#if !editingCategory || editingCategory?.id !== category.id}
-								<Collapsible.Root open={expandedCategories.has(category.id)}>
-									<Collapsible.Content>
-										{#if category.meals.length > 0}
-											<div class="ml-6 sm:ml-8 mt-2 space-y-1">
-												{#each category.meals as meal}
-													<button
-														type="button"
-														onclick={() => goto(`/meals/${meal.id}`)}
-														class="flex w-full items-center gap-2 rounded-md px-2 py-2 sm:py-1.5 text-left text-sm transition-colors hover:bg-accent active:bg-accent touch-manipulation"
-													>
-														<ChefHat class="h-4 w-4 text-muted-foreground shrink-0" />
-														<span class="flex-1 truncate">{meal.title}</span>
-													</button>
-												{/each}
-											</div>
-										{:else}
-											<div class="ml-6 sm:ml-8 mt-2 text-sm text-muted-foreground">
-												{m.categories_noMeals()}
-											</div>
-										{/if}
-									</Collapsible.Content>
-								</Collapsible.Root>
-							{/if}
-						</div>
-					{/each}
+						{/if}
+					</div>
+					{#if !editingCategory || editingCategory?.id !== category.id}
+						<Collapsible.Root open={expanded}>
+							<Collapsible.Content>
+								<div class="mt-3 flex flex-wrap gap-2 border-t border-dashed pt-3">
+									{#each category.meals as meal (meal.id)}
+										<a
+											href="/meals/{meal.id}"
+											class="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/15"
+										>
+											<ChefHat class="size-3.5 text-primary" />
+											{meal.title}
+										</a>
+									{:else}
+										<p class="text-sm text-muted-foreground">{m.categories_noMeals()}</p>
+									{/each}
+								</div>
+							</Collapsible.Content>
+						</Collapsible.Root>
+					{/if}
 				</div>
-			</CardContent>
-		</Card>
+			{/each}
+		</div>
 	{:else}
-		<Card>
-			<CardContent class="py-12">
-				<div class="text-center">
-					<p class="mb-4 text-muted-foreground">{m.categories_noCategoriesYet()}</p>
-					<Button onclick={() => (showAddDialog = true)}>
-						<Plus class="mr-2 h-4 w-4" />
-						{m.categories_addCategory()}
-					</Button>
-				</div>
-			</CardContent>
-		</Card>
+		<div class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center">
+			<div class="mb-4 flex size-16 items-center justify-center rounded-3xl bg-primary/15">
+				<Tags class="size-8 text-primary" />
+			</div>
+			<p class="max-w-xs text-muted-foreground">{m.categories_noCategoriesYet()}</p>
+			<Button class="mt-5" onclick={() => (showAddDialog = true)}>
+				<Plus />
+				{m.categories_addCategory()}
+			</Button>
+		</div>
 	{/if}
 </div>
 

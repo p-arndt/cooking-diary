@@ -239,7 +239,7 @@
 	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>{isEditMode ? m.quickAdd_editTitle() : m.quickAdd_title()}</Dialog.Title>
+			<Dialog.Title class="text-xl font-extrabold">{isEditMode ? m.quickAdd_editTitle() : m.quickAdd_title()}</Dialog.Title>
 			<Dialog.Description>{isEditMode ? m.quickAdd_editDescription() : m.quickAdd_description()}</Dialog.Description>
 		</Dialog.Header>
 
@@ -339,8 +339,8 @@
 					<Label>{m.quickAdd_date()}</Label>
 					<Popover.Root bind:open={datePickerOpen}>
 						<Popover.Trigger>
-							<Button type="button" variant="outline" class="mt-2 w-full justify-start text-left font-normal">
-								<CalendarIcon class="mr-2 h-4 w-4" />
+							<Button type="button" variant="outline" class="mt-2 h-11 w-full justify-start rounded-xl text-left font-medium">
+								<CalendarIcon class="size-4 text-primary" />
 								{#if calendarDate}
 									{formatDate(selectedDate)}
 								{:else}
@@ -348,7 +348,7 @@
 								{/if}
 							</Button>
 						</Popover.Trigger>
-						<Popover.Content class="w-auto p-0" align="start">
+						<Popover.Content class="w-auto rounded-3xl p-1" align="start">
 							<Calendar bind:value={calendarDate} type="single" />
 						</Popover.Content>
 					</Popover.Root>
@@ -359,20 +359,20 @@
 					<div class="relative mt-2" style="overflow: visible;">
 						{#if selectedMeal}
 							<div
-								class="flex min-h-9 w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs ring-offset-background transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
+								class="flex min-h-11 w-full items-center gap-2 rounded-xl border-2 border-primary/60 bg-primary/5 px-2 py-2 text-sm ring-offset-background transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
 							>
 								<div class="flex flex-1 items-center gap-2">
 									{#if selectedMeal.defaultPhotoUrl}
 										<img
 											src={selectedMeal.defaultPhotoUrl}
 											alt={selectedMeal.title}
-											class="h-6 w-6 rounded object-cover"
+											class="size-9 rounded-lg object-cover"
 										/>
 									{:else}
-										<ChefHat class="h-4 w-4 text-muted-foreground" />
+										<span class="flex size-9 items-center justify-center rounded-lg bg-primary/15"><ChefHat class="size-4 text-primary" /></span>
 									{/if}
 									<div class="flex-1">
-										<p class="font-medium">{selectedMeal.title}</p>
+										<p class="font-bold">{selectedMeal.title}</p>
 										{#if selectedMeal.categories.length > 0}
 											<div class="mt-0.5 flex flex-wrap gap-1">
 												{#each selectedMeal.categories as category}
@@ -386,7 +386,7 @@
 								</div>
 								<button
 									type="button"
-									class="rounded-sm p-1 transition-colors hover:bg-muted"
+									class="rounded-full p-1.5 transition-colors hover:bg-secondary"
 									onclick={clearMealSelection}
 									onmousedown={(e) => e.preventDefault()}
 								>
@@ -395,7 +395,7 @@
 							</div>
 						{:else}
 							<div
-								class="flex min-h-9 w-full items-center rounded-md border border-input bg-background px-3 py-1 text-base shadow-xs ring-offset-background transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:text-sm"
+								class="flex min-h-11 w-full items-center rounded-xl border border-input bg-card px-4 py-1 text-base ring-offset-background transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:text-sm"
 							>
 								<input
 									bind:this={mealInputRef}
@@ -414,17 +414,17 @@
 						{/if}
 					{#if showMealSuggestions}
 						<div
-							class="absolute top-full z-[100] mt-1.5 max-h-[150px] w-full rounded-md border bg-popover shadow-lg md:max-h-[300px]"
+							class="absolute top-full z-[100] mt-2 max-h-[150px] w-full overflow-hidden rounded-2xl border bg-popover shadow-lifted md:max-h-[300px]"
 							style="touch-action: pan-y;"
 						>
-							<div class="max-h-[150px] overflow-y-scroll overflow-x-hidden p-1 md:max-h-[300px]" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+							<div class="max-h-[150px] overflow-y-scroll overflow-x-hidden p-1.5 md:max-h-[300px]" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
 								{#if filteredMeals.length > 0}
 									{#each filteredMeals as meal, index}
 										<button
 											type="button"
-											class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground {highlightedMealIndex ===
+											class="w-full rounded-xl px-2 py-1.5 text-left text-sm font-medium transition-colors hover:bg-secondary {highlightedMealIndex ===
 											index
-												? 'bg-accent text-accent-foreground'
+												? 'bg-secondary'
 												: ''}"
 											onclick={() => selectMeal(meal.id)}
 											onmouseenter={() => (highlightedMealIndex = index)}
@@ -434,10 +434,12 @@
 													<img
 														src={meal.defaultPhotoUrl}
 														alt={meal.title}
-														class="h-5 w-5 rounded object-cover"
+														class="size-7 rounded-lg object-cover"
 													/>
 												{:else}
-													<ChefHat class="h-4 w-4 text-muted-foreground" />
+													<span class="flex size-7 items-center justify-center rounded-lg bg-primary/15">
+														<ChefHat class="size-3.5 text-primary" />
+													</span>
 												{/if}
 												<span class="flex-1">{meal.title}</span>
 												{#if meal.categories.length > 0}
@@ -459,7 +461,7 @@
 								{/if}
 								<button
 									type="button"
-									class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+									class="w-full rounded-xl px-2 py-2 text-left text-sm font-semibold transition-colors hover:bg-primary/10"
 									onclick={() => {
 										open = false;
 										goto('/meals/new');
@@ -477,9 +479,9 @@
 				</div>
 
 				<Collapsible.Root bind:open={showOptionalFields}>
-					<Collapsible.Trigger>
+					<Collapsible.Trigger class="w-full rounded-xl bg-secondary/60 px-4 py-2.5 transition-colors hover:bg-secondary">
 						<div class="flex items-center justify-between space-x-2">
-							<span class="text-sm font-normal text-muted-foreground">{m.quickAdd_optionalFields()}</span>
+							<span class="text-sm font-semibold text-muted-foreground">{m.quickAdd_optionalFields()}</span>
 							<ChevronDown
 								class="h-4 w-4 transition-transform duration-200 {showOptionalFields
 									? 'rotate-180'
@@ -510,12 +512,12 @@
 												<img
 													src={preview}
 													alt="{m.entries_photoPreview()} {index + 1}"
-													class="h-24 w-24 rounded-lg object-cover border"
+													class="size-20 rounded-2xl object-cover"
 												/>
 												<button
 													type="button"
 													onclick={() => removePhoto(index)}
-													class="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
+													class="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-white backdrop-blur-md hover:bg-black/70"
 												>
 													<X class="h-3 w-3" />
 												</button>
@@ -537,7 +539,7 @@
 				</Collapsible.Root>
 			</div>
 
-			<Dialog.Footer class="pt-4">
+			<Dialog.Footer class="gap-2 pt-4">
 				<Button type="button" variant="outline" disabled={isSubmitting} onclick={() => { open = false; }}>
 					{m.common_cancel()}
 				</Button>

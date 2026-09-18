@@ -40,14 +40,14 @@
 
 <Sidebar.Group>
 	<Sidebar.GroupLabel>{m.nav_navigation()}</Sidebar.GroupLabel>
-	<Sidebar.Menu class="space-y-2">
+	<Sidebar.Menu class="gap-1">
 		{#each items as item (item.title)}
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton
 					tooltipContent={item.title}
 					isActive={item.isActive}
 					onclick={() => handleClick(item.url)}
-					class="rounded-xl text-base"
+					class="h-11 rounded-xl text-[15px] font-medium data-[active=true]:bg-primary/15 data-[active=true]:font-semibold data-[active=true]:text-foreground [&_svg]:data-[active=true]:text-primary"
 				>
 					{#if item.icon}
 						<item.icon class="size-5!" />

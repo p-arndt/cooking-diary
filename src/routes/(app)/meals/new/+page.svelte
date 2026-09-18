@@ -3,13 +3,14 @@
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { NativeSelect } from '$lib/components/ui/native-select/index.js';
 	import CategoryInput from '$lib/components/category-input.svelte';
-	import { ArrowLeft, X, Clock, Flame } from '@lucide/svelte';
+	import PageHeader from '$lib/components/page-header.svelte';
+	import PhotoPicker from '$lib/components/photo-picker.svelte';
+	import { Clock, Flame } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
@@ -74,17 +75,11 @@
 	<title>{m.meals_addMealTitle()} - {m.common_appName()}</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl space-y-6 px-4 py-8">
-	<Button variant="ghost" onclick={() => goto('/meals')}>
-		<ArrowLeft class="mr-2 h-4 w-4" />
-		{m.meals_backToMeals()}
-	</Button>
+<div class="mx-auto max-w-2xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
+	<PageHeader title={m.meals_addMealTitle()} backHref={'/meals'} backLabel={m.meals_backToMeals()} />
 
-	<Card>
-		<CardHeader>
-			<CardTitle>{m.meals_addMealTitle()}</CardTitle>
-		</CardHeader>
-		<CardContent>
+	<div class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft md:p-7">
+		<div>
 			<form
 				method="POST"
 				class="space-y-6"
@@ -198,34 +193,20 @@
 
 				<div>
 					<Label>{m.meals_form_photo()}</Label>
-					<div class="mt-2 space-y-3">
-						{#if photoPreview}
-							<div class="relative inline-block">
-								<img
-									src={photoPreview}
-									alt={m.meals_form_mealPreview()}
-									class="h-32 w-32 rounded-lg object-cover border"
-								/>
-								<button
-									type="button"
-									onclick={removePhoto}
-									class="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
-								>
-									<X class="h-4 w-4" />
-								</button>
-							</div>
-						{/if}
-						<Input
+					<div class="mt-2">
+						<PhotoPicker
 							id="photo"
-							type="file"
-							accept="image/*"
-							onchange={handlePhotoChange}
-							class="cursor-pointer"
+							preview={photoPreview}
+							label={m.meals_form_photo()}
+							hint={m.meals_form_photoHint()}
+							alt={m.meals_form_mealPreview()}
+							onChange={handlePhotoChange}
+							onRemove={removePhoto}
 						/>
 					</div>
 				</div>
 
-				<div class="flex justify-end gap-2">
+				<div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
 					<Button type="button" variant="outline" onclick={() => goto('/meals')} disabled={isSubmitting}>
 						{m.common_cancel()}
 					</Button>
@@ -234,6 +215,6 @@
 					</Button>
 				</div>
 			</form>
-		</CardContent>
-	</Card>
+		</div>
+	</div>
 </div>

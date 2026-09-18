@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
+	import PageHeader from '$lib/components/page-header.svelte';
 	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { TrendingUp, ChefHat, Calendar, Camera, FileText, BarChart3, Award, Clock } from '@lucide/svelte';
+		Award,
+		BarChart3,
+		BookOpen,
+		Calendar,
+		Camera,
+		ChefHat,
+		Tags,
+		TrendingUp
+	} from '@lucide/svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { formatDate } from '$lib/utils/date';
 	import * as m from '$lib/paraglide/messages.js';
@@ -53,6 +55,21 @@
 			: 0
 	);
 
+	const statTiles = $derived([
+		{ label: m.analytics_totalEntries(), value: data.generalStats.totalEntries, icon: BookOpen, tint: 'bg-primary/15 text-primary' },
+		{ label: m.analytics_totalMeals(), value: data.generalStats.totalMeals, icon: ChefHat, tint: 'bg-accent/15 text-accent' },
+		{ label: m.analytics_avgPerWeek(), value: data.generalStats.averageEntriesPerWeek, icon: TrendingUp, tint: 'bg-chart-2/15 text-chart-2' },
+		{ label: m.analytics_totalCategories(), value: data.generalStats.totalCategories, icon: Tags, tint: 'bg-chart-4/15 text-chart-4' }
+	]);
+
+	const coverage = $derived([
+		{ label: m.analytics_entriesWithPhotos(), percent: photoPercentage, count: data.generalStats.entriesWithPhotos, color: 'var(--primary)' },
+		{ label: m.analytics_entriesWithNotes(), percent: notesPercentage, count: data.generalStats.entriesWithNotes, color: 'var(--chart-2)' }
+	]);
+
+	// The service returns newest first; the bar chart reads left (old) to right (new)
+	const monthlyChronological = $derived([...data.monthlyStats].reverse());
+
 	const maxMonthlyCount = $derived(
 		data.monthlyStats.length > 0
 			? Math.max(...data.monthlyStats.map((m) => m.count), 1)
@@ -64,303 +81,228 @@
 	<title>{m.analytics_pageTitle()}</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-6xl space-y-6 px-4 py-8">
-	<div>
-		<h1 class="text-4xl font-bold tracking-tight">{m.analytics_title()}</h1>
-		<p class="mt-1 text-muted-foreground">{m.analytics_subtitle()}</p>
+{#snippet sectionTitle(icon: typeof Award, tint: string, title: string, description?: string)}
+	{@const Icon = icon}
+	<div class="mb-4 flex items-start gap-3">
+		<span class={['flex size-9 shrink-0 items-center justify-center rounded-2xl', tint]}>
+			<Icon class="size-4.5" />
+		</span>
+		<div class="min-w-0">
+			<h2 class="font-bold">{title}</h2>
+			{#if description}
+				<p class="text-sm text-muted-foreground">{description}</p>
+			{/if}
+		</div>
 	</div>
+{/snippet}
+
+<div class="mx-auto max-w-5xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
+	<PageHeader title={m.analytics_title()} subtitle={m.analytics_subtitle()} />
 
 	{#if data.generalStats.totalEntries > 0}
-		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<Card>
-				<CardContent class="pt-6">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="text-sm font-medium text-muted-foreground">{m.analytics_totalEntries()}</p>
-							<p class="text-2xl font-bold">{data.generalStats.totalEntries}</p>
-						</div>
-						<BarChart3 class="h-8 w-8 text-muted-foreground" />
+		<div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+			{#each statTiles as tile (tile.label)}
+				<div class="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
+					<span class={['flex size-10 items-center justify-center rounded-2xl', tile.tint]}>
+						<tile.icon class="size-5" />
+					</span>
+					<div>
+						<p class="text-3xl leading-none font-extrabold tabular-nums">{tile.value}</p>
+						<p class="mt-1.5 text-xs font-medium text-muted-foreground">{tile.label}</p>
 					</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardContent class="pt-6">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="text-sm font-medium text-muted-foreground">{m.analytics_totalMeals()}</p>
-							<p class="text-2xl font-bold">{data.generalStats.totalMeals}</p>
-						</div>
-						<ChefHat class="h-8 w-8 text-muted-foreground" />
-					</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardContent class="pt-6">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="text-sm font-medium text-muted-foreground">{m.analytics_avgPerWeek()}</p>
-							<p class="text-2xl font-bold">{data.generalStats.averageEntriesPerWeek}</p>
-						</div>
-						<Clock class="h-8 w-8 text-muted-foreground" />
-					</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardContent class="pt-6">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="text-sm font-medium text-muted-foreground">{m.analytics_totalCategories()}</p>
-							<p class="text-2xl font-bold">{data.generalStats.totalCategories}</p>
-						</div>
-						<Calendar class="h-8 w-8 text-muted-foreground" />
-					</div>
-				</CardContent>
-			</Card>
-		</div>
-
-		<div class="grid gap-6 md:grid-cols-2">
-			<Card>
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2">
-						<Award class="h-5 w-5 text-amber-500" />
-						{m.analytics_topMeals()}
-					</CardTitle>
-					<CardDescription>{m.analytics_topMealsDescription()}</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{#if data.topMeals.length > 0}
-						<div class="space-y-3">
-							{#each data.topMeals as meal, index}
-								<button
-									type="button"
-									onclick={() => goto(`/meals/${meal.mealId}`)}
-									class="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-accent"
-								>
-									<div class="flex items-center gap-3">
-										<div
-											class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
-										>
-											{index + 1}
-										</div>
-										<span class="font-medium">{meal.mealTitle}</span>
-									</div>
-									<Badge variant="secondary">{m.analytics_times({ count: meal.count })}</Badge>
-								</button>
-							{/each}
-						</div>
-					{:else}
-						<p class="text-sm text-muted-foreground">{m.analytics_noData()}</p>
-					{/if}
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2">
-						<BarChart3 class="h-5 w-5 text-blue-500" />
-						{m.analytics_categoryUsage()}
-					</CardTitle>
-					<CardDescription>{m.analytics_categoryUsageDescription()}</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{#if data.categoryStats.length > 0}
-						<div class="space-y-3">
-							{#each data.categoryStats.slice(0, 10) as stat}
-								<div class="flex items-center justify-between rounded-lg border p-3">
-									<div class="flex-1">
-										<p class="font-medium">{stat.categoryName}</p>
-										<p class="text-sm text-muted-foreground">
-											{m.analytics_mealsInCategory({ count: stat.mealCount })}
-										</p>
-									</div>
-									<Badge variant="secondary">{m.analytics_times({ count: stat.entryCount })}</Badge>
-								</div>
-							{/each}
-						</div>
-					{:else}
-						<p class="text-sm text-muted-foreground">{m.analytics_noData()}</p>
-					{/if}
-				</CardContent>
-			</Card>
-		</div>
-
-		<div class="grid gap-6 md:grid-cols-2">
-			<Card>
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2">
-						<Camera class="h-5 w-5 text-purple-500" />
-						{m.analytics_photoStats()}
-					</CardTitle>
-					<CardDescription>{m.analytics_photoStatsDescription()}</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div class="space-y-4">
-						<div>
-							<div class="flex items-center justify-between mb-2">
-								<span class="text-sm font-medium">{m.analytics_entriesWithPhotos()}</span>
-								<span class="text-sm font-semibold">{photoPercentage}%</span>
-							</div>
-							<div class="h-2 w-full rounded-full bg-muted">
-								<div
-									class="h-2 rounded-full bg-primary transition-all"
-									style="width: {photoPercentage}%"
-								></div>
-							</div>
-							<p class="mt-1 text-xs text-muted-foreground">
-								{data.generalStats.entriesWithPhotos} {m.analytics_of()} {data.generalStats.totalEntries} {m.analytics_entries()}
-							</p>
-						</div>
-						<div>
-							<div class="flex items-center justify-between mb-2">
-								<span class="text-sm font-medium">{m.analytics_entriesWithNotes()}</span>
-								<span class="text-sm font-semibold">{notesPercentage}%</span>
-							</div>
-							<div class="h-2 w-full rounded-full bg-muted">
-								<div
-									class="h-2 rounded-full bg-primary transition-all"
-									style="width: {notesPercentage}%"
-								></div>
-							</div>
-							<p class="mt-1 text-xs text-muted-foreground">
-								{data.generalStats.entriesWithNotes} {m.analytics_of()} {data.generalStats.totalEntries} {m.analytics_entries()}
-							</p>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2">
-						<Calendar class="h-5 w-5 text-green-500" />
-						{m.analytics_timeframe()}
-					</CardTitle>
-					<CardDescription>{m.analytics_timeframeDescription()}</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div class="space-y-3">
-						{#if data.generalStats.firstEntryDate}
-							<div class="flex items-center justify-between">
-								<span class="text-sm font-medium">{m.analytics_firstEntry()}</span>
-								<span class="text-sm text-muted-foreground">
-									{formatDate(data.generalStats.firstEntryDate, undefined, currentLocale)}
-								</span>
-							</div>
-						{/if}
-						{#if data.generalStats.lastEntryDate}
-							<div class="flex items-center justify-between">
-								<span class="text-sm font-medium">{m.analytics_lastEntry()}</span>
-								<span class="text-sm text-muted-foreground">
-									{formatDate(data.generalStats.lastEntryDate, undefined, currentLocale)}
-								</span>
-							</div>
-						{/if}
-						{#if data.generalStats.mostActiveDay !== null}
-							<div class="flex items-center justify-between">
-								<span class="text-sm font-medium">{m.analytics_mostActiveDay()}</span>
-								<Badge variant="secondary">{getDayName(data.generalStats.mostActiveDay)}</Badge>
-							</div>
-						{/if}
-					</div>
-				</CardContent>
-			</Card>
+				</div>
+			{/each}
 		</div>
 
 		{#if data.monthlyStats.length > 0}
-			<Card>
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2">
-						<BarChart3 class="h-5 w-5 text-indigo-500" />
-						{m.analytics_monthlyActivity()}
-					</CardTitle>
-					<CardDescription>{m.analytics_monthlyActivityDescription()}</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div class="space-y-3">
-						{#each data.monthlyStats as month}
-							<div>
-								<div class="flex items-center justify-between mb-1">
-									<span class="text-sm font-medium">
-										{getMonthName(month.month, month.year)} {month.year}
+			<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
+				{@render sectionTitle(BarChart3, 'bg-primary/15 text-primary', m.analytics_monthlyActivity(), m.analytics_monthlyActivityDescription())}
+				<div class="flex h-48 items-end gap-2 md:gap-3">
+					{#each monthlyChronological as month (`${month.year}-${month.month}`)}
+						<div class="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
+							<span class="text-xs font-bold tabular-nums">{month.count}</span>
+							<div
+								class="w-full max-w-12 rounded-xl bg-gradient-to-t from-primary to-accent-variant transition-opacity group-hover:opacity-80"
+								style="height: {Math.max(Math.round((month.count / maxMonthlyCount) * 100), 4)}%"
+								title="{getMonthName(month.month, month.year)} {month.year}: {month.count} {m.analytics_entries()}"
+							></div>
+							<span class="w-full truncate text-center text-[11px] font-semibold text-muted-foreground capitalize">
+								{getMonthName(month.month, month.year).slice(0, 3)}
+							</span>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		<div class="grid gap-4 md:grid-cols-2">
+			<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
+				{@render sectionTitle(Award, 'bg-primary/15 text-primary', m.analytics_topMeals(), m.analytics_topMealsDescription())}
+				{#if data.topMeals.length > 0}
+					<ol class="space-y-1">
+						{#each data.topMeals as meal, index (meal.mealId)}
+							<li>
+								<button
+									type="button"
+									onclick={() => goto(`/meals/${meal.mealId}`)}
+									class="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-colors hover:bg-secondary"
+								>
+									<span
+										class={[
+											'flex size-8 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold',
+											index === 0 ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+										]}
+									>
+										{index + 1}
 									</span>
-									<span class="text-sm font-semibold">{month.count} {m.analytics_entries()}</span>
+									<span class="min-w-0 flex-1 truncate font-semibold">{meal.mealTitle}</span>
+									<span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold">
+										{m.analytics_times({ count: meal.count })}
+									</span>
+								</button>
+							</li>
+						{/each}
+					</ol>
+				{:else}
+					<p class="text-sm text-muted-foreground">{m.analytics_noData()}</p>
+				{/if}
+			</section>
+
+			<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
+				{@render sectionTitle(Tags, 'bg-chart-4/15 text-chart-4', m.analytics_categoryUsage(), m.analytics_categoryUsageDescription())}
+				{#if data.categoryStats.length > 0}
+					{@const maxCategoryCount = Math.max(...data.categoryStats.map((c) => c.entryCount), 1)}
+					<div class="space-y-3">
+						{#each data.categoryStats.slice(0, 10) as stat (stat.categoryId)}
+							<div>
+								<div class="mb-1.5 flex items-baseline justify-between gap-2">
+									<p class="truncate text-sm font-semibold">
+										{stat.categoryName}
+										<span class="font-medium text-muted-foreground">
+											· {stat.mealCount === 1
+												? m.categories_mealCount_one({ count: stat.mealCount })
+												: m.categories_mealCount_other({ count: stat.mealCount })}
+										</span>
+									</p>
+									<span class="shrink-0 text-xs font-bold">{m.analytics_times({ count: stat.entryCount })}</span>
 								</div>
-								<div class="h-2 w-full rounded-full bg-muted">
+								<div class="h-2.5 w-full rounded-full bg-secondary">
 									<div
-										class="h-2 rounded-full bg-primary transition-all"
-										style="width: {Math.round((month.count / maxMonthlyCount) * 100)}%"
+										class="h-full rounded-full bg-chart-4"
+										style="width: {Math.round((stat.entryCount / maxCategoryCount) * 100)}%"
 									></div>
 								</div>
 							</div>
 						{/each}
 					</div>
-				</CardContent>
-			</Card>
-		{/if}
-	{/if}
+				{:else}
+					<p class="text-sm text-muted-foreground">{m.analytics_noData()}</p>
+				{/if}
+			</section>
 
-	{#if data.patternsSummary.totalEntriesAnalyzed > 0}
-		<Card>
-			<CardHeader>
-				<CardTitle class="flex items-center gap-2">
-					<TrendingUp class="h-5 w-5 text-blue-500" />
-					{m.analytics_cookingPatterns()}
-				</CardTitle>
-				<CardDescription>
-					{m.analytics_basedOnEntries({ count: data.patternsSummary.totalEntriesAnalyzed })}
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div class="grid gap-4 sm:grid-cols-2">
-					{#each DAY_NAMES as dayName, dayOfWeek}
-						{@const patterns = data.patternsSummary.topCategoriesByDay[dayOfWeek] || []}
-						<div
-							class="rounded-lg border p-3 {dayOfWeek === TODAY_DAY_OF_WEEK
-								? 'border-primary bg-primary/5'
-								: ''}"
-						>
-							<div class="mb-2 flex items-center gap-2">
-								<span class="font-medium">{dayName}</span>
-								{#if dayOfWeek === TODAY_DAY_OF_WEEK}
-									<Badge variant="default" class="text-xs">{m.common_today()}</Badge>
-								{/if}
-							</div>
-							{#if patterns.length > 0}
-								<div class="flex flex-wrap gap-1">
-									{#each patterns as pattern}
-										<Tooltip.Root>
-											<Tooltip.Trigger>
-												<Badge variant="secondary" class="text-xs">
-													{pattern.categoryName}
-												</Badge>
-											</Tooltip.Trigger>
-											<Tooltip.Content>
-												{m.analytics_cookedTimesOnDay({ count: pattern.count, day: dayName })}
-											</Tooltip.Content>
-										</Tooltip.Root>
-									{/each}
+			<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
+				{@render sectionTitle(Camera, 'bg-chart-5/15 text-chart-5', m.analytics_photoStats(), m.analytics_photoStatsDescription())}
+				<div class="grid grid-cols-2 gap-3">
+					{#each coverage as item (item.label)}
+						<div class="flex flex-col items-center rounded-2xl bg-secondary/60 p-4 text-center">
+							<div
+								class="relative flex size-24 items-center justify-center rounded-full"
+								style="background: conic-gradient({item.color} {item.percent * 3.6}deg, var(--muted) 0deg)"
+							>
+								<div class="flex size-[76px] items-center justify-center rounded-full bg-card">
+									<span class="text-xl font-extrabold tabular-nums">{item.percent}%</span>
 								</div>
-							{:else}
-								<p class="text-xs text-muted-foreground">{m.analytics_noPatternYet()}</p>
-							{/if}
+							</div>
+							<p class="mt-3 text-sm font-semibold">{item.label}</p>
+							<p class="text-xs text-muted-foreground">
+								{item.count} {m.analytics_of()} {data.generalStats.totalEntries} {m.analytics_entries()}
+							</p>
 						</div>
 					{/each}
 				</div>
-			</CardContent>
-		</Card>
+			</section>
+
+			<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
+				{@render sectionTitle(Calendar, 'bg-chart-2/15 text-chart-2', m.analytics_timeframe(), m.analytics_timeframeDescription())}
+				<dl class="divide-y divide-border/60">
+					{#if data.generalStats.firstEntryDate}
+						<div class="flex items-center justify-between py-3">
+							<dt class="text-sm font-medium">{m.analytics_firstEntry()}</dt>
+							<dd class="text-sm font-semibold">
+								{formatDate(data.generalStats.firstEntryDate, undefined, currentLocale)}
+							</dd>
+						</div>
+					{/if}
+					{#if data.generalStats.lastEntryDate}
+						<div class="flex items-center justify-between py-3">
+							<dt class="text-sm font-medium">{m.analytics_lastEntry()}</dt>
+							<dd class="text-sm font-semibold">
+								{formatDate(data.generalStats.lastEntryDate, undefined, currentLocale)}
+							</dd>
+						</div>
+					{/if}
+					{#if data.generalStats.mostActiveDay !== null}
+						<div class="flex items-center justify-between py-3">
+							<dt class="text-sm font-medium">{m.analytics_mostActiveDay()}</dt>
+							<dd class="rounded-full bg-primary/15 px-3 py-0.5 text-sm font-semibold">
+								{getDayName(data.generalStats.mostActiveDay)}
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			</section>
+		</div>
+	{/if}
+
+	{#if data.patternsSummary.totalEntriesAnalyzed > 0}
+		<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
+			{@render sectionTitle(TrendingUp, 'bg-accent/15 text-accent', m.analytics_cookingPatterns(), m.analytics_basedOnEntries({ count: data.patternsSummary.totalEntriesAnalyzed }))}
+			<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+				{#each DAY_NAMES as dayName, dayOfWeek (dayName)}
+					{@const patterns = data.patternsSummary.topCategoriesByDay[dayOfWeek] || []}
+					<div
+						class={[
+							'rounded-2xl p-3',
+							dayOfWeek === TODAY_DAY_OF_WEEK ? 'bg-primary/12 ring-2 ring-primary/50' : 'bg-secondary/60'
+						]}
+					>
+						<div class="mb-2 flex items-center gap-2">
+							<span class="text-sm font-bold">{dayName}</span>
+							{#if dayOfWeek === TODAY_DAY_OF_WEEK}
+								<span class="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
+									{m.common_today()}
+								</span>
+							{/if}
+						</div>
+						{#if patterns.length > 0}
+							<div class="flex flex-wrap gap-1">
+								{#each patterns as pattern, patternIndex (patternIndex)}
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											<span class="rounded-full bg-card px-2.5 py-0.5 text-xs font-semibold shadow-soft">
+												{pattern.categoryName}
+											</span>
+										</Tooltip.Trigger>
+										<Tooltip.Content>
+											{m.analytics_cookedTimesOnDay({ count: pattern.count, day: dayName })}
+										</Tooltip.Content>
+									</Tooltip.Root>
+								{/each}
+							</div>
+						{:else}
+							<p class="text-xs text-muted-foreground">{m.analytics_noPatternYet()}</p>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</section>
 	{:else}
-		<Card>
-			<CardContent class="py-12">
-				<div class="text-center">
-					<TrendingUp class="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-					<p class="text-muted-foreground">{m.analytics_noPatternYet()}</p>
-					<p class="text-sm text-muted-foreground mt-2">{m.analytics_needMoreEntries()}</p>
-				</div>
-			</CardContent>
-		</Card>
+		<div class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center">
+			<div class="mb-4 flex size-16 items-center justify-center rounded-3xl bg-primary/15">
+				<TrendingUp class="size-8 text-primary" />
+			</div>
+			<p class="text-muted-foreground">{m.analytics_noPatternYet()}</p>
+			<p class="mt-1 max-w-xs text-sm text-muted-foreground">{m.analytics_needMoreEntries()}</p>
+		</div>
 	{/if}
 </div>
-
