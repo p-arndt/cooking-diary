@@ -13,6 +13,12 @@ export const auth = betterAuth({
 			generateId: false
 		}
 	},
+	session: {
+		// Sliding expiry: every use (at most once a day) pushes the end out again, so only
+		// 90 days without opening the web or native app require signing in again.
+		expiresIn: 60 * 60 * 24 * 90,
+		updateAge: 60 * 60 * 24
+	},
 	emailAndPassword: {
 		enabled: true,
 		sendResetPassword: async ({ user, token }, request) => {
