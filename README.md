@@ -88,6 +88,10 @@ pnpm run db:push
 # Or generate and run migrations
 pnpm run db:generate
 pnpm run db:migrate
+
+# Optional: fill the database with sample data
+# (demo user demo@example.com / demo1234; re-running resets that user's data)
+pnpm run db:seed
 ```
 
 ## ⚙️ Environment Variables

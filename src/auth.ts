@@ -4,6 +4,7 @@ import { account, session, user, verification } from '$lib/server/db/schema';
 import { sendEmail } from '$lib/server/services/email.service';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { bearer } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 
 export const auth = betterAuth({
@@ -62,5 +63,6 @@ export const auth = betterAuth({
 			verification: verification
 		}
 	}),
-	plugins: [sveltekitCookies(getRequestEvent)]
+	// bearer() lets the native app authenticate with `Authorization: Bearer <token>`
+	plugins: [bearer(), sveltekitCookies(getRequestEvent)]
 });

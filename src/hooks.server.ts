@@ -1,6 +1,6 @@
 import { building } from '$app/environment';
 import { db } from '$lib/server/db';
-import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+import { json, redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
@@ -41,6 +41,10 @@ export const authHandle: Handle = async ({ event, resolve }) => {
 	const urlPathname = event.url.pathname;
 
 	const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
+
+	if (!session?.user?.id && urlPathname.startsWith('/api/')) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	if (!session?.user?.id && !publicPaths.includes(urlPathname)) {
 		return redirect(302, '/login');

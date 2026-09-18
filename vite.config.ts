@@ -6,6 +6,12 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 
 export default defineConfig({
+	server: {
+		// Node resolves "localhost" to ::1 only on macOS, but the Android emulator reaches
+		// the host through 10.0.2.2 → 127.0.0.1. Bind IPv4 loopback explicitly; browsers
+		// fall back from ::1 to it, and nothing is exposed beyond this machine.
+		host: '127.0.0.1'
+	},
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
@@ -13,7 +19,7 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',
-			strategy: ['cookie', 'preferredLanguage']
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
 		}),
 		SvelteKitPWA({
 			strategies: 'generateSW',
