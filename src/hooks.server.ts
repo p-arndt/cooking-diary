@@ -1,4 +1,4 @@
-import { building } from '$app/environment';
+import { building, dev } from '$app/environment';
 import { db } from '$lib/server/db';
 import { json, redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -6,7 +6,8 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
 import { paraglideMiddleware } from '$lib/paraglide/server';
-import { injectCspNonce, withSecurityHeaders } from '$lib/server/security-headers';
+import { forbiddenCrossSiteResponse, isForbiddenCrossSiteRequest } from '$lib/server/csrf';
+import { injectCspNonce, securityHeadersHandle } from '$lib/server/security-headers';
 
 export const init: ServerInit = async () => {
 	try {
@@ -19,6 +20,14 @@ export const init: ServerInit = async () => {
 
 	await migrate(db, { migrationsFolder: 'drizzle' });
 	console.log('Migrations completed successfully');
+};
+
+// SvelteKit's own check is disabled in svelte.config.js; like it, this one only runs in production.
+export const csrfHandle: Handle = ({ event, resolve }) => {
+	if (!dev && isForbiddenCrossSiteRequest(event.request, event.url)) {
+		return forbiddenCrossSiteResponse(event.request);
+	}
+	return resolve(event);
 };
 
 export const betterAuthHandle: Handle = async ({ event, resolve }) => {
@@ -63,11 +72,9 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
 		});
 	});
 
-const securityHeadersHandle: Handle = async ({ event, resolve }) =>
-	withSecurityHeaders(await resolve(event));
-
 export const handle = sequence(
 	securityHeadersHandle,
+	csrfHandle,
 	betterAuthHandle,
 	authHandle,
 	paraglideHandle

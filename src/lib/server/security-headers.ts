@@ -1,3 +1,6 @@
+import { isRedirect, type Handle } from '@sveltejs/kit';
+import { errorResponse, recordCookieWrites, redirectResponse } from './thrown-response';
+
 export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
 	'X-Content-Type-Options': 'nosniff',
 	'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -24,6 +27,25 @@ export function withSecurityHeaders(response: Response): Response {
 		return copy;
 	}
 }
+
+/**
+ * Runs first in the handle sequence. Redirects and errors thrown by later handles would
+ * otherwise escape to SvelteKit, which builds those responses after every hook has returned,
+ * so they are turned into responses here where the headers can still be added.
+ */
+export const securityHeadersHandle: Handle = async ({ event, resolve }) => {
+	const cookieWrites = recordCookieWrites(event.cookies);
+
+	try {
+		return withSecurityHeaders(await resolve(event));
+	} catch (error) {
+		if (!isRedirect(error)) return withSecurityHeaders(errorResponse(event, error));
+
+		const response = redirectResponse(event, error);
+		for (const cookie of cookieWrites()) response.headers.append('set-cookie', cookie);
+		return withSecurityHeaders(response);
+	}
+};
 
 const CSP_NONCE_PLACEHOLDER = 'nonce=%csp.nonce%';
 const SVELTEKIT_NONCE = /<script nonce="([^"]+)"/;

@@ -6,6 +6,12 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		adapter: adapter(),
+		csrf: {
+			// Disables SvelteKit's origin check (checkOrigin is deprecated in favour of this); it
+			// rejects the native app's bearer-authenticated uploads, which send no Origin header.
+			// csrfHandle in hooks.server.ts reimplements the check with a bearer exception.
+			trustedOrigins: ['*']
+		},
 		csp: {
 			// SvelteKit adds a per-request nonce (or a hash on prerendered pages) to script-src
 			// for its own inline bootstrap script; mode-watcher's inline script reuses that nonce.
