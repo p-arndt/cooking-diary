@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { ChefHat, Clock, Flame } from '@lucide/svelte';
 
 	type Meal = {
@@ -19,7 +20,7 @@
 </script>
 
 <a
-	href="/meals/{meal.id}"
+	href={resolve('/(app)/meals/[id]', { id: meal.id })}
 	class="group relative block aspect-square overflow-hidden rounded-3xl bg-secondary shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lifted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:aspect-[4/3]"
 >
 	{#if meal.defaultPhotoUrl}

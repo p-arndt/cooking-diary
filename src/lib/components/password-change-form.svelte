@@ -67,8 +67,8 @@
 					success = false;
 				}, 3000);
 			}
-		} catch (e: any) {
-			error = e.message || m.passwordChange_error_failed();
+		} catch (e) {
+			error = (e instanceof Error && e.message) || m.passwordChange_error_failed();
 		} finally {
 			loading = false;
 		}

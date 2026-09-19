@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import * as Avatar from '$lib/components/ui/avatar/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
@@ -26,7 +27,7 @@
 	async function onLogout() {
 		try {
 			await authClient.signOut();
-			await goto('/login');
+			await goto(resolve('/login'));
 		} catch (error) {
 			console.error('Logout failed:', error);
 		}
@@ -75,15 +76,17 @@
 				</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- no /profile route exists, so resolve() rejects the path at type level -->
 					<DropdownMenu.Item onclick={() => goto('/profile')}>
 						<User />
 						{m.nav_profile()}
 					</DropdownMenu.Item>
-					<DropdownMenu.Item onclick={() => goto('/settings')}>
+					<DropdownMenu.Item onclick={() => goto(resolve('/settings'))}>
 						<Settings />
 						{m.nav_settings()}
 					</DropdownMenu.Item>
 					{#if user.isAdmin}
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- no /admin route exists, so resolve() rejects the path at type level -->
 						<DropdownMenu.Item onclick={() => goto('/admin')}>
 							<LayoutDashboard />
 							{m.nav_adminPanel()}

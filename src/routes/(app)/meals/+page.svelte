@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import MealCard from '$lib/components/meal-card.svelte';
@@ -24,12 +25,15 @@
 	);
 
 	function updateSearch() {
-		const params = new URLSearchParams();
-		if (searchQuery) params.set('search', searchQuery);
-		if (selectedCategoryIds.length > 0) {
-			selectedCategoryIds.forEach((id) => params.append('category', id));
-		}
-		goto(`/meals?${params.toString()}`, { noScroll: true, replaceState: true, keepFocus: true });
+		const params = new URLSearchParams([
+			...(searchQuery ? [['search', searchQuery]] : []),
+			...selectedCategoryIds.map((id) => ['category', id])
+		]);
+		goto(resolve(`/meals?${params.toString()}`), {
+			noScroll: true,
+			replaceState: true,
+			keepFocus: true
+		});
 	}
 
 	function toggleCategory(categoryId: string) {
@@ -49,7 +53,7 @@
 	function clearFilters() {
 		searchQuery = '';
 		selectedCategoryIds = [];
-		goto('/meals', { noScroll: true, replaceState: true });
+		goto(resolve('/meals'), { noScroll: true, replaceState: true });
 	}
 
 	let hasActiveFilters = $derived(searchQuery || selectedCategoryIds.length > 0);
@@ -63,7 +67,7 @@
 	<PageHeader title={m.meals_title()} subtitle={m.meals_subtitle()}>
 		{#snippet actions()}
 			<a
-				href="/categories"
+				href={resolve('/categories')}
 				class="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3.5 py-2 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/70 md:hidden"
 			>
 				<Tags class="size-4" />

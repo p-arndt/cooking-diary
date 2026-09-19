@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ChefHat, Shuffle, Clock, Flame, Gauge, Sparkles, X } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
@@ -52,12 +53,12 @@
 	function cookMeal() {
 		if (!suggestedMeal) return;
 		const today = new Date().toISOString().split('T')[0];
-		goto(`/entries/add?step=3&date=${today}&mealId=${suggestedMeal.id}`);
+		goto(resolve(`/entries/add?step=3&date=${today}&mealId=${suggestedMeal.id}`));
 	}
 
 	function viewMeal() {
 		if (!suggestedMeal) return;
-		goto(`/meals/${suggestedMeal.id}`);
+		goto(resolve('/(app)/meals/[id]', { id: suggestedMeal.id }));
 	}
 
 	const difficultyLabel = $derived(

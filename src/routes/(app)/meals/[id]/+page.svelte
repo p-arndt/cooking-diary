@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { formatDate, isToday } from '$lib/utils/date';
@@ -43,7 +44,7 @@
 
 	async function cookToday() {
 		const today = new Date().toISOString().split('T')[0];
-		goto(`/entries/add?step=3&date=${today}&mealId=${data.meal.id}`);
+		goto(resolve(`/entries/add?step=3&date=${today}&mealId=${data.meal.id}`));
 	}
 </script>
 
@@ -67,14 +68,14 @@
 
 		<div class="absolute inset-x-0 top-0 flex items-center justify-between p-4">
 			<a
-				href="/meals"
+				href={resolve('/meals')}
 				class="flex size-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/50"
 				aria-label={m.meals_backToMeals()}
 			>
 				<ArrowLeft class="size-5" />
 			</a>
 			<a
-				href="/meals/{data.meal.id}/edit"
+				href={resolve('/(app)/meals/[id]/edit', { id: data.meal.id })}
 				class="flex size-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/50"
 				aria-label={m.meals_editMeal()}
 			>
@@ -121,7 +122,7 @@
 			variant="outline"
 			size="lg"
 			class="px-4 text-sm md:px-7 md:text-base"
-			onclick={() => goto(`/entries/add?mealId=${data.meal.id}`)}
+			onclick={() => goto(resolve(`/entries/add?mealId=${data.meal.id}`))}
 		>
 			<CalendarPlus />
 			{m.diary_addEntry()}

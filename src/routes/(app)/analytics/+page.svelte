@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import type { PageData } from './$types';
 	import PageHeader from '$lib/components/page-header.svelte';
 	import {
@@ -28,7 +29,6 @@
 		m.common_days_friday(),
 		m.common_days_saturday()
 	];
-	const TODAY_NAME = DAY_NAMES[new Date().getDay()];
 	const TODAY_DAY_OF_WEEK = new Date().getDay();
 
 	function getDayName(dayOfWeek: number): string {
@@ -189,7 +189,7 @@
 							<li>
 								<button
 									type="button"
-									onclick={() => goto(`/meals/${meal.mealId}`)}
+									onclick={() => goto(resolve('/(app)/meals/[id]', { id: meal.mealId }))}
 									class="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-colors hover:bg-secondary"
 								>
 									<span

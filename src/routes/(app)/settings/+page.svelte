@@ -24,6 +24,7 @@
 	} from '@lucide/svelte';
 	import PasswordChangeForm from '$lib/components/password-change-form.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { authClient } from '$lib/auth/client';
 	import { getUserInitials } from '$lib/utils/user';
 	import { setLocale, getLocale } from '$lib/paraglide/runtime.js';
@@ -80,7 +81,7 @@
 	async function logout() {
 		try {
 			await authClient.signOut();
-			await goto('/login');
+			await goto(resolve('/login'));
 		} catch (error) {
 			console.error('Logout failed:', error);
 		}

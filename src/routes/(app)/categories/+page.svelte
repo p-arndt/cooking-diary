@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
+	import { SvelteSet } from 'svelte/reactivity';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -18,7 +20,7 @@
 	let deleteCategoryId = $state<string | null>(null);
 	let newCategoryName = $state('');
 	let showAddDialog = $state(false);
-	let expandedCategories = $state<Set<string>>(new Set());
+	const expandedCategories = new SvelteSet<string>();
 
 	const tints = [
 		'bg-primary/15 text-primary',
@@ -44,7 +46,6 @@
 		} else {
 			expandedCategories.add(categoryId);
 		}
-		expandedCategories = new Set(expandedCategories);
 	}
 </script>
 
@@ -54,7 +55,7 @@
 
 <div class="mx-auto max-w-3xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
 	<a
-		href="/meals"
+		href={resolve('/meals')}
 		class="inline-flex items-center gap-2 rounded-full bg-secondary py-1.5 pr-4 pl-3 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/70 md:hidden"
 	>
 		<ArrowLeft class="size-4" />
@@ -168,7 +169,7 @@
 								<div class="mt-3 flex flex-wrap gap-2 border-t border-dashed pt-3">
 									{#each category.meals as meal (meal.id)}
 										<a
-											href="/meals/{meal.id}"
+											href={resolve('/(app)/meals/[id]', { id: meal.id })}
 											class="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/15"
 										>
 											<ChefHat class="size-3.5 text-primary" />

@@ -4,11 +4,12 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import '../../app.css';
+	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 
 	type Props = {
 		data: LayoutData;
-		children: any;
+		children: Snippet;
 	};
 
 	let { data, children }: Props = $props();

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll, goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -262,7 +263,6 @@
 				isSubmitting = true;
 
 				if (isEditMode && entry) {
-					const existingPhotoUrls = entry.photoUrls || [];
 					const newPhotoUrls: string[] = [];
 
 					for (let i = 0; i < photoPreviews.length; i++) {
@@ -386,7 +386,7 @@
 										<p class="font-bold">{selectedMeal.title}</p>
 										{#if selectedMeal.categories.length > 0}
 											<div class="mt-0.5 flex flex-wrap gap-1">
-												{#each selectedMeal.categories as category}
+												{#each selectedMeal.categories as category (category.id)}
 													<Badge variant="secondary" class="text-xs">
 														{category.name}
 													</Badge>
@@ -433,7 +433,7 @@
 									style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;"
 								>
 									{#if filteredMeals.length > 0}
-										{#each filteredMeals as meal, index}
+										{#each filteredMeals as meal, index (meal.id)}
 											<button
 												type="button"
 												class="w-full rounded-xl px-2 py-1.5 text-left text-sm font-medium transition-colors hover:bg-secondary {highlightedMealIndex ===
@@ -460,7 +460,7 @@
 													<span class="flex-1">{meal.title}</span>
 													{#if meal.categories.length > 0}
 														<div class="flex gap-1">
-															{#each meal.categories.slice(0, 2) as category}
+															{#each meal.categories.slice(0, 2) as category (category.id)}
 																<Badge variant="secondary" class="text-xs">
 																	{category.name}
 																</Badge>
@@ -482,7 +482,7 @@
 										class="w-full rounded-xl px-2 py-2 text-left text-sm font-semibold transition-colors hover:bg-primary/10"
 										onclick={() => {
 											open = false;
-											goto('/meals/new');
+											goto(resolve('/meals/new'));
 										}}
 									>
 										<div class="flex items-center gap-2 text-primary">
@@ -529,7 +529,8 @@
 							<div class="mt-2 space-y-3">
 								{#if photoPreviews.length > 0}
 									<div class="flex flex-wrap gap-2">
-										{#each photoPreviews as preview, index}
+										<!-- Previews are data URLs, so picking the same file twice would duplicate a value key. -->
+										{#each photoPreviews as preview, index (index)}
 											<div class="relative">
 												<img
 													src={preview}
@@ -581,7 +582,6 @@
 
 							isSubmitting = true;
 							try {
-								const existingPhotoUrls = entry.photoUrls || [];
 								const newPhotoUrls: string[] = [];
 
 								for (let i = 0; i < photoPreviews.length; i++) {

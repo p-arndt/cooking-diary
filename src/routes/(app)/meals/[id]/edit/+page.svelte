@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -113,7 +114,7 @@
 					return async ({ result }) => {
 						isSubmitting = false;
 						if (result.type === 'success' && result.data?.mealId) {
-							goto(`/meals/${result.data.mealId}`);
+							goto(resolve('/(app)/meals/[id]', { id: String(result.data.mealId) }));
 						} else if (result.type === 'failure') {
 							alert(result.data?.error || m.meals_form_failedToUpdate());
 						}
@@ -215,7 +216,7 @@
 					<Button
 						type="button"
 						variant="outline"
-						onclick={() => goto(`/meals/${data.meal.id}`)}
+						onclick={() => goto(resolve('/(app)/meals/[id]', { id: data.meal.id }))}
 						disabled={isSubmitting}
 					>
 						{m.common_cancel()}

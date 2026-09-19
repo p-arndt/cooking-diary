@@ -139,7 +139,7 @@
 	<div
 		class="flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-1.5 text-base ring-offset-background transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:text-sm dark:bg-input/30"
 	>
-		{#each selectedCategories as category}
+		{#each selectedCategories as category (category.id)}
 			<Badge class="gap-1 rounded-full py-1 pr-1 pl-2.5 text-xs font-semibold">
 				{category.name}
 				<button
@@ -176,7 +176,7 @@
 				>
 					<div class="p-1.5">
 						{#if filteredCategories.length > 0}
-							{#each filteredCategories as category, index}
+							{#each filteredCategories as category, index (category.id)}
 								<button
 									type="button"
 									class="w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-secondary {highlightedIndex ===

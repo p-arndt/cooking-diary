@@ -1,11 +1,12 @@
 <script lang="ts">
+	import type { ResolvedPathname } from '$app/types';
 	import type { Snippet } from 'svelte';
 	import { ArrowLeft } from '@lucide/svelte';
 
 	type Props = {
 		title: string;
 		subtitle?: string;
-		backHref?: string;
+		backHref?: ResolvedPathname;
 		backLabel?: string;
 		actions?: Snippet;
 	};

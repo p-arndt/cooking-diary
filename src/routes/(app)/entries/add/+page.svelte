@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -16,15 +17,14 @@
 		Search,
 		X
 	} from '@lucide/svelte';
-	import { formatDate, isSameDay, toDateString } from '$lib/utils/date';
+	import { addDays, formatDate, isSameDay, toDateString } from '$lib/utils/date';
 	import * as m from '$lib/paraglide/messages.js';
 
 	type Props = {
 		data: PageData;
-		form?: any;
 	};
 
-	let { data, form }: Props = $props();
+	let { data }: Props = $props();
 
 	const step = $derived(data.step || 1);
 	let selectedDate = $state<Date>(data.date ? new Date(data.date) : new Date());
@@ -43,17 +43,21 @@
 
 	function nextStep() {
 		if (step === 1) {
-			goto(`/entries/add?step=2&date=${toDateString(selectedDate)}`);
+			goto(resolve(`/entries/add?step=2&date=${toDateString(selectedDate)}`));
 		} else if (step === 2 && selectedMealId) {
-			goto(`/entries/add?step=3&date=${toDateString(selectedDate)}&mealId=${selectedMealId}`);
+			goto(
+				resolve(`/entries/add?step=3&date=${toDateString(selectedDate)}&mealId=${selectedMealId}`)
+			);
 		}
 	}
 
 	function prevStep() {
 		if (step === 2) {
-			goto(`/entries/add?step=1&date=${toDateString(selectedDate)}`);
+			goto(resolve(`/entries/add?step=1&date=${toDateString(selectedDate)}`));
 		} else if (step === 3) {
-			goto(`/entries/add?step=2&date=${toDateString(selectedDate)}&mealId=${selectedMealId}`);
+			goto(
+				resolve(`/entries/add?step=2&date=${toDateString(selectedDate)}&mealId=${selectedMealId}`)
+			);
 		}
 	}
 
@@ -95,8 +99,7 @@
 
 	const quickDates = $derived.by(() => {
 		const today = new Date();
-		const yesterday = new Date(today);
-		yesterday.setDate(today.getDate() - 1);
+		const yesterday = addDays(today, -1);
 		return [
 			{ label: m.common_today(), date: today },
 			{ label: m.common_yesterday(), date: yesterday }
@@ -214,7 +217,7 @@
 					<p class="mt-2 text-sm text-muted-foreground">{m.entries_dateHint()}</p>
 				</div>
 				<div class="flex justify-end gap-2">
-					<Button variant="outline" onclick={() => goto('/')}>{m.common_cancel()}</Button>
+					<Button variant="outline" onclick={() => goto(resolve('/'))}>{m.common_cancel()}</Button>
 					<Button onclick={nextStep}>
 						{m.common_next()}
 						<ArrowRight />
@@ -270,7 +273,7 @@
 						<ArrowLeft />
 						{m.common_back()}
 					</Button>
-					<Button variant="secondary" onclick={() => goto('/meals/new')}>
+					<Button variant="secondary" onclick={() => goto(resolve('/meals/new'))}>
 						<Plus />
 						{m.entries_createNewMeal()}
 					</Button>
@@ -394,7 +397,7 @@
 
 							return async ({ result }) => {
 								if (result.type === 'success') {
-									goto('/');
+									goto(resolve('/'));
 								} else if (result.type === 'failure') {
 									alert(result.data?.error || m.entries_failedToCreate());
 								}

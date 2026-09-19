@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import cookindiarylogo from '$lib/assets/logo.png';
 	import NavMain from '$lib/components/nav-main.svelte';
@@ -40,35 +41,35 @@
 	const navigation = $derived([
 		{
 			title: m.nav_dashboard(),
-			url: '/',
+			url: resolve('/'),
 			icon: BookOpen,
 			isActive: isActive('/'),
 			items: []
 		},
 		{
 			title: m.nav_meals(),
-			url: '/meals',
+			url: resolve('/meals'),
 			icon: ChefHat,
 			isActive: isActive('/meals'),
 			items: []
 		},
 		{
 			title: m.nav_categories(),
-			url: '/categories',
+			url: resolve('/categories'),
 			icon: Tags,
 			isActive: isActive('/categories'),
 			items: []
 		},
 		{
 			title: m.nav_analytics(),
-			url: '/analytics',
+			url: resolve('/analytics'),
 			icon: TrendingUp,
 			isActive: isActive('/analytics'),
 			items: []
 		},
 		{
 			title: m.nav_settings(),
-			url: '/settings',
+			url: resolve('/settings'),
 			icon: Settings,
 			isActive: isActive('/settings'),
 			items: []

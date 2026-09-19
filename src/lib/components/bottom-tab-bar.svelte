@@ -1,16 +1,18 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import type { ResolvedPathname } from '$app/types';
 	import { m } from '$lib/paraglide/messages';
-	import { BookOpen, ChefHat, Plus, Settings, TrendingUp } from '@lucide/svelte';
+	import { BookOpen, ChefHat, Plus, Settings, TrendingUp, type LucideIcon } from '@lucide/svelte';
 
 	const leftItems = $derived([
-		{ title: m.nav_dashboard(), url: '/', icon: BookOpen },
-		{ title: m.nav_meals(), url: '/meals', icon: ChefHat }
+		{ title: m.nav_dashboard(), url: resolve('/'), icon: BookOpen },
+		{ title: m.nav_meals(), url: resolve('/meals'), icon: ChefHat }
 	]);
 
 	const rightItems = $derived([
-		{ title: m.nav_analytics(), url: '/analytics', icon: TrendingUp },
-		{ title: m.nav_settings(), url: '/settings', icon: Settings }
+		{ title: m.nav_analytics(), url: resolve('/analytics'), icon: TrendingUp },
+		{ title: m.nav_settings(), url: resolve('/settings'), icon: Settings }
 	]);
 
 	function isActive(href: string) {
@@ -25,7 +27,7 @@
 	}
 </script>
 
-{#snippet tab(item: { title: string; url: string; icon: typeof BookOpen })}
+{#snippet tab(item: { title: string; url: ResolvedPathname; icon: LucideIcon })}
 	{@const active = isActive(item.url)}
 	<a
 		href={item.url}
@@ -52,7 +54,7 @@
 		{/each}
 
 		<a
-			href="/entries/add"
+			href={resolve('/entries/add')}
 			class="-mt-7 flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lifted ring-4 ring-background transition-transform active:scale-95"
 			aria-label={m.diary_addEntry()}
 		>

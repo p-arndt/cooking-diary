@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button';
-	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import type { ResolvedPathname } from '$app/types';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import type { LucideIcon } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let {
@@ -14,8 +12,8 @@
 	}: {
 		items: {
 			title: string;
-			url: string;
-			icon?: any;
+			url: ResolvedPathname;
+			icon?: LucideIcon;
 			isActive?: boolean;
 			items?: {
 				title: string;
@@ -26,7 +24,7 @@
 	const sidebar = useSidebar();
 	const isMobile = new IsMobile();
 
-	async function handleClick(url: string, e?: MouseEvent) {
+	async function handleClick(url: ResolvedPathname, e?: MouseEvent) {
 		if (e && (e.target as HTMLElement).closest('svg')) {
 			return;
 		}

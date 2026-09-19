@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { fade } from 'svelte/transition';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -104,13 +105,13 @@
 		mealSearchQuery = '';
 		showMealSuggestions = false;
 		highlightedMealIndex = -1;
-		goto(`/?meal=${mealId}`, { noScroll: true });
+		goto(resolve(`/?meal=${mealId}`), { noScroll: true });
 	}
 
 	function clearMealSearch() {
 		mealSearchQuery = '';
 		showMealSuggestions = false;
-		goto('/', { noScroll: true });
+		goto(resolve('/'), { noScroll: true });
 	}
 
 	function handleMealSearchKeydown(e: KeyboardEvent) {
@@ -159,15 +160,12 @@
 	);
 
 	const timelineEntriesByDate = $derived.by(() => {
-		const grouped = new Map<string, typeof timelineEntriesWithDates>();
+		const grouped: Record<string, typeof timelineEntriesWithDates> = {};
 		for (const entry of timelineEntriesWithDates) {
 			const dateStr = toDateString(entry.dateCooked) || '';
-			if (!grouped.has(dateStr)) {
-				grouped.set(dateStr, []);
-			}
-			grouped.get(dateStr)!.push(entry);
+			(grouped[dateStr] ??= []).push(entry);
 		}
-		return Array.from(grouped.entries())
+		return Object.entries(grouped)
 			.map(([dateStr, entries]) => ({
 				date: new Date(dateStr),
 				entries
@@ -176,7 +174,7 @@
 	});
 
 	function setView(newView: string) {
-		goto(`/?view=${newView}`, { noScroll: true });
+		goto(resolve(`/?view=${newView}`), { noScroll: true });
 	}
 
 	// Parsed as local midnight so weekday and day number match what the user sees
@@ -196,13 +194,13 @@
 	});
 
 	const weekEntriesByDay = $derived.by(() => {
-		const grouped = new Map<string, typeof data.weekEntries>();
+		const grouped: Record<string, typeof data.weekEntries> = {};
 		for (const entry of data.weekEntries) {
 			// dateCooked is a date-only column delivered as UTC midnight
 			const day = new Date(entry.dateCooked).toISOString().slice(0, 10);
-			grouped.set(day, [...(grouped.get(day) ?? []), entry]);
+			(grouped[day] ??= []).push(entry);
 		}
-		return grouped;
+		return new Map(Object.entries(grouped));
 	});
 
 	const visibleWeekDays = $derived(
@@ -214,7 +212,7 @@
 
 	function changeWeek(offset: number) {
 		const target = offset === 0 ? getWeekStart(new Date()) : addDays(weekStart, offset * 7);
-		goto(`/?view=week&week=${toDateString(target)}`, { noScroll: true });
+		goto(resolve(`/?view=week&week=${toDateString(target)}`), { noScroll: true });
 	}
 
 	function toggleWeekDay(day: Date) {
@@ -223,9 +221,16 @@
 	}
 
 	function changeMonth(direction: 'prev' | 'next') {
-		const newMonth = new Date(currentMonth);
-		newMonth.setMonth(currentMonth.getMonth() + (direction === 'next' ? 1 : -1));
-		goto(`/?view=${view}&month=${newMonth.toISOString()}`, { noScroll: true });
+		const newMonth = new Date(
+			currentMonth.getFullYear(),
+			currentMonth.getMonth() + (direction === 'next' ? 1 : -1),
+			currentMonth.getDate(),
+			currentMonth.getHours(),
+			currentMonth.getMinutes(),
+			currentMonth.getSeconds(),
+			currentMonth.getMilliseconds()
+		);
+		goto(resolve(`/?view=${view}&month=${newMonth.toISOString()}`), { noScroll: true });
 	}
 
 	function selectDate(date: Date) {
@@ -277,8 +282,7 @@
 
 	function openAddEntry(date?: Date) {
 		if (date) {
-			const dateParam = `?date=${toDateString(date)}`;
-			goto(`/entries/add${dateParam}`);
+			goto(resolve(`/entries/add?date=${toDateString(date)}`));
 		} else {
 			showQuickAddDialog = true;
 		}
@@ -617,7 +621,7 @@
 						{/each}
 					</div>
 					<div class="grid grid-cols-7 gap-1">
-						{#each Array(42) as _, i (i)}
+						{#each Array(42), i (i)}
 							{@const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)}
 							{@const dayOffset =
 								i - ((new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7)}

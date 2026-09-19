@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -76,11 +77,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-2xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
-	<PageHeader
-		title={m.meals_addMealTitle()}
-		backHref={'/meals'}
-		backLabel={m.meals_backToMeals()}
-	/>
+	<PageHeader title={m.meals_addMealTitle()} backHref="/meals" backLabel={m.meals_backToMeals()} />
 
 	<div class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft md:p-7">
 		<div>
@@ -108,7 +105,7 @@
 					return async ({ result }) => {
 						isSubmitting = false;
 						if (result.type === 'success' && result.data?.mealId) {
-							goto(`/meals/${result.data.mealId}`);
+							goto(resolve('/(app)/meals/[id]', { id: String(result.data.mealId) }));
 						} else if (result.type === 'failure') {
 							alert(result.data?.error || m.meals_form_failedToCreate());
 						}
@@ -210,7 +207,7 @@
 					<Button
 						type="button"
 						variant="outline"
-						onclick={() => goto('/meals')}
+						onclick={() => goto(resolve('/meals'))}
 						disabled={isSubmitting}
 					>
 						{m.common_cancel()}
