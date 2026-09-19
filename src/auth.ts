@@ -1,4 +1,12 @@
+import { dev } from '$app/environment';
 import { getRequestEvent } from '$app/server';
+import { env } from '$env/dynamic/private';
+import { resolvePublicBaseUrl } from '$lib/server/auth/base-url';
+import {
+	buildResetPasswordEmail,
+	buildResetPasswordUrl
+} from '$lib/server/auth/reset-password-email';
+import { isSignupDisabled } from '$lib/server/auth/signup';
 import { db } from '$lib/server/db';
 import { account, session, user, verification } from '$lib/server/db/schema';
 import { sendEmail } from '$lib/server/services/email.service';
@@ -21,41 +29,31 @@ export const auth = betterAuth({
 	},
 	emailAndPassword: {
 		enabled: true,
+		disableSignUp: isSignupDisabled(env.DISABLE_SIGNUP),
 		sendResetPassword: async ({ user, token }, request) => {
-			if (!request) {
-				console.error('Password reset: request object is undefined');
+			const baseUrl = resolvePublicBaseUrl({
+				betterAuthUrl: env.BETTER_AUTH_URL,
+				origin: env.ORIGIN,
+				dev,
+				requestUrl: request?.url
+			});
+
+			if (!baseUrl) {
+				console.error(
+					'Password reset: no public URL configured. Set BETTER_AUTH_URL (or ORIGIN) to the public URL of this instance; no reset link was sent.'
+				);
 				return;
 			}
 
-			const baseUrl = new URL(request.url).origin;
-			const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+			const resetUrl = buildResetPasswordUrl(baseUrl, token);
 
 			try {
-				await sendEmail({
-					to: user.email,
-					subject: 'Reset your password',
-					html: `
-						<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-							<h2 style="color: #333;">Reset Your Password</h2>
-							<p>Hello ${user.name || 'there'},</p>
-							<p>We received a request to reset your password. Click the button below to reset it:</p>
-							<div style="margin: 30px 0;">
-								<a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
-							</div>
-							<p>Or copy and paste this link into your browser:</p>
-							<p style="color: #666; word-break: break-all;">${resetUrl}</p>
-							<p style="color: #999; font-size: 12px; margin-top: 30px;">This link will expire in 1 hour. If you didn't request a password reset, please ignore this email.</p>
-						</div>
-					`,
-					text: `Reset Your Password\n\nHello ${user.name || 'there'},\n\nWe received a request to reset your password. Click the following link to reset it:\n\n${resetUrl}\n\nThis link will expire in 1 hour. If you didn't request a password reset, please ignore this email.`
-				});
+				await sendEmail({ to: user.email, ...buildResetPasswordEmail(user.name, resetUrl) });
 			} catch (error) {
 				console.error('Failed to send password reset email:', error);
-				console.log('Password reset link (fallback):', {
-					to: user.email,
-					url: resetUrl,
-					token
-				});
+				if (dev) {
+					console.log('Password reset link (dev fallback):', { to: user.email, url: resetUrl });
+				}
 			}
 		}
 	},

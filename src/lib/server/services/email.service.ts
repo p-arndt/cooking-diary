@@ -13,17 +13,13 @@ function getTransporter(): Transporter | null {
 	const smtpPort = env.SMTP_PORT ? parseInt(env.SMTP_PORT, 10) : 587;
 	const smtpUser = env.SMTP_USERNAME || env.SMTP_USER;
 	const smtpPassword = env.SMTP_PASSWORD;
-	const smtpFrom = env.SMTP_FROM;
 
 	if (!smtpHost || !smtpUser || !smtpPassword) {
-		console.warn(
-			'SMTP configuration incomplete. Missing:',
-			{
-				host: !smtpHost,
-				user: !smtpUser,
-				password: !smtpPassword
-			}
-		);
+		console.warn('SMTP configuration incomplete. Missing:', {
+			host: !smtpHost,
+			user: !smtpUser,
+			password: !smtpPassword
+		});
 		return null;
 	}
 
@@ -70,10 +66,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
 			text: options.text || options.html?.replace(/<[^>]*>/g, '')
 		});
 
-		console.log(`Password reset email sent to ${options.to}`);
+		console.log('Email sent');
 	} catch (error) {
 		console.error('Failed to send email:', error);
 		throw error;
 	}
 }
-

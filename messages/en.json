@@ -79,6 +79,7 @@
   "auth_error_nameRequired": "Name is required",
   "auth_error_loginFailed": "Login failed",
   "auth_error_registrationFailed": "Registration failed",
+  "auth_signupDisabled": "Registration is disabled on this instance. Ask the administrator for an account.",
   "passwordReset_forgotPassword": "Forgot Password",
   "passwordReset_enterEmailToReset": "Enter your email address and we'll send you a link to reset your password.",
   "passwordReset_sendResetLink": "Send Reset Link",

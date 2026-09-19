@@ -79,6 +79,7 @@
   "auth_error_nameRequired": "Name ist erforderlich",
   "auth_error_loginFailed": "Anmeldung fehlgeschlagen",
   "auth_error_registrationFailed": "Registrierung fehlgeschlagen",
+  "auth_signupDisabled": "Die Registrierung ist auf dieser Instanz deaktiviert. Bitte wende dich an die Administration für ein Konto.",
   "passwordReset_forgotPassword": "Passwort vergessen",
   "passwordReset_enterEmailToReset": "Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.",
   "passwordReset_sendResetLink": "Reset-Link senden",
