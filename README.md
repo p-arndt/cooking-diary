@@ -1,185 +1,243 @@
-# Cooking Diary
+<div align="center">
 
 <p align="center">
-  <img src="src/lib/assets/logo.png" alt="Cooking Diary Logo" width="200" />
+  <img src="src/lib/assets/logo.png" alt="Cooking Diary logo" width="160" />
 </p>
 
-A personal cooking diary to track your meals, discover patterns, and get meal suggestions based on your cooking history.
+<h1 align="center">Cooking Diary</h1>
 
-## Table of Contents
+**Remember what you cooked. Stop asking "what should we eat today?".**
 
-- [🌟 Features](#-features)
-- [🚀 Quickstart](#-quickstart)
-- [⚙️ Environment Variables](#-environment-variables)
-- [🤝 Contributing](#-contributing)
+A self-hosted cooking diary: log every meal you cook, see your habits at a glance,
+and let your own history suggest what's next.
 
-## 🌟 Features
+[![Release](https://github.com/p-arndt/cooking-diary/actions/workflows/release.yml/badge.svg)](https://github.com/p-arndt/cooking-diary/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/p-arndt/cooking-diary?display_name=tag&sort=semver)](https://github.com/p-arndt/cooking-diary/releases)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-Svelte%205-FF3E00?logo=svelte&logoColor=white)](https://svelte.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)](compose.yaml)
+[![Docker](https://img.shields.io/badge/ghcr.io-cooking--diary-2496ED?logo=docker&logoColor=white)](https://github.com/p-arndt/cooking-diary/pkgs/container/cooking-diary)
+[![Android](https://img.shields.io/badge/app-Android%20%7C%20iOS-3DDC84?logo=android&logoColor=white)](mobile/README.md)
 
-### Meal Management
+[Features](#-features) · [Screenshots](#-screenshots) · [Quickstart](#-quickstart) · [Configuration](#%EF%B8%8F-configuration) · [Development](#%EF%B8%8F-development) · [Mobile app](#-mobile-app)
 
-- Create and organize your meal library
-- Add photos, prep time, cook time, and difficulty levels
-- Categorize meals (e.g., Pasta, Vegan, Dessert)
-- Search and filter your meals
-
-### Cooking Diary
-
-- Log when you cooked each meal
-- Add notes and photos to each cooking session
-- View your cooking history in timeline or calendar view
-- Track how many times you've cooked each meal
-
-### Smart Meal Suggestions
-
-- Get personalized meal suggestions based on your cooking patterns
-- Exclude recently cooked meals
-- Use day-of-week patterns to suggest meals you typically cook on specific days
-- Exclude categories you don't want to see
-
-### Cooking Patterns & Analytics
-
-- View your cooking patterns by day of week
-- See which categories you cook most frequently
-- Track your cooking trends over time
-
-### User Features
-
-- Email/password authentication with Better Auth
-- Password reset via email
-- Change password functionality
-- Personal settings and preferences
-- Multi-language support (English, German)
-
-## 🚀 Quickstart
-
-### Option 1: Docker Compose (recommended)
-
-Steps:
-
-1. Copy environment variables from `.env.example` to `.env` (if available)
-2. Adjust your environment variables (see [Environment Variables](#-environment-variables))
-3. Start the application:
-
-   ```bash
-   docker compose up -d
-   ```
-
-4. Open **[http://localhost:3000](http://localhost:3000)**
-
-### Option 2: Local Development
-
-```bash
-git clone <repo-url>
-cd cooking-diary
-pnpm install
-pnpm run dev
-```
-
-Then open the dev server (usually **[http://localhost:5173](http://localhost:5173)**).
-
-### Database Setup
-
-Make sure you have PostgreSQL running, then:
-
-```bash
-# Push database schema
-pnpm run db:push
-
-# Or generate and run migrations
-pnpm run db:generate
-pnpm run db:migrate
-
-# Optional: fill the database with sample data
-# (demo user demo@example.com / demo1234; re-running resets that user's data)
-pnpm run db:seed
-```
-
-## ⚙️ Environment Variables
-
-Use `.env` or set them directly in your environment.
-Keep secrets private and secure.
-
-### Core Settings
-
-| Variable            | What it controls               | Example                 |
-| ------------------- | ------------------------------ | ----------------------- |
-| BETTER_AUTH_SECRET  | Secret for signing auth tokens | random hex              |
-| BETTER_AUTH_URL     | URL of your app instance       | `http://localhost:3000` |
-| POSTGRES_HOST       | Database host                  | `localhost`             |
-| POSTGRES_PORT       | Database port                  | `5432`                  |
-| POSTGRES_USER       | Database user                  | `cooking`               |
-| POSTGRES_PASSWORD   | Database password              | `your-password`         |
-| POSTGRES_DB         | Database name                  | `cooking_diary`         |
-
-### SMTP / Email
-
-Configure SMTP settings for password reset emails:
-
-| Variable                  | Purpose                      | Example                    |
-| ------------------------- | ---------------------------- | -------------------------- |
-| SMTP_HOST                 | SMTP server                  | `smtp.gmail.com`           |
-| SMTP_PORT                 | SMTP port (default: 587)     | `587`                      |
-| SMTP_USER / SMTP_USERNAME | Login name                   | `your-email@example.com`   |
-| SMTP_PASSWORD             | Password                     | `your-smtp-password`      |
-| SMTP_FROM                 | Sender address               | `noreply@example.com`      |
-
-**Password Reset Emails**: When users request a password reset, the system will send an email using the configured SMTP settings. If SMTP is not configured, the reset link will be logged to the console as a fallback.
-
-### Example `.env` file
-
-```env
-# Authentication
-BETTER_AUTH_SECRET=your-secret-key-here
-BETTER_AUTH_URL=http://localhost:3000
-
-# Database
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=cooking
-POSTGRES_PASSWORD=your-password
-POSTGRES_DB=cooking_diary
-
-# SMTP (Optional - for password reset emails)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@example.com
-SMTP_PASSWORD=your-smtp-password
-SMTP_FROM=noreply@example.com
-```
-
-## 🛠️ Development
-
-### Available Scripts
-
-- `pnpm run dev` - Start development server
-- `pnpm run build` - Build for production
-- `pnpm run preview` - Preview production build
-- `pnpm run check` - Type check with Svelte
-- `pnpm run format` - Format code with Prettier
-- `pnpm run lint` - Lint code
-- `pnpm run test` - Run tests
-- `pnpm run db:push` - Push database schema changes
-- `pnpm run db:generate` - Generate database migrations
-- `pnpm run db:migrate` - Run database migrations
-- `pnpm run db:studio` - Open Drizzle Studio
-
-### Tech Stack
-
-- **Framework**: SvelteKit 2.x with Svelte 5
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Better Auth
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn-svelte
-- **Email**: Nodemailer
-- **Internationalization**: Paraglide (inlang)
-
-## 🤝 Contributing
-
-- Open an issue for bigger changes
-- Keep PRs focused
-- Include tests when adding new behavior
-- Follow formatting (`pnpm run format`)
+</div>
 
 ---
 
-Cooking Diary helps you track your meals, discover patterns, and get inspired for your next cooking adventure.
+<p align="center">
+  <img src="./assets/screens/diary.png" alt="The diary: a meal suggestion card, stat tiles, the week strip and the entries of the week" width="900">
+</p>
+
+<sub>All screenshots show the seed data (`pnpm db:seed`) and are captured by
+[scripts/screenshots.ts](scripts/screenshots.ts). The UI speaks English and German.</sub>
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 📖 Diary
+
+Log when you cooked what, with notes and photos. Browse your history by
+**week**, **month** or as a **timeline**, and search for a meal to see
+every time you made it.
+
+</td>
+<td width="50%" valign="top">
+
+### 🍝 Meal library
+
+Your own recipe collection with photos, prep and cook time, difficulty and
+categories like _Pasta_, _Vegan_ or _Quick_. Search and filter in one place.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 🎲 "What should I cook today?"
+
+One tap rolls a suggestion from **your** history: it skips what you had
+recently, leans on what you usually cook on that weekday, and leaves out
+categories you don't want.
+
+</td>
+<td width="50%" valign="top">
+
+### 📊 Analytics
+
+Entries per month, favourite meals, most active weekdays and how your
+categories stack up. Find out that it really is pasta again.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 🔐 Accounts
+
+Email and password login with [Better Auth](https://better-auth.com),
+password reset by mail, personal settings per user.
+
+</td>
+<td width="50%" valign="top">
+
+### 📱 Everywhere
+
+Installable PWA, light and dark theme, English and German, plus a native
+[Android and iOS app](#-mobile-app) on the same JSON API.
+
+</td>
+</tr>
+</table>
+
+## 📸 Screenshots
+
+<table>
+<tr>
+<td width="50%" valign="top">
+  <img src="./assets/screens/meals.png" alt="The meal library as a card grid with prep and cook times" width="100%"><br>
+  <sub><b>Meal library</b>: times, categories, search and filter.</sub>
+</td>
+<td width="50%" valign="top">
+  <img src="./assets/screens/analytics.png" alt="Analytics: totals, monthly activity chart, favourite meals and category usage" width="100%"><br>
+  <sub><b>Analytics</b>: what you cook, how often, and when.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+  <img src="./assets/screens/diary-dark.png" alt="The diary in dark mode" width="100%"><br>
+  <sub><b>Dark mode</b>: follows the system or your choice in the settings.</sub>
+</td>
+<td width="50%" valign="top">
+  <img src="./assets/screens/settings.png" alt="Settings: suggestion rules, language and theme" width="100%"><br>
+  <sub><b>Settings</b>: tune the suggestions, language and theme.</sub>
+</td>
+</tr>
+</table>
+
+<p align="center">
+  <img src="./assets/screens/mobile-diary.png" alt="The diary on a phone" width="260">
+  &nbsp;
+  <img src="./assets/screens/mobile-meals.png" alt="The meal library on a phone" width="260">
+  &nbsp;
+  <img src="./assets/screens/mobile-analytics.png" alt="Analytics on a phone" width="260">
+</p>
+
+<p align="center"><sub>On a phone, with the bottom tab bar and the quick-add button.</sub></p>
+
+## 🚀 Quickstart
+
+### Docker
+
+Every release is published as `ghcr.io/p-arndt/cooking-diary`. The app runs its database
+migrations on start, so all it needs is a Postgres:
+
+```yaml
+# compose.yaml
+services:
+  app:
+    image: ghcr.io/p-arndt/cooking-diary:latest
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+    volumes:
+      - files:/app/files # uploaded photos
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  files:
+  pgdata:
+```
+
+Fill in a `.env` (see [Configuration](#%EF%B8%8F-configuration)), run `docker compose up -d`
+and open **<http://localhost:3000>**.
+
+### From source
+
+```bash
+git clone https://github.com/p-arndt/cooking-diary.git
+cd cooking-diary
+cp .env.example .env
+pnpm install
+pnpm db:start        # Postgres via docker compose
+pnpm db:seed         # optional: demo@example.com / demo1234 with 150 days of history
+pnpm dev             # http://localhost:5173
+```
+
+Re-running `pnpm db:seed` resets only the demo user's data.
+
+## ⚙️ Configuration
+
+Everything is configured through environment variables, usually a `.env` file.
+
+| Variable             | What it controls            | Example                 |
+| -------------------- | --------------------------- | ----------------------- |
+| `BETTER_AUTH_SECRET` | Secret for signing sessions | `openssl rand -hex 32`  |
+| `BETTER_AUTH_URL`    | Public URL of your instance | `http://localhost:3000` |
+| `POSTGRES_HOST`      | Database host               | `localhost`             |
+| `POSTGRES_PORT`      | Database port               | `5432`                  |
+| `POSTGRES_USER`      | Database user               | `cooking_diary`         |
+| `POSTGRES_PASSWORD`  | Database password           | `change-me`             |
+| `POSTGRES_DB`        | Database name               | `cooking_diary`         |
+
+<details>
+<summary><b>SMTP for password reset mails</b> (optional)</summary>
+
+| Variable                      | Purpose                 | Example               |
+| ----------------------------- | ----------------------- | --------------------- |
+| `SMTP_HOST`                   | SMTP server             | `smtp.example.com`    |
+| `SMTP_PORT`                   | SMTP port (default 587) | `587`                 |
+| `SMTP_USER` / `SMTP_USERNAME` | Login name              | `you@example.com`     |
+| `SMTP_PASSWORD`               | Password                | `your-smtp-password`  |
+| `SMTP_FROM`                   | Sender address          | `noreply@example.com` |
+
+Without SMTP the reset link is written to the server log instead.
+
+</details>
+
+## 🛠️ Development
+
+| Command               | What it does                                                       |
+| --------------------- | ------------------------------------------------------------------ |
+| `pnpm dev`            | Dev server on <http://localhost:5173>                              |
+| `pnpm build`          | Production build (adapter-node)                                    |
+| `pnpm check`          | Type check with svelte-check                                       |
+| `pnpm lint`           | Prettier and ESLint                                                |
+| `pnpm test:unit`      | Unit tests (Vitest)                                                |
+| `pnpm db:generate`    | Generate a migration from the Drizzle schema                       |
+| `pnpm db:migrate`     | Apply migrations                                                   |
+| `pnpm db:studio`      | Open Drizzle Studio                                                |
+| `pnpm db:seed`        | Reset the demo user with sample data                               |
+| `pnpm screenshots`    | Recapture the README screenshots (seeded instance must be running) |
+| `just ci`             | Everything CI would run                                            |
+| `just release <bump>` | Cut a release with [stamp](https://github.com/p-arndt/stamp)       |
+
+**Stack:** [SvelteKit](https://svelte.dev) with Svelte 5 runes · PostgreSQL with
+[Drizzle ORM](https://orm.drizzle.team) · [Better Auth](https://better-auth.com) ·
+Tailwind CSS and [shadcn-svelte](https://shadcn-svelte.com) ·
+[LayerChart](https://layerchart.com) · [Paraglide](https://inlang.com/m/gerre34r/library-inlang-paraglideJs)
+for i18n · Nodemailer.
+
+## 📱 Mobile app
+
+[`mobile/`](mobile/README.md) holds a native Android and iOS client built with Kotlin and
+Compose Multiplatform. It talks to the same server through the `/api/v1` JSON API with
+bearer tokens and uses the same accounts as the web app. `just mobile` lists its recipes.
+
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Open an issue first for bigger changes, keep PRs
+focused, add tests for new behaviour and run `pnpm format` before pushing.
