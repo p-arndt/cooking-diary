@@ -1,5 +1,5 @@
-import { error, redirect, type Cookies, type RequestEvent } from '@sveltejs/kit';
-import { describe, expect, it, vi } from 'vitest';
+import { redirect, type RequestEvent } from '@sveltejs/kit';
+import { describe, expect, it } from 'vitest';
 import {
 	SECURITY_HEADERS,
 	injectCspNonce,
@@ -8,44 +8,13 @@ import {
 	withSecurityHeaders
 } from './security-headers';
 
-function fakeCookies(): Cookies {
-	const serialize = (name: string, value: string, options: { path: string; maxAge?: number }) =>
-		`${name}=${value}; Path=${options.path}` +
-		(options.maxAge === undefined ? '' : `; Max-Age=${options.maxAge}`);
-	return {
-		get: () => undefined,
-		getAll: () => [],
-		set: () => {},
-		delete: () => {},
-		serialize
-	};
-}
-
-type EventOptions = {
-	method?: string;
-	accept?: string;
-	isDataRequest?: boolean;
-};
-
-function fakeEvent({ method = 'GET', accept, isDataRequest = false }: EventOptions = {}) {
-	const request = new Request('http://localhost/', {
-		method,
-		headers: accept ? { accept } : {}
-	});
-	return {
-		request,
-		url: new URL(request.url),
-		cookies: fakeCookies(),
-		isDataRequest,
-		isRemoteRequest: false
-	} as unknown as RequestEvent;
+function fakeEvent() {
+	const request = new Request('http://localhost/');
+	return { request, url: new URL(request.url) } as unknown as RequestEvent;
 }
 
 async function handleWith(event: RequestEvent, resolve: (event: RequestEvent) => Response) {
-	return securityHeadersHandle({
-		event,
-		resolve: async (e) => resolve(e)
-	});
+	return securityHeadersHandle({ event, resolve: async (e) => resolve(e) });
 }
 
 function expectSecurityHeaders(response: Response) {
@@ -93,72 +62,11 @@ describe('securityHeadersHandle', () => {
 		expectSecurityHeaders(response);
 	});
 
-	it('turns a redirect thrown by a later handle into a 3xx with the headers', async () => {
-		const response = await handleWith(fakeEvent(), () => redirect(302, '/login'));
-		expect(response.status).toBe(302);
-		expect(response.headers.get('location')).toBe('/login');
-		expectSecurityHeaders(response);
-	});
-
-	it('replays cookies written before the redirect', async () => {
-		const event = fakeEvent();
-		const response = await handleWith(event, (e) => {
-			e.cookies.set('fresh', 'v', { path: '/' });
-			e.cookies.delete('better-auth.session_token', { path: '/' });
-			redirect(302, '/login');
+	it('lets a redirect thrown by a later handle through to SvelteKit', async () => {
+		await expect(handleWith(fakeEvent(), () => redirect(302, '/login'))).rejects.toMatchObject({
+			status: 302,
+			location: '/login'
 		});
-		expect(response.headers.getSetCookie()).toEqual([
-			'fresh=v; Path=/',
-			'better-auth.session_token=; Path=/; Max-Age=0'
-		]);
-	});
-
-	it('answers data requests with the JSON redirect envelope', async () => {
-		const response = await handleWith(fakeEvent({ isDataRequest: true }), () =>
-			redirect(302, '/login')
-		);
-		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({ type: 'redirect', location: '/login' });
-		expectSecurityHeaders(response);
-	});
-
-	it('answers enhanced form actions with the action redirect envelope', async () => {
-		const response = await handleWith(
-			fakeEvent({ method: 'POST', accept: 'application/json' }),
-			() => redirect(303, '/login')
-		);
-		expect(await response.json()).toEqual({ type: 'redirect', status: 303, location: '/login' });
-		expectSecurityHeaders(response);
-	});
-
-	it('keeps a plain redirect for native form POSTs', async () => {
-		const response = await handleWith(
-			fakeEvent({ method: 'POST', accept: 'text/html,application/xhtml+xml,*/*;q=0.8' }),
-			() => redirect(303, '/login')
-		);
-		expect(response.status).toBe(303);
-		expect(response.headers.get('location')).toBe('/login');
-	});
-
-	it('turns a thrown HttpError into an error response with the headers', async () => {
-		const response = await handleWith(fakeEvent({ accept: 'application/json' }), () =>
-			error(418, 'Teapot')
-		);
-		expect(response.status).toBe(418);
-		expect(await response.json()).toEqual({ message: 'Teapot' });
-		expectSecurityHeaders(response);
-	});
-
-	it('turns an unexpected error into a 500 with the headers', async () => {
-		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
-		const response = await handleWith(fakeEvent({ accept: 'text/html' }), () => {
-			throw new Error('database down');
-		});
-		expect(response.status).toBe(500);
-		expect(await response.text()).toBe('Internal Error');
-		expect(log).toHaveBeenCalled();
-		expectSecurityHeaders(response);
-		log.mockRestore();
 	});
 });
 
