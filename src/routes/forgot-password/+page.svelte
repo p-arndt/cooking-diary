@@ -1,6 +1,7 @@
 <script lang="ts">
 	import AuthShell from '$lib/components/auth-shell.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { authClient } from '$lib/auth/client';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -35,8 +36,8 @@
 			} else {
 				success = true;
 			}
-		} catch (e: any) {
-			error = e.message || m.passwordReset_error_failed();
+		} catch (e: unknown) {
+			error = (e instanceof Error && e.message) || m.passwordReset_error_failed();
 		} finally {
 			loading = false;
 		}
@@ -49,9 +50,7 @@
 
 <AuthShell title={m.passwordReset_forgotPassword()} subtitle={m.passwordReset_enterEmailToReset()}>
 	{#if success}
-		<div
-			class="flex flex-col items-center gap-4 rounded-2xl bg-success/15 p-6 text-center"
-		>
+		<div class="flex flex-col items-center gap-4 rounded-2xl bg-success/15 p-6 text-center">
 			<CheckCircle class="h-12 w-12 text-success" />
 			<div class="space-y-2">
 				<p class="font-medium text-success">{m.passwordReset_checkEmail()}</p>
@@ -59,7 +58,7 @@
 					{m.passwordReset_resetLinkSent({ email })}
 				</p>
 			</div>
-			<Button onclick={() => goto('/login')} variant="outline" class="mt-2">
+			<Button onclick={() => goto(resolve('/login'))} variant="outline" class="mt-2">
 				<ArrowLeft class="mr-2 h-4 w-4" />
 				{m.passwordReset_backToLogin()}
 			</Button>
@@ -69,9 +68,7 @@
 			<div class="space-y-2">
 				<Label for="email" class="text-sm font-medium text-foreground">{m.auth_email()}</Label>
 				<div class="relative">
-					<Mail
-						class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-					/>
+					<Mail class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						id="email"
 						type="email"
@@ -85,20 +82,13 @@
 			</div>
 
 			{#if error}
-				<div
-					class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4"
-				>
+				<div class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4">
 					<AlertCircle class="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 					<p class="text-sm text-destructive">{error}</p>
 				</div>
 			{/if}
 
-			<Button
-				type="submit"
-				disabled={loading}
-				size="lg"
-			class="w-full"
-			>
+			<Button type="submit" disabled={loading} size="lg" class="w-full">
 				{#if loading}
 					<div class="flex items-center gap-2">
 						<div
@@ -114,7 +104,7 @@
 
 		<div class="mt-4 text-center">
 			<a
-				href="/login"
+				href={resolve('/login')}
 				class="flex items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
 			>
 				<ArrowLeft class="h-4 w-4" />
@@ -123,4 +113,3 @@
 		</div>
 	{/if}
 </AuthShell>
-

@@ -6,6 +6,7 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
 import { paraglideMiddleware } from '$lib/paraglide/server';
+import { injectCspNonce, withSecurityHeaders } from '$lib/server/security-headers';
 
 export const init: ServerInit = async () => {
 	try {
@@ -25,47 +26,49 @@ export const betterAuthHandle: Handle = async ({ event, resolve }) => {
 		headers: event.request.headers
 	});
 
-	if (session) {
-		event.locals.session = session.session;
-		event.locals.user = session.user;
-	}
+	event.locals.session = session?.session ?? null;
+	event.locals.user = session?.user ?? null;
 
 	return svelteKitHandler({ event, resolve, auth, building });
 };
 
-export const authHandle: Handle = async ({ event, resolve }) => {
-	const session = await auth.api.getSession({
-		headers: event.request.headers
-	});
+const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/healthz'];
 
+export const authHandle: Handle = async ({ event, resolve }) => {
+	const userId = event.locals.user?.id;
 	const urlPathname = event.url.pathname;
 
-	const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
-
-	if (!session?.user?.id && urlPathname.startsWith('/api/')) {
+	if (!userId && urlPathname.startsWith('/api/')) {
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}
 
-	if (!session?.user?.id && !publicPaths.includes(urlPathname)) {
+	if (!userId && !publicPaths.includes(urlPathname)) {
 		return redirect(302, '/login');
 	}
 
-	if (session?.user?.id && (urlPathname === '/login' || urlPathname === '/register')) {
+	if (userId && (urlPathname === '/login' || urlPathname === '/register')) {
 		return redirect(302, '/');
 	}
 
 	return resolve(event);
 };
 
-// creating a handle to use the paraglide middleware
 const paraglideHandle: Handle = ({ event, resolve }) =>
 	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
 		event.request = localizedRequest;
 		return resolve(event, {
 			transformPageChunk: ({ html }) => {
-				return html.replace('%lang%', locale);
+				return injectCspNonce(html.replace('%lang%', locale));
 			}
 		});
 	});
 
-export const handle = sequence(betterAuthHandle, authHandle, paraglideHandle);
+const securityHeadersHandle: Handle = async ({ event, resolve }) =>
+	withSecurityHeaders(await resolve(event));
+
+export const handle = sequence(
+	securityHeadersHandle,
+	betterAuthHandle,
+	authHandle,
+	paraglideHandle
+);

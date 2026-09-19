@@ -1,20 +1,13 @@
 <script lang="ts">
 	import AuthShell from '$lib/components/auth-shell.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { authClient } from '$lib/auth/client';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
-	import type { PageData } from './$types';
-
-	type Props = {
-		data: PageData;
-	};
-
-	let { data }: Props = $props();
-
 	let email = $state('');
 	let password = $state('');
 	let showPassword = $state(false);
@@ -37,14 +30,14 @@
 
 		loading = true;
 		try {
-			const response = await authClient.signIn.email({ email, password, callbackURL: '/' });
+			const response = await authClient.signIn.email({ email, password });
 			if (response.error) {
 				error = response.error.message || m.auth_error_loginFailed();
 			} else {
-				await goto('/');
+				await goto(resolve('/'));
 			}
-		} catch (e: any) {
-			error = e.message || m.auth_error_loginFailed();
+		} catch (e: unknown) {
+			error = (e instanceof Error && e.message) || m.auth_error_loginFailed();
 		} finally {
 			loading = false;
 		}
@@ -59,9 +52,7 @@
 		<div class="space-y-2">
 			<Label for="email" class="text-sm font-medium text-foreground">{m.auth_email()}</Label>
 			<div class="relative">
-				<Mail
-					class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-				/>
+				<Mail class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 				<Input
 					id="email"
 					type="email"
@@ -76,9 +67,7 @@
 		<div class="space-y-2">
 			<Label for="password" class="text-sm font-medium text-foreground">{m.auth_password()}</Label>
 			<div class="relative">
-				<Lock
-					class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-				/>
+				<Lock class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 				<Input
 					id="password"
 					type={showPassword ? 'text' : 'password'}
@@ -102,20 +91,13 @@
 		</div>
 
 		{#if error}
-			<div
-				class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4"
-			>
+			<div class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4">
 				<AlertCircle class="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 				<p class="text-sm text-destructive">{error}</p>
 			</div>
 		{/if}
 
-		<Button
-			type="submit"
-			disabled={loading}
-			size="lg"
-			class="w-full"
-		>
+		<Button type="submit" disabled={loading} size="lg" class="w-full">
 			{#if loading}
 				<div class="flex items-center gap-2">
 					<div
@@ -135,7 +117,9 @@
 	<div class="mt-4 text-center">
 		<p class="text-muted-foreground">
 			{m.auth_noAccount()}
-			<a href="/register" class="ml-1 font-bold text-foreground underline decoration-primary decoration-2 underline-offset-4 hover:text-primary"
+			<a
+				href={resolve('/register')}
+				class="ml-1 font-bold text-foreground underline decoration-primary decoration-2 underline-offset-4 hover:text-primary"
 				>{m.auth_createOneHere()}</a
 			>
 		</p>
@@ -143,7 +127,7 @@
 
 	<div class="mt-4 text-center">
 		<a
-			href="/forgot-password"
+			href={resolve('/forgot-password')}
 			class="text-sm text-muted-foreground transition-colors hover:text-foreground"
 		>
 			{m.auth_forgotPassword()}

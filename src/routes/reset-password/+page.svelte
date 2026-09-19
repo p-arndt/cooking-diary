@@ -1,7 +1,8 @@
 <script lang="ts">
 	import AuthShell from '$lib/components/auth-shell.svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { authClient } from '$lib/auth/client';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -17,14 +18,9 @@
 	let loading = $state(false);
 	let success = $state(false);
 
-	let token = $derived.by(() => {
-		const url = new URL($page.url);
-		return url.searchParams.get('token') || '';
-	});
+	let token = $derived(page.url.searchParams.get('token') || '');
 
-	let passwordsMatch = $derived(
-		password && confirmPassword && password === confirmPassword
-	);
+	let passwordsMatch = $derived(password && confirmPassword && password === confirmPassword);
 
 	async function resetPassword(e: Event) {
 		e.preventDefault();
@@ -63,11 +59,11 @@
 			} else {
 				success = true;
 				setTimeout(() => {
-					goto('/login');
+					goto(resolve('/login'));
 				}, 2000);
 			}
-		} catch (e: any) {
-			error = e.message || m.passwordReset_error_failed();
+		} catch (e: unknown) {
+			error = (e instanceof Error && e.message) || m.passwordReset_error_failed();
 		} finally {
 			loading = false;
 		}
@@ -80,9 +76,7 @@
 
 <AuthShell title={m.passwordReset_resetPassword()} subtitle={m.passwordReset_enterNewPassword()}>
 	{#if success}
-		<div
-			class="flex flex-col items-center gap-4 rounded-2xl bg-success/15 p-6 text-center"
-		>
+		<div class="flex flex-col items-center gap-4 rounded-2xl bg-success/15 p-6 text-center">
 			<CheckCircle class="h-12 w-12 text-success" />
 			<div class="space-y-2">
 				<p class="font-medium text-success">{m.passwordReset_passwordResetSuccess()}</p>
@@ -92,9 +86,7 @@
 			</div>
 		</div>
 	{:else if !token}
-		<div
-			class="flex flex-col items-center gap-4 rounded-2xl bg-destructive/10 p-6 text-center"
-		>
+		<div class="flex flex-col items-center gap-4 rounded-2xl bg-destructive/10 p-6 text-center">
 			<AlertCircle class="h-12 w-12 text-destructive" />
 			<div class="space-y-2">
 				<p class="font-medium text-destructive">{m.passwordReset_error_invalidToken()}</p>
@@ -102,7 +94,7 @@
 					{m.passwordReset_error_tokenMissing()}
 				</p>
 			</div>
-			<Button onclick={() => goto('/forgot-password')} variant="outline" class="mt-2">
+			<Button onclick={() => goto(resolve('/forgot-password'))} variant="outline" class="mt-2">
 				{m.passwordReset_requestNewLink()}
 			</Button>
 		</div>
@@ -113,9 +105,7 @@
 					{m.auth_password()}
 				</Label>
 				<div class="relative">
-					<Lock
-						class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-					/>
+					<Lock class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						id="password"
 						type={showPassword ? 'text' : 'password'}
@@ -145,9 +135,7 @@
 					{m.auth_confirmPassword()}
 				</Label>
 				<div class="relative">
-					<Lock
-						class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-					/>
+					<Lock class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						id="confirmPassword"
 						type={showConfirmPassword ? 'text' : 'password'}
@@ -170,11 +158,7 @@
 					</button>
 				</div>
 				{#if confirmPassword}
-					<p
-						class="text-xs {passwordsMatch
-							? 'text-success'
-							: 'text-destructive'}"
-					>
+					<p class="text-xs {passwordsMatch ? 'text-success' : 'text-destructive'}">
 						{#if passwordsMatch}
 							{m.auth_passwordsMatch()}
 						{:else}
@@ -185,9 +169,7 @@
 			</div>
 
 			{#if error}
-				<div
-					class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4"
-				>
+				<div class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4">
 					<AlertCircle class="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 					<p class="text-sm text-destructive">{error}</p>
 				</div>
@@ -197,7 +179,7 @@
 				type="submit"
 				disabled={loading || !passwordsMatch || !password}
 				size="lg"
-			class="w-full"
+				class="w-full"
 			>
 				{#if loading}
 					<div class="flex items-center gap-2">
@@ -214,7 +196,7 @@
 
 		<div class="mt-4 text-center">
 			<a
-				href="/login"
+				href={resolve('/login')}
 				class="flex items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
 			>
 				<ArrowLeft class="h-4 w-4" />
@@ -223,4 +205,3 @@
 		</div>
 	{/if}
 </AuthShell>
-
