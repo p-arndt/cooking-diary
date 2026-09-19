@@ -183,17 +183,18 @@ Re-running `pnpm db:seed` resets only the demo user's data.
 
 Everything is configured through environment variables, usually a `.env` file.
 
-| Variable             | What it controls                                                                                                                                        | Example                     |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `BETTER_AUTH_SECRET` | Secret for signing sessions                                                                                                                             | `openssl rand -hex 32`      |
-| `BETTER_AUTH_URL`    | Public URL of your instance. Required in production: password reset links are built from it (`ORIGIN` is accepted too), never from the request's `Host` | `https://diary.example.com` |
-| `DISABLE_SIGNUP`     | Set to `true` to block new registrations (default: open)                                                                                                | `true`                      |
-| `BODY_SIZE_LIMIT`    | Maximum request body size; the Docker image defaults to `55M` (10 photos of 5 MB per entry)                                                             | `55M`                       |
-| `POSTGRES_HOST`      | Database host                                                                                                                                           | `localhost`                 |
-| `POSTGRES_PORT`      | Database port                                                                                                                                           | `5432`                      |
-| `POSTGRES_USER`      | Database user                                                                                                                                           | `cooking_diary`             |
-| `POSTGRES_PASSWORD`  | Database password                                                                                                                                       | `change-me`                 |
-| `POSTGRES_DB`        | Database name                                                                                                                                           | `cooking_diary`             |
+| Variable             | What it controls                                                                                                                                                            | Example                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `BETTER_AUTH_SECRET` | Secret for signing sessions                                                                                                                                                 | `openssl rand -hex 32`      |
+| `BETTER_AUTH_URL`    | Public URL of your instance. Required in production: password reset links are built from it (`ORIGIN` is accepted too), never from the request's `Host`                     | `https://diary.example.com` |
+| `DISABLE_SIGNUP`     | Set to `true` to block new registrations (default: open)                                                                                                                    | `true`                      |
+| `TRUSTED_PROXIES`    | Comma-separated IPs/CIDRs of the reverse proxies in front of the app. Without it, rate limiting cannot tell the client apart from the proxy and throttles everyone together | `172.16.0.0/12`             |
+| `BODY_SIZE_LIMIT`    | Maximum request body size; the Docker image defaults to `55M` (10 photos of 5 MB per entry)                                                                                 | `55M`                       |
+| `POSTGRES_HOST`      | Database host                                                                                                                                                               | `localhost`                 |
+| `POSTGRES_PORT`      | Database port                                                                                                                                                               | `5432`                      |
+| `POSTGRES_USER`      | Database user                                                                                                                                                               | `cooking_diary`             |
+| `POSTGRES_PASSWORD`  | Database password                                                                                                                                                           | `change-me`                 |
+| `POSTGRES_DB`        | Database name                                                                                                                                                               | `cooking_diary`             |
 
 <details>
 <summary><b>SMTP for password reset mails</b> (optional)</summary>

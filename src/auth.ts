@@ -7,6 +7,7 @@ import {
 	buildResetPasswordUrl
 } from '$lib/server/auth/reset-password-email';
 import { isSignupDisabled } from '$lib/server/auth/signup';
+import { parseTrustedProxies } from '$lib/server/auth/trusted-proxies';
 import { db } from '$lib/server/db';
 import { account, session, user, verification } from '$lib/server/db/schema';
 import { sendEmail } from '$lib/server/services/email.service';
@@ -19,6 +20,11 @@ export const auth = betterAuth({
 	advanced: {
 		database: {
 			generateId: false
+		},
+		ipAddress: {
+			// Rate limiting keys on the client IP. Behind a reverse proxy it has to be read from
+			// the forwarded chain, which is only trustworthy once the proxies are known.
+			trustedProxies: parseTrustedProxies(env.TRUSTED_PROXIES)
 		}
 	},
 	session: {
