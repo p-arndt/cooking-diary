@@ -30,9 +30,9 @@ COPY --from=builder /app/build /app/build
 COPY --from=builder /app/drizzle /app/drizzle
 
 ENV NODE_ENV=production
-ENV BODY_SIZE_LIMIT=Infinity
-# We need to set the trust proxy to true to make sure that the application works behind a reverse proxy
-ENV AUTH_TRUST_HOST=true
+# Bounds memory per request, including unauthenticated auth endpoints; sized for the
+# largest legitimate body (an entry with 10 photos of 5 MB each plus form fields).
+ENV BODY_SIZE_LIMIT=55M
 
 EXPOSE 3000 
 CMD ["build/index.js"]
