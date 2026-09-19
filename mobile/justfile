@@ -4,83 +4,51 @@
 # The debug build talks to the web server on the host at http://10.0.2.2:5173, so run
 # `pnpm run db:start`, `pnpm db:seed` (demo@example.com / demo1234) and `pnpm dev` in the
 # repository root first. The dev server must listen on 127.0.0.1 (see README).
+#
+# Shared recipes live in .just/, copied from ~/coding/just-common. Edit them there and
+# run `just sync-common` (from this directory). Another AVD: `just AVD=pixel android`.
+#
+# This app builds with the Kotlin Toolchain (./kotlin), not Gradle, so every recipe of
+# android.just that calls gradlew is overridden below; emulator and logcat are shared.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
+set allow-duplicate-variables
+set allow-duplicate-recipes
 
-app_id := "de.parndt.cooking_diary"
+import '.just/common.just'
+import '.just/android.just'
 
-# The SDK location comes from ANDROID_HOME, falling back to the Android Studio default.
-android_sdk := env("ANDROID_HOME", if os() == "macos" {
-    home_directory() / "Library/Android/sdk"
-} else {
-    home_directory() / "Android/Sdk"
-})
-export ANDROID_HOME := android_sdk
-adb := android_sdk / "platform-tools/adb"
-emulator := android_sdk / "emulator/emulator"
-
-# AVD that `just emulator` starts. Another one: `just avd=pixel android`.
-avd := "default"
-
-# The Kotlin Toolchain provisions its own JDK, but a local one is still handy for IDE tooling:
-# Android Studio's JBR first, then JAVA_HOME. macOS ships a /usr/bin/java stub, so check for javac.
-studio_jbr := if os() == "macos" {
-    "/Applications/Android Studio.app/Contents/jbr/Contents/Home"
-} else {
-    "/opt/android-studio/jbr"
-}
-env_java := env("JAVA_HOME", "")
-export JAVA_HOME := if path_exists(studio_jbr / "bin/javac") == "true" { studio_jbr } else if path_exists(env_java / "bin/javac") == "true" { env_java } else { "" }
+APP_ID := "de.parndt.cooking_diary"
+APK_DIR := "mobile/build/tasks"
 
 kotlin := "./kotlin"
 debug_apk := "build/tasks/_androidApp_buildAndroidDebug/gradle-project-debug.apk"
 release_aab := "build/tasks/_androidApp_bundleAndroid/gradle-project-release.aab"
 signing_properties := "androidApp/keystore.properties"
 
-# List recipes
-default:
-    @just --list
-
-# Start the Android emulator and wait until it has booted (skipped if a device is attached)
-emulator name=avd:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    # With a device already attached a second emulator only gets in the way: adb and
-    # `kotlin run` would have to pick one.
-    if [ -n "$({{ adb }} devices | awk 'NR>1 && $2 == "device"')" ]; then
-      echo "A device is already running."
-      exit 0
-    fi
-    if ! {{ emulator }} -list-avds | grep -qx "{{ name }}"; then
-      echo "AVD '{{ name }}' not found. Available:" >&2
-      {{ emulator }} -list-avds >&2
-      exit 1
-    fi
-    echo "Starting {{ name }} …"
-    # Detached from the just process, otherwise the recipe hangs on the running emulator.
-    nohup {{ emulator }} -avd "{{ name }}" >/dev/null 2>&1 &
-    {{ adb }} wait-for-device
-    # wait-for-device only reports the connection; installing works once the boot has
-    # finished, so wait for sys.boot_completed as well.
-    until [ "$({{ adb }} shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
-      sleep 2
-    done
-    echo "{{ name }} is ready."
-
 # Build the debug app, install it on the emulator (starting it if needed) and relaunch it
+[unix]
 android: emulator
     #!/usr/bin/env bash
     set -euo pipefail
-    device=$({{ adb }} devices | awk 'NR>1 && $2 == "device" { print $1; exit }')
-    {{ adb }} -s "${device}" shell am force-stop {{ app_id }}
+    device=$("{{_ADB}}" devices | awk 'NR>1 && $2 == "device" { print $1; exit }')
+    "{{_ADB}}" -s "${device}" shell am force-stop {{APP_ID}}
     # `kotlin run` builds, installs and starts the activity, then returns.
-    {{ kotlin }} run -m androidApp -d "${device}"
+    {{kotlin}} run -m androidApp -d "${device}"
     echo "Running on ${device}."
 
 # Build the debug APK without installing it
-build:
-    {{ kotlin }} build -m androidApp
-    @echo "APK: mobile/{{ debug_apk }}"
+apk:
+    {{kotlin}} build -m androidApp
+    @echo "APK: mobile/{{debug_apk}}"
+
+# Build the release APK (unsigned; `just release` builds the signed Play bundle)
+apk-release:
+    {{kotlin}} build -m androidApp -v release
+    @echo "APK: {{APK_DIR}}/_androidApp_buildAndroidRelease/"
+
+# Build the debug APK without installing it (alias of apk)
+build: apk
 
 # Build the signed release bundle (.aab) for the Play Console
 release:
@@ -88,60 +56,50 @@ release:
     set -euo pipefail
     # Without keystore.properties the toolchain only warns and emits an unsigned bundle,
     # which Play rejects, so refuse to build instead.
-    if [ ! -f "{{ signing_properties }}" ]; then
-      echo "{{ signing_properties }} is missing: copy androidApp/keystore.properties.example" >&2
+    if [ ! -f "{{signing_properties}}" ]; then
+      echo "{{signing_properties}} is missing: copy androidApp/keystore.properties.example" >&2
       echo "and point it at your upload key (see README)." >&2
       exit 1
     fi
-    store_file=$(sed -n 's/^storeFile=//p' "{{ signing_properties }}")
+    store_file=$(sed -n 's/^storeFile=//p' "{{signing_properties}}")
     if [ ! -f "${store_file}" ]; then
-      echo "storeFile '${store_file}' from {{ signing_properties }} does not exist." >&2
+      echo "storeFile '${store_file}' from {{signing_properties}} does not exist." >&2
       exit 1
     fi
-    {{ kotlin }} package -m androidApp -v release -f aab
+    {{kotlin}} package -m androidApp -v release -f aab
     version_name=$(sed -n 's/^ *versionName: *//p' androidApp/module.yaml)
     version_code=$(sed -n 's/^ *versionCode: *//p' androidApp/module.yaml)
     out="build/release/cooking-diary-${version_name}-${version_code}.aab"
     mkdir -p build/release
-    cp "{{ release_aab }}" "${out}"
+    cp "{{release_aab}}" "${out}"
     jarsigner -verify "${out}" >/dev/null
     echo "Signed bundle: mobile/${out}"
     echo "Upload it in the Play Console. Bump versionCode in androidApp/module.yaml before the next upload."
 
 # Run the shared unit tests on the host JVM (no emulator needed)
 test:
-    {{ kotlin }} test -m shared -p android
-
-# Follow the app's log output (the app must be running)
-logcat:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    pid=$({{ adb }} shell pidof -s {{ app_id }} | tr -d '\r' || true)
-    if [ -z "${pid}" ]; then
-      echo "{{ app_id }} is not running. Start it with \`just android\`." >&2
-      exit 1
-    fi
-    {{ adb }} logcat --pid="${pid}"
+    {{kotlin}} test -m shared -p android
 
 # Remove build outputs
 clean:
-    {{ kotlin }} clean
+    {{kotlin}} clean
 
-# Show what just resolves on this machine: SDK, JDK, AVDs
+# Show what just resolves on this machine: SDK, JDK, AVDs, signing, dev server
+[unix]
 doctor:
     #!/usr/bin/env bash
     set -uo pipefail
-    echo "ANDROID_HOME : [{{ android_sdk }}]"
-    echo "  adb        : $(test -x "{{ adb }}" && echo yes || echo NO)"
-    echo "  emulator   : $(test -x "{{ emulator }}" && echo yes || echo NO)"
-    echo "JAVA_HOME    : [{{ JAVA_HOME }}] (optional, the Kotlin Toolchain brings its own JDK)"
-    echo "  javac      : $(test -x "{{ JAVA_HOME }}/bin/javac" && echo yes || echo NO)"
-    echo "kotlin       : $(test -x "{{ kotlin }}" && echo yes || echo NO)"
-    echo "avd          : {{ avd }}"
-    echo "signing      : $(test -f "{{ signing_properties }}" && echo "{{ signing_properties }} found" || echo "no {{ signing_properties }} (needed for \`just release\`)")"
+    echo "ANDROID_HOME : [{{ANDROID_SDK}}]"
+    echo "  adb        : $(test -x "{{_ADB}}" && echo yes || echo NO)"
+    echo "  emulator   : $(test -x "{{_EMULATOR}}" && echo yes || echo NO)"
+    echo "JAVA_HOME    : [{{JAVA_HOME}}] (optional, the Kotlin Toolchain brings its own JDK)"
+    echo "  javac      : $(test -x "{{JAVA_HOME}}/bin/javac" && echo yes || echo NO)"
+    echo "kotlin       : $(test -x "{{kotlin}}" && echo yes || echo NO)"
+    echo "avd          : {{AVD}}"
+    echo "signing      : $(test -f "{{signing_properties}}" && echo "{{signing_properties}} found" || echo "no {{signing_properties}} (needed for \`just release\`)")"
     code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 http://127.0.0.1:5173/login || true)
     echo "dev server   : $([ "${code}" = "200" ] && echo "reachable on 127.0.0.1:5173" || echo "NOT reachable on 127.0.0.1:5173 (emulator uses 10.0.2.2 → 127.0.0.1)")"
     echo "--- AVDs ---"
-    {{ emulator }} -list-avds
+    "{{_EMULATOR}}" -list-avds
     echo "--- devices ---"
-    {{ adb }} devices
+    "{{_ADB}}" devices
