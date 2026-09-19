@@ -21,6 +21,7 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
 		"db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
+		"screenshots": "tsx scripts/screenshots.ts",
 		"machine-translate": "inlang machine translate --project project.inlang"
 	},
 	"devDependencies": {
