@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    uses: p-arndt/.github/.github/workflows/sveltekit-ci.yml@v1
+    with:
+      # svelte-check imports the Paraglide messages, which the vite plugin only
+      # generates during dev/build; compile them up front.
+      setup-command: pnpm exec paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide
+      # The client project has no tests yet and would need a Playwright browser.
+      # Integration tests start Postgres through Testcontainers on the runner's Docker.
+      test-command: pnpm vitest --run --project server --project integration
+      build: true

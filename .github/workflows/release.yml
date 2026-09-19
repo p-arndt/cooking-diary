@@ -7,9 +7,6 @@ name: Release
 # The shared container-release workflow checks the tag against package.json, pushes
 # ghcr.io/<owner>/cooking-diary:<version> (plus <major>.<minor> and latest unless it
 # is a pre-release) and creates the GitHub release with git-cliff notes.
-#
-# No CI gate yet: svelte-check, lint and the unit tests fail on main. Once they pass,
-# add a ci.yml calling the shared sveltekit-ci and put it in `needs:` below.
 on:
   push:
     tags: ['v*']
@@ -18,7 +15,11 @@ permissions:
   contents: read
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   release:
+    needs: ci
     uses: p-arndt/.github/.github/workflows/container-release.yml@v1
     permissions:
       contents: write
