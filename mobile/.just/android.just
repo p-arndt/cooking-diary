@@ -1,5 +1,5 @@
 # android.just — Android app recipes: emulator, install, logcat. Synced from
-# ~/coding/just-common.
+# github.com/p-arndt/just-common.
 #
 # The importing justfile sets:
 #   APP_ID := "de.parndt.braindump"            (required) applicationId
