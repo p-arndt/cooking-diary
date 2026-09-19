@@ -2,6 +2,8 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { SettingsService } from '$lib/server/services/settings.service';
 import { CategoryService } from '$lib/server/services/category.service';
+import { actionError, parseForm } from '$lib/server/api';
+import { formText, settingsFormSchema } from '$lib/schemas';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -27,30 +29,21 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const daysThreshold = parseInt(formData.get('daysThreshold')?.toString() || '14');
-		const useDayOfWeek = formData.get('useDayOfWeek') === 'true';
-		const excludedCategoryIdsStr = formData.get('excludedCategoryIds')?.toString() || '[]';
+		const parsed = parseForm(
+			{
+				suggestionDaysThreshold: formText(formData, 'daysThreshold') ?? '14',
+				suggestionUseDayOfWeek: formData.get('useDayOfWeek') === 'true',
+				suggestionExcludedCategoryIds: formText(formData, 'excludedCategoryIds') ?? '[]'
+			},
+			settingsFormSchema
+		);
+		if (!parsed.ok) return parsed.failure;
 
-		let excludedCategoryIds: string[] = [];
 		try {
-			excludedCategoryIds = JSON.parse(excludedCategoryIdsStr);
-		} catch {
-			excludedCategoryIds = [];
-		}
-
-		try {
-			// Partial update - only updates provided fields
-			await SettingsService.updateSettings(locals.user.id, {
-				suggestionDaysThreshold: daysThreshold,
-				suggestionUseDayOfWeek: useDayOfWeek,
-				suggestionExcludedCategoryIds: excludedCategoryIds
-			});
-
+			await SettingsService.updateSettings(locals.user.id, parsed.data);
 			return { success: true };
 		} catch (error) {
-			console.error('Error updating settings:', error);
-			return fail(500, { error: 'Failed to update settings' });
+			return actionError(error, 'Failed to update settings');
 		}
 	}
 };
-

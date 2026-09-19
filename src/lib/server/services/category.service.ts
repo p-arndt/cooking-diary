@@ -1,7 +1,8 @@
 import { db } from '$lib/server/db';
 import { categories, mealToCategories, meals } from '$lib/server/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
-import type { MealWithCategories } from './meal.service';
+import { isUuid } from '$lib/schemas';
+import { NotFoundError } from './errors';
 
 export type CategoryWithMeals = {
 	id: string;
@@ -59,6 +60,7 @@ export class CategoryService {
 	 * Get category by ID
 	 */
 	static async getCategoryById(categoryId: string, userId: string) {
+		if (!isUuid(categoryId)) return null;
 		const result = await db
 			.select()
 			.from(categories)
@@ -82,40 +84,28 @@ export class CategoryService {
 	}
 
 	/**
-	 * Update a category
+	 * Rename a category. Throws NotFoundError if it is missing or not the user's.
 	 */
 	static async updateCategory(categoryId: string, userId: string, name: string) {
-		const existing = await db
-			.select()
-			.from(categories)
-			.where(and(eq(categories.id, categoryId), eq(categories.userId, userId)))
-			.limit(1);
-
-		if (!existing[0]) return null;
-
+		if (!isUuid(categoryId)) throw new NotFoundError('Category');
 		const [updated] = await db
 			.update(categories)
 			.set({ name })
-			.where(eq(categories.id, categoryId))
+			.where(and(eq(categories.id, categoryId), eq(categories.userId, userId)))
 			.returning();
-
+		if (!updated) throw new NotFoundError('Category');
 		return updated;
 	}
 
 	/**
-	 * Delete a category
+	 * Delete a category. Throws NotFoundError if it is missing or not the user's.
 	 */
-	static async deleteCategory(categoryId: string, userId: string): Promise<boolean> {
-		const existing = await db
-			.select()
-			.from(categories)
+	static async deleteCategory(categoryId: string, userId: string): Promise<void> {
+		if (!isUuid(categoryId)) throw new NotFoundError('Category');
+		const [deleted] = await db
+			.delete(categories)
 			.where(and(eq(categories.id, categoryId), eq(categories.userId, userId)))
-			.limit(1);
-
-		if (!existing[0]) return false;
-
-		await db.delete(categories).where(eq(categories.id, categoryId));
-		return true;
+			.returning({ id: categories.id });
+		if (!deleted) throw new NotFoundError('Category');
 	}
 }
-

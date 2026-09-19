@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { mealSchema, notFound, parseBody, requireUser } from '$lib/server/api';
+import { apiError, notFound, parseBody, requireUser } from '$lib/server/api';
+import { mealUpdateSchema } from '$lib/schemas';
 import { EntryService } from '$lib/server/services/entry.service';
 import { MealService } from '$lib/server/services/meal.service';
 import type { RequestHandler } from './$types';
@@ -15,13 +16,20 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 export const PATCH: RequestHandler = async ({ locals, request, params }) => {
 	const user = requireUser(locals);
-	const body = await parseBody(request, mealSchema.partial());
-	const updated = await MealService.updateMeal(params.id, user.id, body);
-	return updated ? json(updated) : notFound('Meal');
+	const body = await parseBody(request, mealUpdateSchema);
+	try {
+		return json(await MealService.updateMeal(params.id, user.id, body));
+	} catch (err) {
+		return apiError(err);
+	}
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const user = requireUser(locals);
-	const deleted = await MealService.deleteMeal(params.id, user.id);
-	return deleted ? new Response(null, { status: 204 }) : notFound('Meal');
+	try {
+		await MealService.deleteMeal(params.id, user.id);
+		return new Response(null, { status: 204 });
+	} catch (err) {
+		return apiError(err);
+	}
 };

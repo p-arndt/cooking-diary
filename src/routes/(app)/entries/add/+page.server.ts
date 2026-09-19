@@ -2,21 +2,22 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { MealService } from '$lib/server/services/meal.service';
 import { EntryService } from '$lib/server/services/entry.service';
-import { FileService } from '$lib/server/services/file.service';
-import type { EntryWithMeal } from '$lib/server/services/entry.service';
+import { FileService, FileValidationError } from '$lib/server/services/file.service';
+import { actionError, parseForm } from '$lib/server/api';
+import { entryFormSchema, formText, MAX_ENTRY_PHOTOS } from '$lib/schemas';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
 
-	const step = parseInt(url.searchParams.get('step') || '1');
+	const step = parseInt(url.searchParams.get('step') || '1') || 1;
 	const dateParam = url.searchParams.get('date');
 	const mealId = url.searchParams.get('mealId');
 
 	// Get recent meals for step 2
 	const recentMeals = await MealService.getRecentMeals(locals.user.id, 10);
-	
+
 	// Get all meals for step 2
 	const allMeals = await MealService.getMealsByUserId(locals.user.id);
 
@@ -37,49 +38,41 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const mealId = formData.get('mealId')?.toString();
-		const dateCooked = formData.get('dateCooked')?.toString();
-		const notes = formData.get('notes')?.toString() || null;
-		const photoUrlsStr = formData.get('photoUrls')?.toString() || '[]';
+		const parsed = parseForm(
+			{
+				mealId: formText(formData, 'mealId'),
+				dateCooked: formText(formData, 'dateCooked'),
+				notes: formText(formData, 'notes'),
+				photoUrls: formText(formData, 'photoUrls') ?? '[]'
+			},
+			entryFormSchema
+		);
+		if (!parsed.ok) return parsed.failure;
 
-		let photoUrls: string[] = [];
+		const photoFiles = formData
+			.getAll('photos')
+			.filter((value): value is File => value instanceof File && value.size > 0);
+		if (parsed.data.photoUrls.length + photoFiles.length > MAX_ENTRY_PHOTOS) {
+			return fail(400, { error: `At most ${MAX_ENTRY_PHOTOS} photos per entry` });
+		}
+
+		let uploadedUrls: string[];
 		try {
-			photoUrls = JSON.parse(photoUrlsStr);
-		} catch {
-			photoUrls = [];
-		}
-
-		// Handle file uploads
-		const photoFiles = formData.getAll('photos') as File[];
-		if (photoFiles.length > 0) {
-			try {
-				const validFiles = photoFiles.filter((f) => f.size > 0);
-				const uploadedUrls = await Promise.all(
-					validFiles.map((file) => FileService.saveFile(file))
-				);
-				photoUrls = [...photoUrls, ...uploadedUrls];
-			} catch (error: unknown) {
-				const errorMessage = error instanceof Error ? error.message : 'Failed to upload images';
-				return fail(400, { error: errorMessage });
-			}
-		}
-
-		if (!mealId || !dateCooked) {
-			return fail(400, { error: 'Missing required fields' });
+			uploadedUrls = await FileService.saveFiles(photoFiles, locals.user.id);
+		} catch (error: unknown) {
+			if (error instanceof FileValidationError) return fail(400, { error: error.message });
+			console.error('Error uploading images:', error);
+			return fail(500, { error: 'Failed to upload images' });
 		}
 
 		try {
 			const entry = await EntryService.createEntry(locals.user.id, {
-				mealId,
-				dateCooked: new Date(dateCooked),
-				notes,
-				photoUrls
+				...parsed.data,
+				photoUrls: [...parsed.data.photoUrls, ...uploadedUrls]
 			});
 			return { success: true, entryId: entry.id };
 		} catch (error) {
-			console.error('Error creating entry:', error);
-			return fail(500, { error: 'Failed to create entry' });
+			return actionError(error, 'Failed to create entry');
 		}
 	}
 };
-

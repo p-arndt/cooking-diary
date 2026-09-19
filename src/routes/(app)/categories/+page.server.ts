@@ -1,6 +1,8 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { CategoryService } from '$lib/server/services/category.service';
+import { actionError, parseForm } from '$lib/server/api';
+import { categoryIdSchema, categorySchema, categoryUpdateSchema, formText } from '$lib/schemas';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -22,18 +24,14 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const name = formData.get('name')?.toString();
-
-		if (!name || !name.trim()) {
-			return fail(400, { error: 'Name is required' });
-		}
+		const parsed = parseForm({ name: formText(formData, 'name') }, categorySchema);
+		if (!parsed.ok) return parsed.failure;
 
 		try {
-			const category = await CategoryService.createCategory(locals.user.id, name.trim());
+			const category = await CategoryService.createCategory(locals.user.id, parsed.data.name);
 			return { success: true, category };
 		} catch (error) {
-			console.error('Error creating category:', error);
-			return fail(500, { error: 'Failed to create category' });
+			return actionError(error, 'Failed to create category');
 		}
 	},
 
@@ -43,24 +41,21 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const id = formData.get('id')?.toString();
-		const name = formData.get('name')?.toString();
-
-		if (!id || !name || !name.trim()) {
-			return fail(400, { error: 'ID and name are required' });
-		}
+		const parsed = parseForm(
+			{ id: formText(formData, 'id'), name: formText(formData, 'name') },
+			categoryUpdateSchema
+		);
+		if (!parsed.ok) return parsed.failure;
 
 		try {
-			const category = await CategoryService.updateCategory(id, locals.user.id, name.trim());
-
-			if (!category) {
-				return fail(404, { error: 'Category not found' });
-			}
-
+			const category = await CategoryService.updateCategory(
+				parsed.data.id,
+				locals.user.id,
+				parsed.data.name
+			);
 			return { success: true, category };
 		} catch (error) {
-			console.error('Error updating category:', error);
-			return fail(500, { error: 'Failed to update category' });
+			return actionError(error, 'Failed to update category');
 		}
 	},
 
@@ -70,24 +65,14 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const id = formData.get('id')?.toString();
-
-		if (!id) {
-			return fail(400, { error: 'ID is required' });
-		}
+		const parsed = parseForm({ id: formText(formData, 'id') }, categoryIdSchema);
+		if (!parsed.ok) return parsed.failure;
 
 		try {
-			const success = await CategoryService.deleteCategory(id, locals.user.id);
-
-			if (!success) {
-				return fail(404, { error: 'Category not found' });
-			}
-
+			await CategoryService.deleteCategory(parsed.data.id, locals.user.id);
 			return { success: true };
 		} catch (error) {
-			console.error('Error deleting category:', error);
-			return fail(500, { error: 'Failed to delete category' });
+			return actionError(error, 'Failed to delete category');
 		}
 	}
 };
-

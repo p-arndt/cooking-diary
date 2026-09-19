@@ -31,7 +31,7 @@ export class AnalyticsService {
 					COUNT(*) as count
 				FROM meal_entries me
 				INNER JOIN meal_to_categories mtc ON mtc.meal_id = me.meal_id
-				INNER JOIN categories c ON c.id = mtc.category_id
+				INNER JOIN categories c ON c.id = mtc.category_id AND c.user_id = ${userId}
 				WHERE me.user_id = ${userId}
 				GROUP BY EXTRACT(DOW FROM me.date_cooked::date), c.id, c.name
 				ORDER BY day_of_week, count DESC
@@ -89,7 +89,7 @@ export class AnalyticsService {
 					COUNT(*) as count
 				FROM meal_entries me
 				INNER JOIN meal_to_categories mtc ON mtc.meal_id = me.meal_id
-				INNER JOIN categories c ON c.id = mtc.category_id
+				INNER JOIN categories c ON c.id = mtc.category_id AND c.user_id = ${userId}
 				WHERE me.user_id = ${userId}
 					AND EXTRACT(DOW FROM me.date_cooked::date) = ${dayOfWeek}
 				GROUP BY c.id, c.name
@@ -117,10 +117,7 @@ export class AnalyticsService {
 	/**
 	 * Get meals that match the user's patterns for the current day
 	 */
-	static async getMealsForDayOfWeekPattern(
-		userId: string,
-		dayOfWeek?: number
-	): Promise<string[]> {
+	static async getMealsForDayOfWeekPattern(userId: string, dayOfWeek?: number): Promise<string[]> {
 		try {
 			const targetDay = dayOfWeek ?? new Date().getDay();
 
@@ -136,6 +133,7 @@ export class AnalyticsService {
 				SELECT DISTINCT m.id as meal_id
 				FROM meals m
 				INNER JOIN meal_to_categories mtc ON mtc.meal_id = m.id
+				INNER JOIN categories c ON c.id = mtc.category_id AND c.user_id = ${userId}
 				WHERE m.user_id = ${userId}
 					AND mtc.category_id = ANY(${categoryIds})
 			`);
@@ -247,7 +245,10 @@ export class AnalyticsService {
 
 			let averageEntriesPerWeek = 0;
 			if (firstDate && lastDate && totalEntries > 0) {
-				const daysDiff = Math.max(1, Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)));
+				const daysDiff = Math.max(
+					1,
+					Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24))
+				);
 				const weeks = daysDiff / 7;
 				averageEntriesPerWeek = weeks > 0 ? Math.round((totalEntries / weeks) * 10) / 10 : 0;
 			}
@@ -284,7 +285,10 @@ export class AnalyticsService {
 	/**
 	 * Get top meals by entry count
 	 */
-	static async getTopMeals(userId: string, limit: number = 10): Promise<
+	static async getTopMeals(
+		userId: string,
+		limit: number = 10
+	): Promise<
 		Array<{
 			mealId: string;
 			mealTitle: string;
@@ -298,7 +302,7 @@ export class AnalyticsService {
 					m.title as meal_title,
 					COUNT(*) as count
 				FROM meal_entries me
-				INNER JOIN meals m ON m.id = me.meal_id
+				INNER JOIN meals m ON m.id = me.meal_id AND m.user_id = ${userId}
 				WHERE me.user_id = ${userId}
 				GROUP BY m.id, m.title
 				ORDER BY count DESC
@@ -402,4 +406,3 @@ export class AnalyticsService {
 		}
 	}
 }
-

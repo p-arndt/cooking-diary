@@ -1,78 +1,52 @@
 import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { z } from 'zod';
+import { apiError, parseBody, parseInput, requireUser } from '$lib/server/api';
+import { entryUpdateSchema, paginationSchema } from '$lib/schemas';
 import { EntryService } from '$lib/server/services/entry.service';
+import type { RequestHandler } from './$types';
+
+const querySchema = paginationSchema(15);
+
+const patchSchema = entryUpdateSchema.extend({
+	id: z.uuid(),
+	// The quick-add dialog sends an empty string when no date is selected.
+	dateCooked: z.preprocess(
+		(value) => (value === '' ? undefined : value),
+		entryUpdateSchema.shape.dateCooked
+	)
+});
+
+const deleteSchema = z.object({ id: z.uuid() });
 
 export const GET: RequestHandler = async ({ locals, url }) => {
-	if (!locals.user) {
-		return json({ error: 'Unauthorized' }, { status: 401 });
-	}
-
-	const limit = parseInt(url.searchParams.get('limit') || '15');
-	const offset = parseInt(url.searchParams.get('offset') || '0');
-
-	const { entries, hasMore } = await EntryService.getAllEntries(
-		locals.user.id,
-		limit,
-		offset
+	const user = requireUser(locals);
+	const { limit, offset } = parseInput(
+		{
+			limit: url.searchParams.get('limit') ?? undefined,
+			offset: url.searchParams.get('offset') ?? undefined
+		},
+		querySchema
 	);
-
-	return json({ entries, hasMore });
+	return json(await EntryService.getAllEntries(user.id, limit, offset));
 };
 
 export const PATCH: RequestHandler = async ({ locals, request }) => {
-	if (!locals.user) {
-		return json({ error: 'Unauthorized' }, { status: 401 });
-	}
-
+	const user = requireUser(locals);
+	const { id, ...data } = await parseBody(request, patchSchema);
 	try {
-		const body = await request.json();
-		const { id, mealId, dateCooked, notes, photoUrls } = body;
-
-		if (!id) {
-			return json({ error: 'Entry ID is required' }, { status: 400 });
-		}
-
-		const updated = await EntryService.updateEntry(id, locals.user.id, {
-			mealId,
-			dateCooked: dateCooked ? new Date(dateCooked) : undefined,
-			notes,
-			photoUrls
-		});
-
-		if (!updated) {
-			return json({ error: 'Entry not found' }, { status: 404 });
-		}
-
-		return json({ success: true, entry: updated });
-	} catch (error) {
-		console.error('Error updating entry:', error);
-		return json({ error: 'Failed to update entry' }, { status: 500 });
+		return json({ success: true, entry: await EntryService.updateEntry(id, user.id, data) });
+	} catch (err) {
+		return apiError(err);
 	}
 };
 
 export const DELETE: RequestHandler = async ({ locals, request }) => {
-	if (!locals.user) {
-		return json({ error: 'Unauthorized' }, { status: 401 });
-	}
-
+	const user = requireUser(locals);
+	const { id } = await parseBody(request, deleteSchema);
 	try {
-		const body = await request.json();
-		const { id } = body;
-
-		if (!id) {
-			return json({ error: 'Entry ID is required' }, { status: 400 });
-		}
-
-		const success = await EntryService.deleteEntry(id, locals.user.id);
-
-		if (!success) {
-			return json({ error: 'Entry not found' }, { status: 404 });
-		}
-
+		await EntryService.deleteEntry(id, user.id);
 		return json({ success: true });
-	} catch (error) {
-		console.error('Error deleting entry:', error);
-		return json({ error: 'Failed to delete entry' }, { status: 500 });
+	} catch (err) {
+		return apiError(err);
 	}
 };
-

@@ -2,7 +2,9 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { CategoryService } from '$lib/server/services/category.service';
 import { MealService } from '$lib/server/services/meal.service';
-import { FileService } from '$lib/server/services/file.service';
+import { FileService, FileValidationError } from '$lib/server/services/file.service';
+import { actionError, parseForm } from '$lib/server/api';
+import { formText, mealFormSchema } from '$lib/schemas';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -24,51 +26,39 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const title = formData.get('title')?.toString();
-		const defaultNotes = formData.get('defaultNotes')?.toString() || null;
-		const categoryIdsStr = formData.get('categoryIds')?.toString() || '[]';
-		const photoFile = formData.get('photo') as File | null;
-		const prepTime = formData.get('prepTime')?.toString() || null;
-		const cookTime = formData.get('cookTime')?.toString() || null;
-		const difficulty = formData.get('difficulty')?.toString() || null;
+		const parsed = parseForm(
+			{
+				title: formText(formData, 'title'),
+				defaultNotes: formText(formData, 'defaultNotes'),
+				prepTime: formText(formData, 'prepTime'),
+				cookTime: formText(formData, 'cookTime'),
+				difficulty: formText(formData, 'difficulty'),
+				categoryIds: formText(formData, 'categoryIds') ?? '[]'
+			},
+			mealFormSchema
+		);
+		if (!parsed.ok) return parsed.failure;
 
-		let categoryIds: string[] = [];
-		try {
-			categoryIds = JSON.parse(categoryIdsStr);
-		} catch {
-			categoryIds = [];
-		}
-
-		if (!title) {
-			return fail(400, { error: 'Title is required' });
-		}
-
-		let finalPhotoUrl: string | null = null;
-
-		if (photoFile && photoFile.size > 0) {
+		let defaultPhotoUrl = null;
+		const photoFile = formData.get('photo');
+		if (photoFile instanceof File && photoFile.size > 0) {
 			try {
-				finalPhotoUrl = await FileService.saveFile(photoFile);
+				defaultPhotoUrl = await FileService.saveFile(photoFile, locals.user.id);
 			} catch (error: unknown) {
-				const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
-				return fail(400, { error: errorMessage });
+				if (error instanceof FileValidationError) return fail(400, { error: error.message });
+				console.error('Error uploading image:', error);
+				return fail(500, { error: 'Failed to upload image' });
 			}
 		}
 
 		try {
 			const meal = await MealService.createMeal(locals.user.id, {
-				title,
-				defaultNotes,
-				defaultPhotoUrl: finalPhotoUrl,
-				prepTime,
-				cookTime,
-				difficulty,
-				categoryIds
+				...parsed.data,
+				defaultPhotoUrl
 			});
 			return { success: true, mealId: meal.id };
 		} catch (error) {
-			console.error('Error creating meal:', error);
-			return fail(500, { error: 'Failed to create meal' });
+			return actionError(error, 'Failed to create meal');
 		}
 	}
 };
-

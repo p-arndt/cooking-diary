@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { categorySchema, parseBody, requireUser } from '$lib/server/api';
+import { parseBody, requireUser } from '$lib/server/api';
+import { categorySchema } from '$lib/schemas';
 import { CategoryService } from '$lib/server/services/category.service';
 import type { RequestHandler } from './$types';
 

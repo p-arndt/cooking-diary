@@ -1,6 +1,14 @@
 import { db } from '$lib/server/db';
 import { categories, mealEntries, meals, mealToCategories } from '$lib/server/db/schema';
-import { and, asc, desc, eq, gte, inArray, like, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, like, notInArray, sql } from 'drizzle-orm';
+import { isUuid } from '$lib/schemas';
+import { NotFoundError } from './errors';
+import { FileService } from './file.service';
+import { assertOwnPhotoUrls, removedUrls } from './photo-urls';
+
+export type DbExecutor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+type MealRow = typeof meals.$inferSelect;
 
 export type MealWithCategories = {
 	id: string;
@@ -16,36 +24,96 @@ export type MealWithCategories = {
 	categories: Array<{ id: string; name: string }>;
 };
 
+export type MealData = {
+	title: string;
+	defaultNotes?: string | null;
+	defaultPhotoUrl?: string | null;
+	prepTime?: string | null;
+	cookTime?: string | null;
+	difficulty?: string | null;
+	categoryIds?: string[];
+};
+
+/** Loads the categories of the given meals; categories of other users are never returned. */
+async function withCategories(
+	executor: DbExecutor,
+	userId: string,
+	rows: MealRow[]
+): Promise<MealWithCategories[]> {
+	if (rows.length === 0) return [];
+
+	const links = await executor
+		.select({ mealId: mealToCategories.mealId, id: categories.id, name: categories.name })
+		.from(mealToCategories)
+		.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
+		.where(
+			and(
+				inArray(
+					mealToCategories.mealId,
+					rows.map((meal) => meal.id)
+				),
+				eq(categories.userId, userId)
+			)
+		)
+		.orderBy(asc(categories.name));
+
+	return rows.map((meal) => ({
+		...meal,
+		categories: links
+			.filter((link) => link.mealId === meal.id)
+			.map(({ id, name }) => ({ id, name }))
+	}));
+}
+
+/** Deduplicated ids, all owned by the user; anything else is reported as not found. */
+async function ownedCategoryIds(
+	executor: DbExecutor,
+	userId: string,
+	categoryIds: string[]
+): Promise<string[]> {
+	const unique = [...new Set(categoryIds)];
+	if (unique.length === 0) return unique;
+	if (!unique.every(isUuid)) throw new NotFoundError('Category');
+
+	const owned = await executor
+		.select({ id: categories.id })
+		.from(categories)
+		.where(and(eq(categories.userId, userId), inArray(categories.id, unique)));
+	if (owned.length !== unique.length) throw new NotFoundError('Category');
+	return unique;
+}
+
 export class MealService {
+	/**
+	 * Meals of the user keyed by id; ids of missing or foreign meals are simply absent.
+	 * Accepts a transaction so callers can check ownership atomically with their write.
+	 */
+	static async getOwnedMealsByIds(
+		executor: DbExecutor,
+		userId: string,
+		mealIds: string[]
+	): Promise<Map<string, MealWithCategories>> {
+		const ids = [...new Set(mealIds)].filter(isUuid);
+		if (ids.length === 0) return new Map();
+
+		const rows = await executor
+			.select()
+			.from(meals)
+			.where(and(eq(meals.userId, userId), inArray(meals.id, ids)));
+		const loaded = await withCategories(executor, userId, rows);
+		return new Map(loaded.map((meal) => [meal.id, meal]));
+	}
+
 	/**
 	 * Get all meals for a user with their categories
 	 */
 	static async getMealsByUserId(userId: string): Promise<MealWithCategories[]> {
-		const userMeals = await db
+		const rows = await db
 			.select()
 			.from(meals)
 			.where(eq(meals.userId, userId))
 			.orderBy(asc(meals.title));
-
-		const mealsWithCategories = await Promise.all(
-			userMeals.map(async (meal) => {
-				const mealCategories = await db
-					.select({
-						id: categories.id,
-						name: categories.name
-					})
-					.from(mealToCategories)
-					.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-					.where(eq(mealToCategories.mealId, meal.id));
-
-				return {
-					...meal,
-					categories: mealCategories
-				};
-			})
-		);
-
-		return mealsWithCategories;
+		return withCategories(db, userId, rows);
 	}
 
 	/**
@@ -53,31 +121,12 @@ export class MealService {
 	 */
 	static async searchMeals(userId: string, searchTerm: string): Promise<MealWithCategories[]> {
 		const lowerSearch = searchTerm.toLowerCase();
-		const userMeals = await db
+		const rows = await db
 			.select()
 			.from(meals)
 			.where(and(eq(meals.userId, userId), like(sql`LOWER(${meals.title})`, `%${lowerSearch}%`)))
 			.orderBy(asc(meals.title));
-
-		const mealsWithCategories = await Promise.all(
-			userMeals.map(async (meal) => {
-				const mealCategories = await db
-					.select({
-						id: categories.id,
-						name: categories.name
-					})
-					.from(mealToCategories)
-					.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-					.where(eq(mealToCategories.mealId, meal.id));
-
-				return {
-					...meal,
-					categories: mealCategories
-				};
-			})
-		);
-
-		return mealsWithCategories;
+		return withCategories(db, userId, rows);
 	}
 
 	/**
@@ -99,67 +148,31 @@ export class MealService {
 	): Promise<MealWithCategories[]> {
 		if (categoryIds.length === 0) return this.getMealsByUserId(userId);
 
-		const mealIds = await db
-			.selectDistinct({ mealId: mealToCategories.mealId })
-			.from(mealToCategories)
-			.where(inArray(mealToCategories.categoryId, categoryIds));
+		const ids = categoryIds.filter(isUuid);
+		if (ids.length === 0) return [];
 
-		if (mealIds.length === 0) return [];
-
-		const mealIdList = mealIds.map((m) => m.mealId);
-
-		const userMeals = await db
-			.select()
+		const rows = await db
+			.selectDistinct({ meal: meals })
 			.from(meals)
-			.where(and(eq(meals.userId, userId), inArray(meals.id, mealIdList)))
+			.innerJoin(mealToCategories, eq(mealToCategories.mealId, meals.id))
+			.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
+			.where(
+				and(eq(meals.userId, userId), eq(categories.userId, userId), inArray(categories.id, ids))
+			)
 			.orderBy(asc(meals.title));
-
-		const mealsWithCategories = await Promise.all(
-			userMeals.map(async (meal) => {
-				const mealCategories = await db
-					.select({
-						id: categories.id,
-						name: categories.name
-					})
-					.from(mealToCategories)
-					.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-					.where(eq(mealToCategories.mealId, meal.id));
-
-				return {
-					...meal,
-					categories: mealCategories
-				};
-			})
+		return withCategories(
+			db,
+			userId,
+			rows.map((row) => row.meal)
 		);
-
-		return mealsWithCategories;
 	}
 
 	/**
 	 * Get meal by ID with categories
 	 */
 	static async getMealById(mealId: string, userId: string): Promise<MealWithCategories | null> {
-		const meal = await db
-			.select()
-			.from(meals)
-			.where(and(eq(meals.id, mealId), eq(meals.userId, userId)))
-			.limit(1);
-
-		if (!meal[0]) return null;
-
-		const mealCategories = await db
-			.select({
-				id: categories.id,
-				name: categories.name
-			})
-			.from(mealToCategories)
-			.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-			.where(eq(mealToCategories.mealId, mealId));
-
-		return {
-			...meal[0],
-			categories: mealCategories
-		};
+		const found = await this.getOwnedMealsByIds(db, userId, [mealId]);
+		return found.get(mealId) ?? null;
 	}
 
 	/**
@@ -173,176 +186,128 @@ export class MealService {
 			.orderBy(desc(mealEntries.dateCooked))
 			.limit(limit);
 
-		if (recentEntries.length === 0) return [];
-
-		const uniqueMealIds = [...new Set(recentEntries.map((e) => e.mealId))];
-		if (uniqueMealIds.length === 0) return [];
-
-		const userMeals = await db
-			.select()
-			.from(meals)
-			.where(and(eq(meals.userId, userId), inArray(meals.id, uniqueMealIds)));
-
-		const mealsWithCategories = await Promise.all(
-			userMeals.map(async (meal) => {
-				const mealCategories = await db
-					.select({
-						id: categories.id,
-						name: categories.name
-					})
-					.from(mealToCategories)
-					.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-					.where(eq(mealToCategories.mealId, meal.id));
-
-				return {
-					...meal,
-					categories: mealCategories
-				};
-			})
-		);
-
-		return mealsWithCategories;
+		const mealIds = [...new Set(recentEntries.map((e) => e.mealId))];
+		const found = await this.getOwnedMealsByIds(db, userId, mealIds);
+		return mealIds.flatMap((id) => found.get(id) ?? []);
 	}
 
 	/**
-	 * Create a new meal
+	 * Create a new meal together with its category links, atomically.
+	 * Throws NotFoundError if any category is not the user's.
 	 */
-	static async createMeal(
-		userId: string,
-		data: {
-			title: string;
-			defaultNotes?: string | null;
-			defaultPhotoUrl?: string | null;
-			prepTime?: string | null;
-			cookTime?: string | null;
-			difficulty?: string | null;
-			categoryIds?: string[];
-		}
-	): Promise<MealWithCategories> {
-		const [newMeal] = await db
-			.insert(meals)
-			.values({
-				userId,
-				title: data.title,
-				defaultNotes: data.defaultNotes || null,
-				defaultPhotoUrl: data.defaultPhotoUrl || null,
-				prepTime: data.prepTime || null,
-				cookTime: data.cookTime || null,
-				difficulty: data.difficulty || null
-			})
-			.returning();
+	static async createMeal(userId: string, data: MealData): Promise<MealWithCategories> {
+		if (data.defaultPhotoUrl) await assertOwnPhotoUrls(userId, [data.defaultPhotoUrl]);
 
-		if (data.categoryIds && data.categoryIds.length > 0) {
-			await db.insert(mealToCategories).values(
-				data.categoryIds.map((categoryId) => ({
-					mealId: newMeal.id,
-					categoryId
-				}))
-			);
-		}
+		return db.transaction(async (tx) => {
+			const categoryIds = await ownedCategoryIds(tx, userId, data.categoryIds ?? []);
 
-		const mealCategories = await db
-			.select({
-				id: categories.id,
-				name: categories.name
-			})
-			.from(mealToCategories)
-			.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-			.where(eq(mealToCategories.mealId, newMeal.id));
+			const [newMeal] = await tx
+				.insert(meals)
+				.values({
+					userId,
+					title: data.title,
+					defaultNotes: data.defaultNotes || null,
+					defaultPhotoUrl: data.defaultPhotoUrl || null,
+					prepTime: data.prepTime || null,
+					cookTime: data.cookTime || null,
+					difficulty: data.difficulty || null
+				})
+				.returning();
 
-		return {
-			...newMeal,
-			categories: mealCategories
-		};
+			if (categoryIds.length > 0) {
+				await tx
+					.insert(mealToCategories)
+					.values(categoryIds.map((categoryId) => ({ mealId: newMeal.id, categoryId })));
+			}
+
+			const [created] = await withCategories(tx, userId, [newMeal]);
+			return created;
+		});
 	}
 
 	/**
-	 * Update a meal
+	 * Update a meal; `categoryIds`, when given, replaces all links atomically.
+	 * Throws NotFoundError for a missing or foreign meal or category.
 	 */
 	static async updateMeal(
 		mealId: string,
 		userId: string,
-		data: {
-			title?: string;
-			defaultNotes?: string | null;
-			defaultPhotoUrl?: string | null;
-			prepTime?: string | null;
-			cookTime?: string | null;
-			difficulty?: string | null;
-			categoryIds?: string[];
-		}
-	): Promise<MealWithCategories | null> {
-		// Verify ownership
-		const existing = await db
-			.select()
-			.from(meals)
-			.where(and(eq(meals.id, mealId), eq(meals.userId, userId)))
-			.limit(1);
+		data: Partial<MealData>
+	): Promise<MealWithCategories> {
+		if (!isUuid(mealId)) throw new NotFoundError('Meal');
+		if (data.defaultPhotoUrl) await assertOwnPhotoUrls(userId, [data.defaultPhotoUrl]);
 
-		if (!existing[0]) return null;
+		const { meal, removed } = await db.transaction(async (tx) => {
+			const [existing] = await tx
+				.select()
+				.from(meals)
+				.where(and(eq(meals.id, mealId), eq(meals.userId, userId)))
+				.for('update');
+			if (!existing) throw new NotFoundError('Meal');
 
-		const updateData: Partial<typeof meals.$inferInsert> = {
-			updatedAt: new Date()
-		};
+			const categoryIds =
+				data.categoryIds !== undefined
+					? await ownedCategoryIds(tx, userId, data.categoryIds)
+					: undefined;
 
-		if (data.title !== undefined) updateData.title = data.title;
-		if (data.defaultNotes !== undefined) updateData.defaultNotes = data.defaultNotes;
-		if (data.defaultPhotoUrl !== undefined) updateData.defaultPhotoUrl = data.defaultPhotoUrl;
-		if (data.prepTime !== undefined) updateData.prepTime = data.prepTime;
-		if (data.cookTime !== undefined) updateData.cookTime = data.cookTime;
-		if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
+			const updateData: Partial<typeof meals.$inferInsert> = { updatedAt: new Date() };
+			if (data.title !== undefined) updateData.title = data.title;
+			if (data.defaultNotes !== undefined) updateData.defaultNotes = data.defaultNotes;
+			if (data.defaultPhotoUrl !== undefined) updateData.defaultPhotoUrl = data.defaultPhotoUrl;
+			if (data.prepTime !== undefined) updateData.prepTime = data.prepTime;
+			if (data.cookTime !== undefined) updateData.cookTime = data.cookTime;
+			if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
 
-		const [updated] = await db
-			.update(meals)
-			.set(updateData)
-			.where(eq(meals.id, mealId))
-			.returning();
+			const [updated] = await tx
+				.update(meals)
+				.set(updateData)
+				.where(eq(meals.id, mealId))
+				.returning();
 
-		// Update categories if provided
-		if (data.categoryIds !== undefined) {
-			// Delete existing category associations
-			await db.delete(mealToCategories).where(eq(mealToCategories.mealId, mealId));
-
-			// Insert new associations
-			if (data.categoryIds.length > 0) {
-				await db.insert(mealToCategories).values(
-					data.categoryIds.map((categoryId) => ({
-						mealId,
-						categoryId
-					}))
-				);
+			if (categoryIds !== undefined) {
+				await tx.delete(mealToCategories).where(eq(mealToCategories.mealId, mealId));
+				if (categoryIds.length > 0) {
+					await tx
+						.insert(mealToCategories)
+						.values(categoryIds.map((categoryId) => ({ mealId, categoryId })));
+				}
 			}
-		}
 
-		const mealCategories = await db
-			.select({
-				id: categories.id,
-				name: categories.name
-			})
-			.from(mealToCategories)
-			.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-			.where(eq(mealToCategories.mealId, mealId));
+			const [result] = await withCategories(tx, userId, [updated]);
+			return {
+				meal: result,
+				removed: removedUrls([existing.defaultPhotoUrl], [updated.defaultPhotoUrl])
+			};
+		});
 
-		return {
-			...updated,
-			categories: mealCategories
-		};
+		await FileService.deleteUnreferenced(removed);
+		return meal;
 	}
 
 	/**
-	 * Delete a meal
+	 * Delete a meal and, through the cascade, its entries. Throws NotFoundError for a
+	 * missing or foreign meal.
 	 */
-	static async deleteMeal(mealId: string, userId: string): Promise<boolean> {
-		const existing = await db
-			.select()
-			.from(meals)
-			.where(and(eq(meals.id, mealId), eq(meals.userId, userId)))
-			.limit(1);
+	static async deleteMeal(mealId: string, userId: string): Promise<void> {
+		if (!isUuid(mealId)) throw new NotFoundError('Meal');
 
-		if (!existing[0]) return false;
+		const removed = await db.transaction(async (tx) => {
+			// Every entry of the meal is cascaded, whoever owns it, so all their photos go too.
+			const cascadedEntries = await tx
+				.select({ photoUrls: mealEntries.photoUrls })
+				.from(mealEntries)
+				.where(eq(mealEntries.mealId, mealId));
 
-		await db.delete(meals).where(eq(meals.id, mealId));
-		return true;
+			const [deleted] = await tx
+				.delete(meals)
+				.where(and(eq(meals.id, mealId), eq(meals.userId, userId)))
+				.returning();
+			if (!deleted) throw new NotFoundError('Meal');
+
+			return [deleted.defaultPhotoUrl, ...cascadedEntries.flatMap((e) => e.photoUrls ?? [])];
+		});
+
+		await FileService.deleteUnreferenced(removedUrls(removed, []));
 	}
 
 	/**
@@ -360,49 +325,19 @@ export class MealService {
 		const recentlyCooked = await db
 			.selectDistinct({ mealId: mealEntries.mealId })
 			.from(mealEntries)
-			.where(
-				and(eq(mealEntries.userId, userId), gte(mealEntries.dateCooked, thresholdStr))
-			);
+			.where(and(eq(mealEntries.userId, userId), gte(mealEntries.dateCooked, thresholdStr)));
 
 		const recentMealIds = recentlyCooked.map((e) => e.mealId);
 
-		let userMeals;
-		if (recentMealIds.length > 0) {
-			userMeals = await db
-				.select()
-				.from(meals)
-				.where(
-					and(
-						eq(meals.userId, userId),
-						sql`${meals.id} NOT IN (${sql.join(
-							recentMealIds.map((id) => sql`${id}`),
-							sql`, `
-						)})`
-					)
-				);
-		} else {
-			userMeals = await db.select().from(meals).where(eq(meals.userId, userId));
-		}
-
-		const mealsWithCategories = await Promise.all(
-			userMeals.map(async (meal) => {
-				const mealCategories = await db
-					.select({
-						id: categories.id,
-						name: categories.name
-					})
-					.from(mealToCategories)
-					.innerJoin(categories, eq(mealToCategories.categoryId, categories.id))
-					.where(eq(mealToCategories.mealId, meal.id));
-
-				return {
-					...meal,
-					categories: mealCategories
-				};
-			})
-		);
-
-		return mealsWithCategories;
+		const rows = await db
+			.select()
+			.from(meals)
+			.where(
+				recentMealIds.length > 0
+					? and(eq(meals.userId, userId), notInArray(meals.id, recentMealIds))
+					: eq(meals.userId, userId)
+			);
+		return withCategories(db, userId, rows);
 	}
 
 	/**
