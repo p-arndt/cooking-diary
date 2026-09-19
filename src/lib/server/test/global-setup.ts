@@ -2,19 +2,29 @@ import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testconta
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+import type { TestProject } from 'vitest/node';
 
 let container: StartedPostgreSqlContainer | undefined;
 
-// One container per run. The env vars are set before the workers fork, so
-// $lib/server/db connects to the container exactly as it would in production.
-export async function setup() {
+declare module 'vitest' {
+	export interface ProvidedContext {
+		dbEnv: Record<string, string>;
+	}
+}
+
+// One container per run. The connection settings are handed to the workers through
+// provide(); setup-env.ts swaps them into $env/dynamic/private, because SvelteKit
+// snapshots that module from .env at startup, before this container exists.
+export async function setup(project: TestProject) {
 	container = await new PostgreSqlContainer('postgres:17').start();
 
-	process.env.POSTGRES_HOST = container.getHost();
-	process.env.POSTGRES_PORT = String(container.getPort());
-	process.env.POSTGRES_USER = container.getUsername();
-	process.env.POSTGRES_PASSWORD = container.getPassword();
-	process.env.POSTGRES_DB = container.getDatabase();
+	project.provide('dbEnv', {
+		POSTGRES_HOST: container.getHost(),
+		POSTGRES_PORT: String(container.getPort()),
+		POSTGRES_USER: container.getUsername(),
+		POSTGRES_PASSWORD: container.getPassword(),
+		POSTGRES_DB: container.getDatabase()
+	});
 
 	const client = postgres(container.getConnectionUri(), { max: 1 });
 	await migrate(drizzle(client), { migrationsFolder: 'drizzle' });
