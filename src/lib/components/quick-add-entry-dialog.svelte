@@ -61,7 +61,8 @@
 	$effect(() => {
 		if (entry && !isInitialized && entry.dateCooked) {
 			selectedMealId = entry.meal.id;
-			const entryDate = typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked;
+			const entryDate =
+				typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked;
 			selectedDate = entryDate;
 			notes = entry.notes || '';
 			photoPreviews = entry.photoUrls || [];
@@ -198,7 +199,8 @@
 	function resetForm() {
 		if (entry && entry.dateCooked) {
 			selectedMealId = entry.meal.id;
-			const entryDate = typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked;
+			const entryDate =
+				typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked;
 			selectedDate = entryDate;
 			notes = entry.notes || '';
 			photoPreviews = entry.photoUrls || [];
@@ -226,7 +228,6 @@
 		isInitialized = false;
 	}
 
-
 	function handleOpenChange(newOpen: boolean) {
 		open = newOpen;
 		onOpenChange?.(newOpen);
@@ -236,11 +237,15 @@
 	}
 </script>
 
-	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
+<Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title class="text-xl font-extrabold">{isEditMode ? m.quickAdd_editTitle() : m.quickAdd_title()}</Dialog.Title>
-			<Dialog.Description>{isEditMode ? m.quickAdd_editDescription() : m.quickAdd_description()}</Dialog.Description>
+			<Dialog.Title class="text-xl font-extrabold"
+				>{isEditMode ? m.quickAdd_editTitle() : m.quickAdd_title()}</Dialog.Title
+			>
+			<Dialog.Description
+				>{isEditMode ? m.quickAdd_editDescription() : m.quickAdd_description()}</Dialog.Description
+			>
 		</Dialog.Header>
 
 		<form
@@ -339,7 +344,11 @@
 					<Label>{m.quickAdd_date()}</Label>
 					<Popover.Root bind:open={datePickerOpen}>
 						<Popover.Trigger>
-							<Button type="button" variant="outline" class="mt-2 h-11 w-full justify-start rounded-xl text-left font-medium">
+							<Button
+								type="button"
+								variant="outline"
+								class="mt-2 h-11 w-full justify-start rounded-xl text-left font-medium"
+							>
 								<CalendarIcon class="size-4 text-primary" />
 								{#if calendarDate}
 									{formatDate(selectedDate)}
@@ -369,7 +378,9 @@
 											class="size-9 rounded-lg object-cover"
 										/>
 									{:else}
-										<span class="flex size-9 items-center justify-center rounded-lg bg-primary/15"><ChefHat class="size-4 text-primary" /></span>
+										<span class="flex size-9 items-center justify-center rounded-lg bg-primary/15"
+											><ChefHat class="size-4 text-primary" /></span
+										>
 									{/if}
 									<div class="flex-1">
 										<p class="font-bold">{selectedMeal.title}</p>
@@ -412,76 +423,87 @@
 								/>
 							</div>
 						{/if}
-					{#if showMealSuggestions}
-						<div
-							class="absolute top-full z-[100] mt-2 max-h-[150px] w-full overflow-hidden rounded-2xl border bg-popover shadow-lifted md:max-h-[300px]"
-							style="touch-action: pan-y;"
-						>
-							<div class="max-h-[150px] overflow-y-scroll overflow-x-hidden p-1.5 md:max-h-[300px]" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
-								{#if filteredMeals.length > 0}
-									{#each filteredMeals as meal, index}
-										<button
-											type="button"
-											class="w-full rounded-xl px-2 py-1.5 text-left text-sm font-medium transition-colors hover:bg-secondary {highlightedMealIndex ===
-											index
-												? 'bg-secondary'
-												: ''}"
-											onclick={() => selectMeal(meal.id)}
-											onmouseenter={() => (highlightedMealIndex = index)}
-										>
-											<div class="flex items-center gap-2">
-												{#if meal.defaultPhotoUrl}
-													<img
-														src={meal.defaultPhotoUrl}
-														alt={meal.title}
-														class="size-7 rounded-lg object-cover"
-													/>
-												{:else}
-													<span class="flex size-7 items-center justify-center rounded-lg bg-primary/15">
-														<ChefHat class="size-3.5 text-primary" />
-													</span>
-												{/if}
-												<span class="flex-1">{meal.title}</span>
-												{#if meal.categories.length > 0}
-													<div class="flex gap-1">
-														{#each meal.categories.slice(0, 2) as category}
-															<Badge variant="secondary" class="text-xs">
-																{category.name}
-															</Badge>
-														{/each}
-													</div>
-												{/if}
-											</div>
-										</button>
-									{/each}
-									<div class="my-1 border-t"></div>
-								{:else if mealSearchQuery.trim()}
-									<p class="px-2 py-1.5 text-sm text-muted-foreground">{m.quickAdd_noMealsFound()}</p>
-									<div class="my-1 border-t"></div>
-								{/if}
-								<button
-									type="button"
-									class="w-full rounded-xl px-2 py-2 text-left text-sm font-semibold transition-colors hover:bg-primary/10"
-									onclick={() => {
-										open = false;
-										goto('/meals/new');
-									}}
+						{#if showMealSuggestions}
+							<div
+								class="absolute top-full z-[100] mt-2 max-h-[150px] w-full overflow-hidden rounded-2xl border bg-popover shadow-lifted md:max-h-[300px]"
+								style="touch-action: pan-y;"
+							>
+								<div
+									class="max-h-[150px] overflow-y-scroll overflow-x-hidden p-1.5 md:max-h-[300px]"
+									style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;"
 								>
-									<div class="flex items-center gap-2 text-primary">
-										<Plus class="h-4 w-4" />
-										<span>{m.quickAdd_createNewMeal()}</span>
-									</div>
-								</button>
+									{#if filteredMeals.length > 0}
+										{#each filteredMeals as meal, index}
+											<button
+												type="button"
+												class="w-full rounded-xl px-2 py-1.5 text-left text-sm font-medium transition-colors hover:bg-secondary {highlightedMealIndex ===
+												index
+													? 'bg-secondary'
+													: ''}"
+												onclick={() => selectMeal(meal.id)}
+												onmouseenter={() => (highlightedMealIndex = index)}
+											>
+												<div class="flex items-center gap-2">
+													{#if meal.defaultPhotoUrl}
+														<img
+															src={meal.defaultPhotoUrl}
+															alt={meal.title}
+															class="size-7 rounded-lg object-cover"
+														/>
+													{:else}
+														<span
+															class="flex size-7 items-center justify-center rounded-lg bg-primary/15"
+														>
+															<ChefHat class="size-3.5 text-primary" />
+														</span>
+													{/if}
+													<span class="flex-1">{meal.title}</span>
+													{#if meal.categories.length > 0}
+														<div class="flex gap-1">
+															{#each meal.categories.slice(0, 2) as category}
+																<Badge variant="secondary" class="text-xs">
+																	{category.name}
+																</Badge>
+															{/each}
+														</div>
+													{/if}
+												</div>
+											</button>
+										{/each}
+										<div class="my-1 border-t"></div>
+									{:else if mealSearchQuery.trim()}
+										<p class="px-2 py-1.5 text-sm text-muted-foreground">
+											{m.quickAdd_noMealsFound()}
+										</p>
+										<div class="my-1 border-t"></div>
+									{/if}
+									<button
+										type="button"
+										class="w-full rounded-xl px-2 py-2 text-left text-sm font-semibold transition-colors hover:bg-primary/10"
+										onclick={() => {
+											open = false;
+											goto('/meals/new');
+										}}
+									>
+										<div class="flex items-center gap-2 text-primary">
+											<Plus class="h-4 w-4" />
+											<span>{m.quickAdd_createNewMeal()}</span>
+										</div>
+									</button>
+								</div>
 							</div>
-						</div>
-					{/if}
+						{/if}
 					</div>
 				</div>
 
 				<Collapsible.Root bind:open={showOptionalFields}>
-					<Collapsible.Trigger class="w-full rounded-xl bg-secondary/60 px-4 py-2.5 transition-colors hover:bg-secondary">
+					<Collapsible.Trigger
+						class="w-full rounded-xl bg-secondary/60 px-4 py-2.5 transition-colors hover:bg-secondary"
+					>
 						<div class="flex items-center justify-between space-x-2">
-							<span class="text-sm font-semibold text-muted-foreground">{m.quickAdd_optionalFields()}</span>
+							<span class="text-sm font-semibold text-muted-foreground"
+								>{m.quickAdd_optionalFields()}</span
+							>
 							<ChevronDown
 								class="h-4 w-4 transition-transform duration-200 {showOptionalFields
 									? 'rotate-180'
@@ -540,16 +562,23 @@
 			</div>
 
 			<Dialog.Footer class="gap-2 pt-4">
-				<Button type="button" variant="outline" disabled={isSubmitting} onclick={() => { open = false; }}>
+				<Button
+					type="button"
+					variant="outline"
+					disabled={isSubmitting}
+					onclick={() => {
+						open = false;
+					}}
+				>
 					{m.common_cancel()}
 				</Button>
 				{#if isEditMode}
-					<Button 
-						type="button" 
-						disabled={isSubmitting || !selectedMealId} 
+					<Button
+						type="button"
+						disabled={isSubmitting || !selectedMealId}
 						onclick={async () => {
 							if (!selectedMealId || !entry) return;
-							
+
 							isSubmitting = true;
 							try {
 								const existingPhotoUrls = entry.photoUrls || [];

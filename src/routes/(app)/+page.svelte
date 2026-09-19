@@ -18,7 +18,15 @@
 		UtensilsCrossed,
 		X
 	} from '@lucide/svelte';
-	import { addDays, formatDate, getMonthYear, getWeekStart, isSameDay, isToday, toDateString } from '$lib/utils/date';
+	import {
+		addDays,
+		formatDate,
+		getMonthYear,
+		getWeekStart,
+		isSameDay,
+		isToday,
+		toDateString
+	} from '$lib/utils/date';
 	import QuickAddEntryDialog from '$lib/components/quick-add-entry-dialog.svelte';
 	import MealEntryCard from '$lib/components/meal-entry-card.svelte';
 	import RandomMealSuggestion from '$lib/components/random-meal-suggestion.svelte';
@@ -52,7 +60,7 @@
 		try {
 			const response = await fetch(`/api/entries?offset=${allTimelineEntries.length}&limit=15`);
 			const result = await response.json();
-			
+
 			allTimelineEntries = [...allTimelineEntries, ...result.entries];
 			hasMore = result.hasMore;
 		} catch (error) {
@@ -115,11 +123,13 @@
 			}
 		} else if (e.key === 'ArrowDown') {
 			e.preventDefault();
-			highlightedMealIndex = highlightedMealIndex < filteredMeals.length - 1 ? highlightedMealIndex + 1 : 0;
+			highlightedMealIndex =
+				highlightedMealIndex < filteredMeals.length - 1 ? highlightedMealIndex + 1 : 0;
 			showMealSuggestions = true;
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
-			highlightedMealIndex = highlightedMealIndex > 0 ? highlightedMealIndex - 1 : filteredMeals.length - 1;
+			highlightedMealIndex =
+				highlightedMealIndex > 0 ? highlightedMealIndex - 1 : filteredMeals.length - 1;
 			showMealSuggestions = true;
 		} else if (e.key === 'Escape') {
 			showMealSuggestions = false;
@@ -129,18 +139,16 @@
 			showMealSuggestions = true;
 		}
 	}
-	
+
 	const entriesWithDates = $derived(
 		data.entries.map((e) => ({
 			...e,
 			dateCooked: typeof e.dateCooked === 'string' ? new Date(e.dateCooked) : e.dateCooked
 		}))
 	);
-	
+
 	const entriesForSelectedDate = $derived(
-		selectedDate
-			? entriesWithDates.filter((e) => isSameDay(e.dateCooked, selectedDate))
-			: []
+		selectedDate ? entriesWithDates.filter((e) => isSameDay(e.dateCooked, selectedDate)) : []
 	);
 
 	const timelineEntriesWithDates = $derived(
@@ -225,7 +233,10 @@
 	}
 
 	function isDateInCurrentMonth(date: Date): boolean {
-		return date.getMonth() === currentMonth.getMonth() && date.getFullYear() === currentMonth.getFullYear();
+		return (
+			date.getMonth() === currentMonth.getMonth() &&
+			date.getFullYear() === currentMonth.getFullYear()
+		);
 	}
 
 	function hasEntries(date: Date): boolean {
@@ -242,9 +253,24 @@
 	});
 
 	const statTiles = $derived([
-		{ label: m.diary_statEntries(), value: data.stats.totalEntries, icon: BookOpen, tint: 'bg-primary/15 text-primary' },
-		{ label: m.diary_statMeals(), value: data.stats.totalMeals, icon: UtensilsCrossed, tint: 'bg-accent/15 text-accent' },
-		{ label: m.diary_statPerWeek(), value: data.stats.averageEntriesPerWeek, icon: TrendingUp, tint: 'bg-chart-2/15 text-chart-2' }
+		{
+			label: m.diary_statEntries(),
+			value: data.stats.totalEntries,
+			icon: BookOpen,
+			tint: 'bg-primary/15 text-primary'
+		},
+		{
+			label: m.diary_statMeals(),
+			value: data.stats.totalMeals,
+			icon: UtensilsCrossed,
+			tint: 'bg-accent/15 text-accent'
+		},
+		{
+			label: m.diary_statPerWeek(),
+			value: data.stats.averageEntriesPerWeek,
+			icon: TrendingUp,
+			tint: 'bg-chart-2/15 text-chart-2'
+		}
 	]);
 
 	let showQuickAddDialog = $state(false);
@@ -278,7 +304,9 @@
 					onclick={() => view !== option.id && setView(option.id)}
 					class={[
 						'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-all',
-						view === option.id ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+						view === option.id
+							? 'bg-card text-foreground shadow-soft'
+							: 'text-muted-foreground hover:text-foreground'
 					]}
 				>
 					<option.icon class="size-4" />
@@ -290,9 +318,15 @@
 
 	<div class="relative">
 		{#if data.searchedMeal}
-			<div class="flex h-13 w-full items-center gap-3 rounded-full border bg-card pr-2 pl-2 shadow-soft">
+			<div
+				class="flex h-13 w-full items-center gap-3 rounded-full border bg-card pr-2 pl-2 shadow-soft"
+			>
 				{#if data.searchedMeal.defaultPhotoUrl}
-					<img src={data.searchedMeal.defaultPhotoUrl} alt="" class="size-9 rounded-full object-cover" />
+					<img
+						src={data.searchedMeal.defaultPhotoUrl}
+						alt=""
+						class="size-9 rounded-full object-cover"
+					/>
 				{:else}
 					<div class="flex size-9 items-center justify-center rounded-full bg-primary/15">
 						<ChefHat class="size-4 text-primary" />
@@ -309,26 +343,40 @@
 				</button>
 			</div>
 		{:else}
-			<label class="flex h-13 w-full items-center gap-3 rounded-full border bg-card px-5 shadow-soft transition-shadow focus-within:ring-[3px] focus-within:ring-ring/40">
+			<label
+				class="flex h-13 w-full items-center gap-3 rounded-full border bg-card px-5 shadow-soft transition-shadow focus-within:ring-[3px] focus-within:ring-ring/40"
+			>
 				<Search class="size-5 shrink-0 text-muted-foreground" />
 				<input
 					bind:this={mealInputRef}
 					bind:value={mealSearchQuery}
 					onkeydown={handleMealSearchKeydown}
 					onfocus={() => (showMealSuggestions = true)}
-					onblur={() => setTimeout(() => { showMealSuggestions = false; highlightedMealIndex = -1; }, 200)}
-					oninput={() => { showMealSuggestions = true; highlightedMealIndex = -1; }}
+					onblur={() =>
+						setTimeout(() => {
+							showMealSuggestions = false;
+							highlightedMealIndex = -1;
+						}, 200)}
+					oninput={() => {
+						showMealSuggestions = true;
+						highlightedMealIndex = -1;
+					}}
 					placeholder={m.diary_searchPlaceholder()}
 					class="w-full bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
 				/>
 			</label>
 		{/if}
 		{#if showMealSuggestions && filteredMeals.length > 0 && !data.searchedMeal}
-			<div class="absolute top-full right-0 left-0 z-50 mt-2 max-h-[320px] overflow-auto rounded-3xl border bg-popover p-2 shadow-lifted">
+			<div
+				class="absolute top-full right-0 left-0 z-50 mt-2 max-h-[320px] overflow-auto rounded-3xl border bg-popover p-2 shadow-lifted"
+			>
 				{#each filteredMeals as meal, index (meal.id)}
 					<button
 						type="button"
-						class={['flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition-colors', highlightedMealIndex === index ? 'bg-secondary' : 'hover:bg-secondary']}
+						class={[
+							'flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition-colors',
+							highlightedMealIndex === index ? 'bg-secondary' : 'hover:bg-secondary'
+						]}
 						onclick={() => selectMealSearch(meal.id)}
 						onmouseenter={() => (highlightedMealIndex = index)}
 						onmousedown={(e) => e.preventDefault()}
@@ -354,7 +402,9 @@
 			</div>
 			<div class="grid grid-cols-3 gap-3 md:col-span-2 md:grid-cols-1">
 				{#each statTiles as tile (tile.label)}
-					<div class="flex flex-col justify-between gap-3 rounded-3xl border border-border/60 bg-card p-4 shadow-soft md:flex-row md:items-center">
+					<div
+						class="flex flex-col justify-between gap-3 rounded-3xl border border-border/60 bg-card p-4 shadow-soft md:flex-row md:items-center"
+					>
 						<div class={['flex size-9 items-center justify-center rounded-2xl', tile.tint]}>
 							<tile.icon class="size-4.5" />
 						</div>
@@ -379,13 +429,19 @@
 			{#if data.searchedMealEntries.length > 0}
 				<ol class="relative space-y-3 border-l-2 border-dashed border-primary/30 pl-5">
 					{#each data.searchedMealEntries as entry (entry.id)}
-						{@const entryDate = typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked}
+						{@const entryDate =
+							typeof entry.dateCooked === 'string' ? new Date(entry.dateCooked) : entry.dateCooked}
 						<li class="relative">
-							<span class="absolute top-1.5 -left-[27px] size-3 rounded-full bg-primary ring-4 ring-card"></span>
+							<span
+								class="absolute top-1.5 -left-[27px] size-3 rounded-full bg-primary ring-4 ring-card"
+							></span>
 							<p class="font-semibold">
 								{formatDate(entryDate)}
 								{#if isToday(entryDate)}
-									<span class="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{m.common_today()}</span>
+									<span
+										class="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground"
+										>{m.common_today()}</span
+									>
 								{/if}
 							</p>
 							{#if entry.notes}
@@ -415,10 +471,20 @@
 									{m.common_today()}
 								</button>
 							{/if}
-							<Button variant="ghost" size="icon-sm" onclick={() => changeWeek(-1)} aria-label={m.diary_previousWeek()}>
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								onclick={() => changeWeek(-1)}
+								aria-label={m.diary_previousWeek()}
+							>
 								<ChevronLeft />
 							</Button>
-							<Button variant="ghost" size="icon-sm" onclick={() => changeWeek(1)} aria-label={m.diary_nextWeek()}>
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								onclick={() => changeWeek(1)}
+								aria-label={m.diary_nextWeek()}
+							>
 								<ChevronRight />
 							</Button>
 						</div>
@@ -431,17 +497,34 @@
 							<button
 								class={[
 									'flex flex-col items-center gap-1 rounded-2xl py-2.5 transition-colors',
-									selected ? 'bg-primary text-primary-foreground shadow-soft' : 'hover:bg-secondary',
+									selected
+										? 'bg-primary text-primary-foreground shadow-soft'
+										: 'hover:bg-secondary',
 									isToday(day) && !selected && 'ring-2 ring-primary ring-inset'
 								]}
 								aria-pressed={selected}
 								onclick={() => toggleWeekDay(day)}
 							>
-								<span class={['text-[11px] font-semibold uppercase', selected ? 'opacity-80' : 'text-muted-foreground']}>
+								<span
+									class={[
+										'text-[11px] font-semibold uppercase',
+										selected ? 'opacity-80' : 'text-muted-foreground'
+									]}
+								>
 									{formatDate(day, { weekday: 'short' }).replace('.', '')}
 								</span>
-								<span class="text-lg leading-none font-extrabold tabular-nums">{day.getDate()}</span>
-								<span class={['size-1.5 rounded-full', hasEntry ? (selected ? 'bg-primary-foreground' : 'bg-primary') : 'bg-transparent']}></span>
+								<span class="text-lg leading-none font-extrabold tabular-nums">{day.getDate()}</span
+								>
+								<span
+									class={[
+										'size-1.5 rounded-full',
+										hasEntry
+											? selected
+												? 'bg-primary-foreground'
+												: 'bg-primary'
+											: 'bg-transparent'
+									]}
+								></span>
 							</button>
 						{/each}
 					</div>
@@ -451,9 +534,13 @@
 					{#each visibleWeekDays as day (day.getTime())}
 						{@const dayEntries = weekEntriesByDay.get(toDateString(day)!) ?? []}
 						<section>
-							<h2 class="mb-3 flex items-center gap-3 text-sm font-bold tracking-wide text-muted-foreground uppercase">
+							<h2
+								class="mb-3 flex items-center gap-3 text-sm font-bold tracking-wide text-muted-foreground uppercase"
+							>
 								{#if isToday(day)}
-									<span class="rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground">{m.common_today()}</span>
+									<span class="rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground"
+										>{m.common_today()}</span
+									>
 								{:else}
 									{formatDate(day, { weekday: 'long', day: 'numeric', month: 'long' })}
 								{/if}
@@ -466,7 +553,9 @@
 									{/each}
 								</div>
 							{:else}
-								<div class="flex items-center justify-between gap-4 rounded-3xl border-2 border-dashed px-5 py-4">
+								<div
+									class="flex items-center justify-between gap-4 rounded-3xl border-2 border-dashed px-5 py-4"
+								>
 									<p class="text-sm text-muted-foreground">{m.diary_noEntriesForDate()}</p>
 									<Button size="sm" onclick={() => openAddEntry(day)}>
 										<Plus />
@@ -477,12 +566,17 @@
 						</section>
 					{/each}
 				{:else}
-					<div class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-10 text-center">
+					<div
+						class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-10 text-center"
+					>
 						<div class="mb-3 flex size-14 items-center justify-center rounded-3xl bg-primary/15">
 							<ChefHat class="size-7 text-primary" />
 						</div>
 						<p class="text-muted-foreground">{m.diary_noEntriesThisWeek()}</p>
-						<Button class="mt-4" onclick={() => openAddEntry(isCurrentWeek ? new Date() : weekStart)}>
+						<Button
+							class="mt-4"
+							onclick={() => openAddEntry(isCurrentWeek ? new Date() : weekStart)}
+						>
 							<Plus />
 							{m.diary_addEntry()}
 						</Button>
@@ -491,19 +585,33 @@
 			</section>
 		{:else if view === 'calendar'}
 			<div class="grid gap-4 md:grid-cols-5">
-				<section class="rounded-3xl border border-border/60 bg-card p-4 shadow-soft md:col-span-3 md:p-6">
+				<section
+					class="rounded-3xl border border-border/60 bg-card p-4 shadow-soft md:col-span-3 md:p-6"
+				>
 					<div class="mb-4 flex items-center justify-between">
 						<h2 class="text-lg font-bold capitalize">{getMonthYear(currentMonth)}</h2>
 						<div class="flex gap-1">
-							<Button variant="ghost" size="icon" onclick={() => changeMonth('prev')} aria-label="Previous month">
+							<Button
+								variant="ghost"
+								size="icon"
+								onclick={() => changeMonth('prev')}
+								aria-label="Previous month"
+							>
 								<ChevronLeft />
 							</Button>
-							<Button variant="ghost" size="icon" onclick={() => changeMonth('next')} aria-label="Next month">
+							<Button
+								variant="ghost"
+								size="icon"
+								onclick={() => changeMonth('next')}
+								aria-label="Next month"
+							>
 								<ChevronRight />
 							</Button>
 						</div>
 					</div>
-					<div class="grid grid-cols-7 text-center text-xs font-semibold text-muted-foreground uppercase">
+					<div
+						class="grid grid-cols-7 text-center text-xs font-semibold text-muted-foreground uppercase"
+					>
 						{#each [m.common_days_short_mo(), m.common_days_short_tu(), m.common_days_short_we(), m.common_days_short_th(), m.common_days_short_fr(), m.common_days_short_sa(), m.common_days_short_su()] as day (day)}
 							<div class="py-2">{day}</div>
 						{/each}
@@ -511,7 +619,8 @@
 					<div class="grid grid-cols-7 gap-1">
 						{#each Array(42) as _, i (i)}
 							{@const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)}
-							{@const dayOffset = i - (new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7}
+							{@const dayOffset =
+								i - ((new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7)}
 							{@const cellDate = new Date(date.getFullYear(), date.getMonth(), dayOffset + 1)}
 							{@const isCurrentMonth = isDateInCurrentMonth(cellDate)}
 							{@const isSelected = selectedDate && isSameDay(cellDate, selectedDate)}
@@ -531,7 +640,12 @@
 							>
 								{cellDate.getDate()}
 								{#if hasEntry}
-									<span class={['absolute bottom-1.5 size-1 rounded-full', isSelected ? 'bg-primary-foreground' : 'bg-primary']}></span>
+									<span
+										class={[
+											'absolute bottom-1.5 size-1 rounded-full',
+											isSelected ? 'bg-primary-foreground' : 'bg-primary'
+										]}
+									></span>
 								{/if}
 							</button>
 						{/each}
@@ -566,9 +680,13 @@
 				{#if timelineEntriesByDate.length > 0}
 					{#each timelineEntriesByDate as { date, entries } (date.getTime())}
 						<section>
-							<h2 class="mb-3 flex items-center gap-3 text-sm font-bold tracking-wide text-muted-foreground uppercase">
+							<h2
+								class="mb-3 flex items-center gap-3 text-sm font-bold tracking-wide text-muted-foreground uppercase"
+							>
 								{#if isToday(date)}
-									<span class="rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground">{m.common_today()}</span>
+									<span class="rounded-full bg-primary px-2.5 py-0.5 text-primary-foreground"
+										>{m.common_today()}</span
+									>
 								{:else}
 									{formatDate(date)}
 								{/if}
@@ -597,7 +715,9 @@
 						{/if}
 					</div>
 				{:else}
-					<div class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center">
+					<div
+						class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center"
+					>
 						<div class="mb-4 flex size-16 items-center justify-center rounded-3xl bg-primary/15">
 							<ChefHat class="size-8 text-primary" />
 						</div>

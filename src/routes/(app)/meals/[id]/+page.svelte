@@ -20,9 +20,24 @@
 
 	const facts = $derived(
 		[
-			{ icon: Clock, label: m.common_time_prepTime(), value: data.meal.prepTime, tint: 'bg-primary/15 text-primary' },
-			{ icon: Flame, label: m.common_time_cookTime(), value: data.meal.cookTime, tint: 'bg-accent/15 text-accent' },
-			{ icon: Gauge, label: m.common_time_difficulty(), value: difficultyLabel, tint: 'bg-chart-2/15 text-chart-2' }
+			{
+				icon: Clock,
+				label: m.common_time_prepTime(),
+				value: data.meal.prepTime,
+				tint: 'bg-primary/15 text-primary'
+			},
+			{
+				icon: Flame,
+				label: m.common_time_cookTime(),
+				value: data.meal.cookTime,
+				tint: 'bg-accent/15 text-accent'
+			},
+			{
+				icon: Gauge,
+				label: m.common_time_difficulty(),
+				value: difficultyLabel,
+				tint: 'bg-chart-2/15 text-chart-2'
+			}
 		].filter((fact) => fact.value)
 	);
 
@@ -42,7 +57,9 @@
 			{#if data.meal.defaultPhotoUrl}
 				<img src={data.meal.defaultPhotoUrl} alt={data.meal.title} class="size-full object-cover" />
 			{:else}
-				<div class="flex size-full items-center justify-center bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30">
+				<div
+					class="flex size-full items-center justify-center bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30"
+				>
 					<ChefHat class="size-28 rotate-[-10deg] text-primary/70" />
 				</div>
 			{/if}
@@ -65,11 +82,15 @@
 			</a>
 		</div>
 
-		<div class="absolute inset-x-3 bottom-3 rounded-3xl border border-white/15 bg-black/40 p-4 text-white backdrop-blur-md md:inset-x-4 md:bottom-4 md:p-5">
+		<div
+			class="absolute inset-x-3 bottom-3 rounded-3xl border border-white/15 bg-black/40 p-4 text-white backdrop-blur-md md:inset-x-4 md:bottom-4 md:p-5"
+		>
 			{#if data.meal.categories.length > 0}
 				<div class="mb-2 flex flex-wrap gap-1.5">
 					{#each data.meal.categories as category (category.id)}
-						<span class="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold">{category.name}</span>
+						<span class="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold"
+							>{category.name}</span
+						>
 					{/each}
 				</div>
 			{/if}
@@ -96,7 +117,12 @@
 			<ChefHat />
 			{m.meals_cookedToday()}
 		</Button>
-		<Button variant="outline" size="lg" class="px-4 text-sm md:px-7 md:text-base" onclick={() => goto(`/entries/add?mealId=${data.meal.id}`)}>
+		<Button
+			variant="outline"
+			size="lg"
+			class="px-4 text-sm md:px-7 md:text-base"
+			onclick={() => goto(`/entries/add?mealId=${data.meal.id}`)}
+		>
 			<CalendarPlus />
 			{m.diary_addEntry()}
 		</Button>
@@ -126,11 +152,16 @@
 				<ol class="relative space-y-4 border-l-2 border-dashed border-primary/30 pl-5">
 					{#each data.entries as entry (entry.id)}
 						<li class="relative">
-							<span class="absolute top-1.5 -left-[27px] size-3 rounded-full bg-primary ring-4 ring-card"></span>
+							<span
+								class="absolute top-1.5 -left-[27px] size-3 rounded-full bg-primary ring-4 ring-card"
+							></span>
 							<p class="font-semibold">
 								{formatDate(entry.dateCooked)}
 								{#if isToday(entry.dateCooked)}
-									<span class="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{m.common_today()}</span>
+									<span
+										class="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground"
+										>{m.common_today()}</span
+									>
 								{/if}
 							</p>
 							{#if entry.notes}

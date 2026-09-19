@@ -16,9 +16,7 @@
 	let success = $state(false);
 	let loading = $state(false);
 
-	let passwordsMatch = $derived(
-		newPassword && confirmPassword && newPassword === confirmPassword
-	);
+	let passwordsMatch = $derived(newPassword && confirmPassword && newPassword === confirmPassword);
 
 	async function changePassword(e: Event) {
 		e.preventDefault();
@@ -83,9 +81,7 @@
 			{m.passwordChange_currentPassword()}
 		</Label>
 		<div class="relative">
-			<Lock
-				class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-			/>
+			<Lock class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				id="currentPassword"
 				type={showCurrentPassword ? 'text' : 'password'}
@@ -114,9 +110,7 @@
 			{m.passwordChange_newPassword()}
 		</Label>
 		<div class="relative">
-			<Lock
-				class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-			/>
+			<Lock class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				id="newPassword"
 				type={showNewPassword ? 'text' : 'password'}
@@ -146,9 +140,7 @@
 			{m.auth_confirmPassword()}
 		</Label>
 		<div class="relative">
-			<Lock
-				class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground"
-			/>
+			<Lock class="absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				id="confirmPassword"
 				type={showConfirmPassword ? 'text' : 'password'}
@@ -171,11 +163,7 @@
 			</button>
 		</div>
 		{#if confirmPassword}
-			<p
-				class="text-xs {passwordsMatch
-					? 'text-success'
-					: 'text-destructive'}"
-			>
+			<p class="text-xs {passwordsMatch ? 'text-success' : 'text-destructive'}">
 				{#if passwordsMatch}
 					{m.auth_passwordsMatch()}
 				{:else}
@@ -186,18 +174,14 @@
 	</div>
 
 	{#if error}
-		<div
-			class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4"
-		>
+		<div class="flex items-start gap-3 rounded-2xl bg-destructive/10 p-4">
 			<AlertCircle class="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 			<p class="text-sm text-destructive">{error}</p>
 		</div>
 	{/if}
 
 	{#if success}
-		<div
-			class="flex items-start gap-3 rounded-2xl bg-success/15 p-4"
-		>
+		<div class="flex items-start gap-3 rounded-2xl bg-success/15 p-4">
 			<CheckCircle class="mt-0.5 h-5 w-5 shrink-0 text-success" />
 			<p class="text-sm text-success">{m.passwordChange_success()}</p>
 		</div>
@@ -213,4 +197,3 @@
 		</Button>
 	</div>
 </form>
-

@@ -6,7 +6,16 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { ArrowLeft, ArrowRight, Check, ChefHat, ImagePlus, Plus, Search, X } from '@lucide/svelte';
+	import {
+		ArrowLeft,
+		ArrowRight,
+		Check,
+		ChefHat,
+		ImagePlus,
+		Plus,
+		Search,
+		X
+	} from '@lucide/svelte';
 	import { formatDate, isSameDay, toDateString } from '$lib/utils/date';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -28,9 +37,7 @@
 
 	const filteredMeals = $derived(
 		searchQuery
-			? data.allMeals.filter((meal) =>
-					meal.title.toLowerCase().includes(searchQuery.toLowerCase())
-				)
+			? data.allMeals.filter((meal) => meal.title.toLowerCase().includes(searchQuery.toLowerCase()))
 			: data.allMeals
 	);
 
@@ -80,8 +87,11 @@
 		photoUrls = photoUrls.filter((_, i) => i !== index);
 	}
 
-
-	const steps = $derived([m.entries_step1_label(), m.entries_step2_label(), m.entries_step3_label()]);
+	const steps = $derived([
+		m.entries_step1_label(),
+		m.entries_step2_label(),
+		m.entries_step3_label()
+	]);
 
 	const quickDates = $derived.by(() => {
 		const today = new Date();
@@ -104,7 +114,9 @@
 		type="button"
 		class={[
 			'flex w-full items-center gap-3 rounded-2xl border-2 p-2 pr-3 text-left transition-colors',
-			selected ? 'border-primary bg-primary/10' : 'border-transparent bg-secondary/60 hover:bg-secondary'
+			selected
+				? 'border-primary bg-primary/10'
+				: 'border-transparent bg-secondary/60 hover:bg-secondary'
 		]}
 		onclick={() => selectMeal(meal.id)}
 	>
@@ -126,7 +138,9 @@
 			{/if}
 		</span>
 		{#if selected}
-			<span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+			<span
+				class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
+			>
 				<Check class="size-3.5" strokeWidth={3} />
 			</span>
 		{/if}
@@ -148,8 +162,18 @@
 			{#each steps as label, index (label)}
 				{@const number = index + 1}
 				<li class="flex min-w-0 flex-1 flex-col gap-1.5">
-					<span class={['h-1.5 rounded-full transition-colors', step >= number ? 'bg-primary' : 'bg-secondary']}></span>
-					<span class={['truncate text-xs font-semibold', step >= number ? 'text-foreground' : 'text-muted-foreground']}>
+					<span
+						class={[
+							'h-1.5 rounded-full transition-colors',
+							step >= number ? 'bg-primary' : 'bg-secondary'
+						]}
+					></span>
+					<span
+						class={[
+							'truncate text-xs font-semibold',
+							step >= number ? 'text-foreground' : 'text-muted-foreground'
+						]}
+					>
 						{number}. {label}
 					</span>
 				</li>
@@ -167,7 +191,9 @@
 							onclick={() => (selectedDate = quick.date)}
 							class={[
 								'flex-1 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-colors',
-								isSameDay(selectedDate, quick.date) ? 'border-primary bg-primary/10' : 'border-transparent bg-secondary hover:bg-secondary/70'
+								isSameDay(selectedDate, quick.date)
+									? 'border-primary bg-primary/10'
+									: 'border-transparent bg-secondary hover:bg-secondary/70'
 							]}
 						>
 							{quick.label}
@@ -213,7 +239,9 @@
 
 				{#if data.recentMeals.length > 0 && !searchQuery}
 					<div>
-						<h2 class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">{m.entries_recentMeals()}</h2>
+						<h2 class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+							{m.entries_recentMeals()}
+						</h2>
 						<div class="space-y-2">
 							{#each data.recentMeals as meal (meal.id)}
 								{@render mealOption(meal)}
@@ -223,7 +251,9 @@
 				{/if}
 
 				<div>
-					<h2 class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">{m.entries_allMeals()}</h2>
+					<h2 class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+						{m.entries_allMeals()}
+					</h2>
 					{#if filteredMeals.length > 0}
 						<div class="max-h-96 space-y-2 overflow-y-auto">
 							{#each filteredMeals as meal (meal.id)}
@@ -260,12 +290,16 @@
 							{/if}
 						</span>
 						<div class="min-w-0">
-							<p class="text-xs font-semibold text-muted-foreground">{m.entries_meal()} · {formatDate(selectedDate)}</p>
+							<p class="text-xs font-semibold text-muted-foreground">
+								{m.entries_meal()} · {formatDate(selectedDate)}
+							</p>
 							<p class="truncate text-lg font-extrabold">{selectedMeal.title}</p>
 							{#if selectedMeal.categories.length > 0}
 								<div class="mt-1 flex flex-wrap gap-1">
 									{#each selectedMeal.categories as category (category.id)}
-										<span class="rounded-full bg-card px-2 py-0.5 text-[11px] font-semibold">{category.name}</span>
+										<span class="rounded-full bg-card px-2 py-0.5 text-[11px] font-semibold"
+											>{category.name}</span
+										>
 									{/each}
 								</div>
 							{/if}
@@ -305,7 +339,11 @@
 							{/each}
 							{#each photoUrls as url, index (index)}
 								<div class="relative aspect-square">
-									<img src={url} alt="Photo {index + 1}" class="size-full rounded-2xl object-cover" />
+									<img
+										src={url}
+										alt="Photo {index + 1}"
+										class="size-full rounded-2xl object-cover"
+									/>
 									<button
 										type="button"
 										onclick={() => removePhoto(photoPreviews.length + index)}
@@ -321,7 +359,9 @@
 								class="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed text-muted-foreground transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-primary"
 							>
 								<ImagePlus class="size-6" />
-								<span class="px-1 text-center text-[11px] font-semibold">{m.entries_addPhotos()}</span>
+								<span class="px-1 text-center text-[11px] font-semibold"
+									>{m.entries_addPhotos()}</span
+								>
 							</label>
 						</div>
 						<input

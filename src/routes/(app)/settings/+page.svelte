@@ -115,7 +115,9 @@
 <div class="mx-auto max-w-3xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
 	<PageHeader title={m.settings_title()} subtitle={m.settings_subtitle()} />
 
-	<section class="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-primary to-accent-variant p-4 text-primary-foreground shadow-lifted">
+	<section
+		class="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-primary to-accent-variant p-4 text-primary-foreground shadow-lifted"
+	>
 		<Avatar.Root class="size-14 rounded-2xl ring-4 ring-primary-foreground/10">
 			<Avatar.Image src={data.user.image ?? undefined} alt={data.user.name} />
 			<Avatar.Fallback class="rounded-2xl bg-primary-foreground/15 text-lg font-extrabold">
@@ -146,19 +148,32 @@
 				class={[
 					'flex min-w-0 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition-all',
 					activeTab === tab.value ? 'flex-[2] sm:flex-1' : 'flex-1',
-					activeTab === tab.value ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+					activeTab === tab.value
+						? 'bg-card text-foreground shadow-soft'
+						: 'text-muted-foreground hover:text-foreground'
 				]}
 			>
 				<tab.icon class="size-4 shrink-0" />
-				<span class={['truncate', activeTab !== tab.value && 'sr-only sm:not-sr-only']}>{tab.label}</span>
+				<span class={['truncate', activeTab !== tab.value && 'sr-only sm:not-sr-only']}
+					>{tab.label}</span
+				>
 			</button>
 		{/each}
 	</div>
 
 	{#if activeTab === 'general'}
 		<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
-			{@render sectionHeader(Globe, 'bg-chart-4/15 text-chart-4', m.settings_language(), m.settings_languageDescription())}
-			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label={m.settings_selectLanguage()}>
+			{@render sectionHeader(
+				Globe,
+				'bg-chart-4/15 text-chart-4',
+				m.settings_language(),
+				m.settings_languageDescription()
+			)}
+			<div
+				class="grid grid-cols-2 gap-2"
+				role="radiogroup"
+				aria-label={m.settings_selectLanguage()}
+			>
 				{#each languageOptions as option (option.value)}
 					<button
 						type="button"
@@ -170,7 +185,9 @@
 						}}
 						class={[
 							'flex items-center justify-between rounded-2xl border-2 px-4 py-3 text-sm font-semibold transition-colors',
-							currentLanguage === option.value ? 'border-primary bg-primary/10' : 'border-transparent bg-secondary hover:bg-secondary/70'
+							currentLanguage === option.value
+								? 'border-primary bg-primary/10'
+								: 'border-transparent bg-secondary hover:bg-secondary/70'
 						]}
 					>
 						{option.label}
@@ -183,7 +200,12 @@
 		</section>
 
 		<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
-			{@render sectionHeader(Palette, 'bg-chart-5/15 text-chart-5', m.settings_appearance(), m.settings_themeDescription())}
+			{@render sectionHeader(
+				Palette,
+				'bg-chart-5/15 text-chart-5',
+				m.settings_appearance(),
+				m.settings_themeDescription()
+			)}
 			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label={m.settings_theme()}>
 				{#each themeOptions as option (option.value)}
 					{@const active = userPrefersMode.current === option.value}
@@ -194,7 +216,9 @@
 						onclick={() => setMode(option.value)}
 						class={[
 							'flex flex-col items-center gap-2 rounded-2xl border-2 px-3 py-4 text-sm font-semibold transition-colors',
-							active ? 'border-primary bg-primary/10' : 'border-transparent bg-secondary hover:bg-secondary/70'
+							active
+								? 'border-primary bg-primary/10'
+								: 'border-transparent bg-secondary hover:bg-secondary/70'
 						]}
 					>
 						<option.icon class={['size-5', active && 'text-primary']} />
@@ -225,7 +249,12 @@
 			<input type="hidden" name="useDayOfWeek" value={useDayOfWeek.toString()} />
 			<input type="hidden" name="excludedCategoryIds" value={JSON.stringify(excludedCategoryIds)} />
 
-			{@render sectionHeader(Sparkles, 'bg-primary/15 text-primary', m.settings_mealSuggestions(), m.settings_mealSuggestionsDesc())}
+			{@render sectionHeader(
+				Sparkles,
+				'bg-primary/15 text-primary',
+				m.settings_mealSuggestions(),
+				m.settings_mealSuggestionsDesc()
+			)}
 
 			<div class="divide-y divide-border/60">
 				<div class="space-y-3 py-4">
@@ -272,7 +301,9 @@
 						<Calendar class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 						<div>
 							<span class="text-sm font-medium">{m.settings_dayOfWeek()}</span>
-							<p class="text-sm text-muted-foreground">{m.settings_dayOfWeekDesc({ day: TODAY_NAME })}</p>
+							<p class="text-sm text-muted-foreground">
+								{m.settings_dayOfWeekDesc({ day: TODAY_NAME })}
+							</p>
 						</div>
 					</div>
 					<Switch checked={useDayOfWeek} onCheckedChange={(v) => (useDayOfWeek = v)} />
@@ -328,11 +359,20 @@
 		</form>
 	{:else}
 		<section class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
-			{@render sectionHeader(Lock, 'bg-chart-2/15 text-chart-2', m.passwordChange_title(), m.passwordChange_description())}
+			{@render sectionHeader(
+				Lock,
+				'bg-chart-2/15 text-chart-2',
+				m.passwordChange_title(),
+				m.passwordChange_description()
+			)}
 			<PasswordChangeForm />
 		</section>
 
-		<Button variant="outline" onclick={logout} class="w-full text-destructive hover:text-destructive">
+		<Button
+			variant="outline"
+			onclick={logout}
+			class="w-full text-destructive hover:text-destructive"
+		>
 			<LogOut />
 			{m.nav_logout()}
 		</Button>

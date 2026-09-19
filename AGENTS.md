@@ -14,8 +14,8 @@
 - Props:
 
   ```ts
-  type Props = { title: string }
-  let { title }:Props = $props()
+  type Props = { title: string };
+  let { title }: Props = $props();
   ```
 
 - DOM events are native: `onclick`, `oninput`, etc.

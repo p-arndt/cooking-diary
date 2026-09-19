@@ -210,7 +210,9 @@
 							</button>
 						{/if}
 						{#if filteredCategories.length === 0 && !showCreateOption && !inputValue.trim()}
-							<div class="px-2 py-1.5 text-sm text-muted-foreground">{m.categories_noCategoriesAvailable()}</div>
+							<div class="px-2 py-1.5 text-sm text-muted-foreground">
+								{m.categories_noCategoriesAvailable()}
+							</div>
 						{/if}
 					</div>
 				</div>

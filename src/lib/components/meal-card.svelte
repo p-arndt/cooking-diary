@@ -30,7 +30,9 @@
 			class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
 		/>
 	{:else}
-		<div class="absolute inset-0 flex items-start justify-end bg-gradient-to-br from-primary/35 via-primary/15 to-accent/25 p-4">
+		<div
+			class="absolute inset-0 flex items-start justify-end bg-gradient-to-br from-primary/35 via-primary/15 to-accent/25 p-4"
+		>
 			<ChefHat class="size-16 rotate-[-10deg] text-primary/60" />
 		</div>
 	{/if}
@@ -55,12 +57,19 @@
 	<div
 		class={[
 			'absolute inset-x-2 bottom-2 rounded-2xl border p-3 backdrop-blur-md',
-			meal.defaultPhotoUrl ? 'border-white/15 bg-black/40 text-white' : 'border-border/60 bg-card/85 text-foreground'
+			meal.defaultPhotoUrl
+				? 'border-white/15 bg-black/40 text-white'
+				: 'border-border/60 bg-card/85 text-foreground'
 		]}
 	>
 		<h3 class="line-clamp-2 leading-tight font-bold">{meal.title}</h3>
 		{#if meal.categories.length > 0}
-			<p class={['mt-0.5 truncate text-xs font-medium', meal.defaultPhotoUrl ? 'text-white/75' : 'text-muted-foreground']}>
+			<p
+				class={[
+					'mt-0.5 truncate text-xs font-medium',
+					meal.defaultPhotoUrl ? 'text-white/75' : 'text-muted-foreground'
+				]}
+			>
 				{meal.categories.map((c) => c.name).join(' · ')}
 			</p>
 		{/if}

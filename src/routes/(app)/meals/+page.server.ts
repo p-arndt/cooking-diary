@@ -30,4 +30,3 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		categoryId: categoryIds[0] || null
 	};
 };
-

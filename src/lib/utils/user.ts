@@ -7,7 +7,7 @@
  */
 export function getUserInitials(name: string): string {
 	if (!name || typeof name !== 'string') return '';
-	
+
 	return name
 		.split(' ')
 		.map((part) => part[0])
@@ -26,7 +26,6 @@ export function formatUserName(firstName?: string, lastName?: string): string {
 	return `${firstName} ${lastName}`;
 }
 
-
 export const isAnonymousUser = (userId: string): boolean => {
 	return userId.startsWith('anon-');
-}
+};

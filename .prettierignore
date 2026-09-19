@@ -8,3 +8,15 @@ bun.lockb
 # Miscellaneous
 /static/
 /drizzle/
+
+# Kotlin app with its own tooling and build output
+/mobile/
+
+# Generated
+/src/lib/paraglide/
+/project.inlang/
+
+# Written by inlang and stamp in their own style
+/messages/
+/.stamp.yml
+/package.json

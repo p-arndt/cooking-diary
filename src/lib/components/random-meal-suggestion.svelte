@@ -69,21 +69,26 @@
 					? m.common_difficulty_hard()
 					: null
 	);
-
 </script>
 
 <div
 	class="relative h-full min-h-44 overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-accent-variant p-5 text-primary-foreground shadow-lifted"
 >
-	<ChefHat class="pointer-events-none absolute -right-6 -bottom-8 size-44 rotate-[-12deg] opacity-15" />
+	<ChefHat
+		class="pointer-events-none absolute -right-6 -bottom-8 size-44 rotate-[-12deg] opacity-15"
+	/>
 
 	{#if !showSuggestion || !suggestedMeal}
 		<div class="relative flex h-full flex-col justify-between gap-6">
 			<div>
-				<div class="mb-3 inline-flex size-9 items-center justify-center rounded-2xl bg-primary-foreground/10">
+				<div
+					class="mb-3 inline-flex size-9 items-center justify-center rounded-2xl bg-primary-foreground/10"
+				>
 					<Sparkles class="size-4.5" />
 				</div>
-				<h2 class="max-w-xs text-2xl leading-tight font-extrabold">{m.randomMeal_whatShouldICook()}</h2>
+				<h2 class="max-w-xs text-2xl leading-tight font-extrabold">
+					{m.randomMeal_whatShouldICook()}
+				</h2>
 				<p class="mt-1 text-sm opacity-75">{m.randomMeal_subtitle()}</p>
 			</div>
 			<Button
@@ -105,9 +110,18 @@
 		</button>
 		<div class="relative flex h-full flex-col justify-between gap-4">
 			<div class="flex items-center gap-4">
-				<div class={['size-24 shrink-0 overflow-hidden rounded-2xl bg-primary-foreground/10 ring-4 ring-primary-foreground/10', isShuffling && 'animate-pulse']}>
+				<div
+					class={[
+						'size-24 shrink-0 overflow-hidden rounded-2xl bg-primary-foreground/10 ring-4 ring-primary-foreground/10',
+						isShuffling && 'animate-pulse'
+					]}
+				>
 					{#if suggestedMeal.defaultPhotoUrl}
-						<img src={suggestedMeal.defaultPhotoUrl} alt={suggestedMeal.title} class="size-full object-cover" />
+						<img
+							src={suggestedMeal.defaultPhotoUrl}
+							alt={suggestedMeal.title}
+							class="size-full object-cover"
+						/>
 					{:else}
 						<div class="flex size-full items-center justify-center">
 							<ChefHat class="size-10" />
@@ -118,25 +132,36 @@
 					<p class="text-xs font-semibold tracking-wide uppercase opacity-70">
 						{isShuffling ? m.randomMeal_pickingMeal() : m.randomMeal_howAboutThis()}
 					</p>
-					<h3 class={['mt-0.5 line-clamp-2 text-xl leading-tight font-extrabold', isShuffling && 'animate-pulse']}>
+					<h3
+						class={[
+							'mt-0.5 line-clamp-2 text-xl leading-tight font-extrabold',
+							isShuffling && 'animate-pulse'
+						]}
+					>
 						{suggestedMeal.title}
 					</h3>
 					{#if suggestedMeal.prepTime || suggestedMeal.cookTime || difficultyLabel}
 						<div class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
 							{#if suggestedMeal.prepTime}
-								<span class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1">
+								<span
+									class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1"
+								>
 									<Clock class="size-3" />
 									{suggestedMeal.prepTime}
 								</span>
 							{/if}
 							{#if suggestedMeal.cookTime}
-								<span class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1">
+								<span
+									class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1"
+								>
 									<Flame class="size-3" />
 									{suggestedMeal.cookTime}
 								</span>
 							{/if}
 							{#if difficultyLabel}
-								<span class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1">
+								<span
+									class="flex items-center gap-1 rounded-full bg-primary-foreground/10 px-2 py-1"
+								>
 									<Gauge class="size-3" />
 									{difficultyLabel}
 								</span>
@@ -147,7 +172,10 @@
 			</div>
 			{#if !isShuffling}
 				<div class="flex gap-2">
-					<Button onclick={cookMeal} class="flex-1 bg-primary-foreground text-white hover:bg-primary-foreground/90">
+					<Button
+						onclick={cookMeal}
+						class="flex-1 bg-primary-foreground text-white hover:bg-primary-foreground/90"
+					>
 						{m.randomMeal_cookToday()}
 					</Button>
 					<Button

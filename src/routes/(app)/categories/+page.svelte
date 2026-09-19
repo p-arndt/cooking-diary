@@ -63,7 +63,12 @@
 
 	<PageHeader title={m.categories_title()} subtitle={m.categories_subtitle()}>
 		{#snippet actions()}
-			<Button onclick={() => (showAddDialog = true)} size="icon" class="md:hidden" aria-label={m.categories_addCategory()}>
+			<Button
+				onclick={() => (showAddDialog = true)}
+				size="icon"
+				class="md:hidden"
+				aria-label={m.categories_addCategory()}
+			>
 				<Plus />
 			</Button>
 			<Button onclick={() => (showAddDialog = true)} class="hidden md:inline-flex">
@@ -99,7 +104,9 @@
 							>
 								<Input bind:value={editingName} class="min-w-40 flex-1" />
 								<Button type="submit">{m.common_save()}</Button>
-								<Button type="button" variant="outline" onclick={cancelEdit}>{m.common_cancel()}</Button>
+								<Button type="button" variant="outline" onclick={cancelEdit}
+									>{m.common_cancel()}</Button
+								>
 							</form>
 						{:else}
 							<button
@@ -126,7 +133,10 @@
 								</span>
 								{#if category.meals.length > 0}
 									<ChevronDown
-										class={['size-5 shrink-0 text-muted-foreground transition-transform', expanded && 'rotate-180']}
+										class={[
+											'size-5 shrink-0 text-muted-foreground transition-transform',
+											expanded && 'rotate-180'
+										]}
 									/>
 								{/if}
 							</button>
@@ -175,7 +185,9 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center">
+		<div
+			class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center"
+		>
 			<div class="mb-4 flex size-16 items-center justify-center rounded-3xl bg-primary/15">
 				<Tags class="size-8 text-primary" />
 			</div>
@@ -247,7 +259,9 @@
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>
-				<Button variant="outline" onclick={() => (deleteCategoryId = null)}>{m.common_cancel()}</Button>
+				<Button variant="outline" onclick={() => (deleteCategoryId = null)}
+					>{m.common_cancel()}</Button
+				>
 			</AlertDialog.Cancel>
 			<form
 				method="POST"

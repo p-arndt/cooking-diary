@@ -25,7 +25,16 @@ const client = postgres(
 );
 const db = drizzle(client, { schema });
 
-const CATEGORIES = ['Pasta', 'Asiatisch', 'Vegetarisch', 'Fleisch', 'Fisch', 'Suppen', 'Schnell', 'Frühstück'];
+const CATEGORIES = [
+	'Pasta',
+	'Asiatisch',
+	'Vegetarisch',
+	'Fleisch',
+	'Fisch',
+	'Suppen',
+	'Schnell',
+	'Frühstück'
+];
 
 type SampleMeal = {
 	title: string;
@@ -41,26 +50,183 @@ type SampleMeal = {
 };
 
 const MEALS: SampleMeal[] = [
-	{ title: 'Spaghetti Carbonara', categories: ['Pasta', 'Schnell'], prepTime: '10 min', cookTime: '15 min', difficulty: 'easy', defaultNotes: 'Guanciale statt Speck, kein Sahne!', weight: 5, favoriteDays: [5] },
-	{ title: 'Lasagne al Forno', categories: ['Pasta', 'Fleisch'], prepTime: '40 min', cookTime: '60 min', difficulty: 'hard', weight: 2, favoriteDays: [0] },
-	{ title: 'Penne all’Arrabbiata', categories: ['Pasta', 'Vegetarisch', 'Schnell'], prepTime: '5 min', cookTime: '20 min', difficulty: 'easy', weight: 4, favoriteDays: [5] },
-	{ title: 'Pesto Genovese mit Trofie', categories: ['Pasta', 'Vegetarisch'], prepTime: '15 min', cookTime: '12 min', difficulty: 'easy', weight: 3 },
-	{ title: 'Rotes Thai Curry', categories: ['Asiatisch'], prepTime: '15 min', cookTime: '25 min', difficulty: 'medium', defaultNotes: 'Mit Hähnchen oder Tofu', weight: 4, favoriteDays: [3] },
-	{ title: 'Pad Thai', categories: ['Asiatisch', 'Schnell'], prepTime: '15 min', cookTime: '10 min', difficulty: 'medium', weight: 3 },
-	{ title: 'Ramen mit Ajitama', categories: ['Asiatisch', 'Suppen'], prepTime: '30 min', cookTime: '3 h', difficulty: 'hard', weight: 1, favoriteDays: [6] },
-	{ title: 'Gebratener Reis mit Ei', categories: ['Asiatisch', 'Schnell'], prepTime: '5 min', cookTime: '10 min', difficulty: 'easy', defaultNotes: 'Am besten mit Reis vom Vortag', weight: 4 },
-	{ title: 'Shakshuka', categories: ['Vegetarisch', 'Frühstück'], prepTime: '10 min', cookTime: '20 min', difficulty: 'easy', weight: 3, favoriteDays: [0, 6] },
-	{ title: 'Pancakes mit Ahornsirup', categories: ['Frühstück', 'Vegetarisch'], prepTime: '10 min', cookTime: '15 min', difficulty: 'easy', weight: 2, favoriteDays: [0] },
-	{ title: 'Kürbissuppe mit Ingwer', categories: ['Suppen', 'Vegetarisch'], prepTime: '15 min', cookTime: '30 min', difficulty: 'easy', weight: 2 },
-	{ title: 'Linsen-Dal', categories: ['Vegetarisch', 'Asiatisch'], prepTime: '10 min', cookTime: '35 min', difficulty: 'easy', weight: 3, favoriteDays: [1] },
-	{ title: 'Chili con Carne', categories: ['Fleisch'], prepTime: '20 min', cookTime: '1 h', difficulty: 'medium', weight: 3, favoriteDays: [0] },
-	{ title: 'Wiener Schnitzel', categories: ['Fleisch'], prepTime: '20 min', cookTime: '15 min', difficulty: 'medium', defaultNotes: 'Mit Kartoffelsalat', weight: 2, favoriteDays: [0] },
-	{ title: 'Rinderrouladen', categories: ['Fleisch'], prepTime: '30 min', cookTime: '2 h', difficulty: 'hard', weight: 1, favoriteDays: [0] },
-	{ title: 'Lachs mit Ofengemüse', categories: ['Fisch'], prepTime: '15 min', cookTime: '25 min', difficulty: 'easy', weight: 3, favoriteDays: [2] },
-	{ title: 'Fish Tacos', categories: ['Fisch', 'Schnell'], prepTime: '20 min', cookTime: '10 min', difficulty: 'medium', weight: 2 },
-	{ title: 'Gemüse-Risotto', categories: ['Vegetarisch'], prepTime: '10 min', cookTime: '30 min', difficulty: 'medium', weight: 2 },
-	{ title: 'Flammkuchen', categories: ['Schnell'], prepTime: '15 min', cookTime: '12 min', difficulty: 'easy', weight: 2, favoriteDays: [5] },
-	{ title: 'Ofenkartoffeln mit Kräuterquark', categories: ['Vegetarisch', 'Schnell'], prepTime: '10 min', cookTime: '45 min', difficulty: 'easy', weight: 2 }
+	{
+		title: 'Spaghetti Carbonara',
+		categories: ['Pasta', 'Schnell'],
+		prepTime: '10 min',
+		cookTime: '15 min',
+		difficulty: 'easy',
+		defaultNotes: 'Guanciale statt Speck, kein Sahne!',
+		weight: 5,
+		favoriteDays: [5]
+	},
+	{
+		title: 'Lasagne al Forno',
+		categories: ['Pasta', 'Fleisch'],
+		prepTime: '40 min',
+		cookTime: '60 min',
+		difficulty: 'hard',
+		weight: 2,
+		favoriteDays: [0]
+	},
+	{
+		title: 'Penne all’Arrabbiata',
+		categories: ['Pasta', 'Vegetarisch', 'Schnell'],
+		prepTime: '5 min',
+		cookTime: '20 min',
+		difficulty: 'easy',
+		weight: 4,
+		favoriteDays: [5]
+	},
+	{
+		title: 'Pesto Genovese mit Trofie',
+		categories: ['Pasta', 'Vegetarisch'],
+		prepTime: '15 min',
+		cookTime: '12 min',
+		difficulty: 'easy',
+		weight: 3
+	},
+	{
+		title: 'Rotes Thai Curry',
+		categories: ['Asiatisch'],
+		prepTime: '15 min',
+		cookTime: '25 min',
+		difficulty: 'medium',
+		defaultNotes: 'Mit Hähnchen oder Tofu',
+		weight: 4,
+		favoriteDays: [3]
+	},
+	{
+		title: 'Pad Thai',
+		categories: ['Asiatisch', 'Schnell'],
+		prepTime: '15 min',
+		cookTime: '10 min',
+		difficulty: 'medium',
+		weight: 3
+	},
+	{
+		title: 'Ramen mit Ajitama',
+		categories: ['Asiatisch', 'Suppen'],
+		prepTime: '30 min',
+		cookTime: '3 h',
+		difficulty: 'hard',
+		weight: 1,
+		favoriteDays: [6]
+	},
+	{
+		title: 'Gebratener Reis mit Ei',
+		categories: ['Asiatisch', 'Schnell'],
+		prepTime: '5 min',
+		cookTime: '10 min',
+		difficulty: 'easy',
+		defaultNotes: 'Am besten mit Reis vom Vortag',
+		weight: 4
+	},
+	{
+		title: 'Shakshuka',
+		categories: ['Vegetarisch', 'Frühstück'],
+		prepTime: '10 min',
+		cookTime: '20 min',
+		difficulty: 'easy',
+		weight: 3,
+		favoriteDays: [0, 6]
+	},
+	{
+		title: 'Pancakes mit Ahornsirup',
+		categories: ['Frühstück', 'Vegetarisch'],
+		prepTime: '10 min',
+		cookTime: '15 min',
+		difficulty: 'easy',
+		weight: 2,
+		favoriteDays: [0]
+	},
+	{
+		title: 'Kürbissuppe mit Ingwer',
+		categories: ['Suppen', 'Vegetarisch'],
+		prepTime: '15 min',
+		cookTime: '30 min',
+		difficulty: 'easy',
+		weight: 2
+	},
+	{
+		title: 'Linsen-Dal',
+		categories: ['Vegetarisch', 'Asiatisch'],
+		prepTime: '10 min',
+		cookTime: '35 min',
+		difficulty: 'easy',
+		weight: 3,
+		favoriteDays: [1]
+	},
+	{
+		title: 'Chili con Carne',
+		categories: ['Fleisch'],
+		prepTime: '20 min',
+		cookTime: '1 h',
+		difficulty: 'medium',
+		weight: 3,
+		favoriteDays: [0]
+	},
+	{
+		title: 'Wiener Schnitzel',
+		categories: ['Fleisch'],
+		prepTime: '20 min',
+		cookTime: '15 min',
+		difficulty: 'medium',
+		defaultNotes: 'Mit Kartoffelsalat',
+		weight: 2,
+		favoriteDays: [0]
+	},
+	{
+		title: 'Rinderrouladen',
+		categories: ['Fleisch'],
+		prepTime: '30 min',
+		cookTime: '2 h',
+		difficulty: 'hard',
+		weight: 1,
+		favoriteDays: [0]
+	},
+	{
+		title: 'Lachs mit Ofengemüse',
+		categories: ['Fisch'],
+		prepTime: '15 min',
+		cookTime: '25 min',
+		difficulty: 'easy',
+		weight: 3,
+		favoriteDays: [2]
+	},
+	{
+		title: 'Fish Tacos',
+		categories: ['Fisch', 'Schnell'],
+		prepTime: '20 min',
+		cookTime: '10 min',
+		difficulty: 'medium',
+		weight: 2
+	},
+	{
+		title: 'Gemüse-Risotto',
+		categories: ['Vegetarisch'],
+		prepTime: '10 min',
+		cookTime: '30 min',
+		difficulty: 'medium',
+		weight: 2
+	},
+	{
+		title: 'Flammkuchen',
+		categories: ['Schnell'],
+		prepTime: '15 min',
+		cookTime: '12 min',
+		difficulty: 'easy',
+		weight: 2,
+		favoriteDays: [5]
+	},
+	{
+		title: 'Ofenkartoffeln mit Kräuterquark',
+		categories: ['Vegetarisch', 'Schnell'],
+		prepTime: '10 min',
+		cookTime: '45 min',
+		difficulty: 'easy',
+		weight: 2
+	}
 ];
 
 const ENTRY_NOTES = [

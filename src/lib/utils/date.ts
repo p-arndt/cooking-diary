@@ -98,7 +98,6 @@ export function getCurrentWeekStart(): Date {
 	return getWeekStart(new Date());
 }
 
-
 export function getCurrentWeekEnd(): Date {
 	const start = getCurrentWeekStart();
 	const end = new Date(start);

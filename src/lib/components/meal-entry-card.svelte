@@ -89,7 +89,9 @@
 				class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
 			/>
 		{:else}
-			<div class="flex size-full items-center justify-center bg-gradient-to-br from-primary/25 to-accent/15">
+			<div
+				class="flex size-full items-center justify-center bg-gradient-to-br from-primary/25 to-accent/15"
+			>
 				<ChefHat class="size-8 text-primary" />
 			</div>
 		{/if}
@@ -100,7 +102,9 @@
 		{#if displayMeal && displayMeal.categories.length > 0}
 			<div class="mt-1.5 flex flex-wrap gap-1">
 				{#each displayMeal.categories.slice(0, 3) as category (category.id)}
-					<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-secondary-foreground">
+					<span
+						class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-secondary-foreground"
+					>
 						{category.name}
 					</span>
 				{/each}

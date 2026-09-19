@@ -24,7 +24,9 @@
 
 	<div class="relative w-full max-w-md">
 		<div class="mb-8 flex flex-col items-center text-center">
-			<div class="mb-5 flex size-20 items-center justify-center rounded-[1.75rem] bg-primary shadow-lifted">
+			<div
+				class="mb-5 flex size-20 items-center justify-center rounded-[1.75rem] bg-primary shadow-lifted"
+			>
 				<img src={logo} alt="{m.common_appName()} logo" class="size-14" />
 			</div>
 			<h1 class="text-3xl font-extrabold">{title}</h1>
@@ -33,7 +35,9 @@
 			{/if}
 		</div>
 
-		<div class="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-lifted backdrop-blur-xl sm:p-8">
+		<div
+			class="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-lifted backdrop-blur-xl sm:p-8"
+		>
 			{@render children()}
 		</div>
 

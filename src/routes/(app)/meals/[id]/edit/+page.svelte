@@ -76,7 +76,11 @@
 </svelte:head>
 
 <div class="mx-auto max-w-2xl space-y-6 px-4 pt-6 md:px-8 md:pt-2">
-	<PageHeader title={m.meals_editMealTitle()} backHref={`/meals/${data.meal.id}`} backLabel={m.meals_backToMeal()} />
+	<PageHeader
+		title={m.meals_editMealTitle()}
+		backHref={`/meals/${data.meal.id}`}
+		backLabel={m.meals_backToMeal()}
+	/>
 
 	<div class="rounded-3xl border border-border/60 bg-card p-5 shadow-soft md:p-7">
 		<div>
@@ -132,8 +136,8 @@
 					<Label>{m.meals_form_categories()}</Label>
 					<div class="mt-2">
 						<CategoryInput
-							categories={categories}
-							selectedCategoryIds={selectedCategoryIds}
+							{categories}
+							{selectedCategoryIds}
 							onChange={(ids) => {
 								selectedCategoryIds = ids;
 							}}
@@ -172,11 +176,7 @@
 					</div>
 					<div>
 						<Label for="difficulty">{m.common_time_difficulty()}</Label>
-						<NativeSelect
-							id="difficulty"
-							bind:value={difficulty}
-							class="mt-2 w-full"
-						>
+						<NativeSelect id="difficulty" bind:value={difficulty} class="mt-2 w-full">
 							<option value="">{m.common_difficulty_select()}</option>
 							<option value="easy">{m.common_difficulty_easy()}</option>
 							<option value="medium">{m.common_difficulty_medium()}</option>
@@ -212,7 +212,12 @@
 				</div>
 
 				<div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-					<Button type="button" variant="outline" onclick={() => goto(`/meals/${data.meal.id}`)} disabled={isSubmitting}>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={() => goto(`/meals/${data.meal.id}`)}
+						disabled={isSubmitting}
+					>
 						{m.common_cancel()}
 					</Button>
 					<Button type="submit" disabled={isSubmitting}>

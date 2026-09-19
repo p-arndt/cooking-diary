@@ -153,7 +153,9 @@
 									<span
 										class={[
 											'flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors',
-											selected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/30'
+											selected
+												? 'border-primary bg-primary text-primary-foreground'
+												: 'border-muted-foreground/30'
 										]}
 									>
 										{#if selected}
@@ -172,7 +174,9 @@
 		{#if selectedCategories.length > 0 || hasActiveFilters}
 			<div class="flex flex-wrap items-center gap-2">
 				{#each selectedCategories as category (category.id)}
-					<span class="inline-flex items-center gap-1 rounded-full bg-primary/15 py-1 pr-1 pl-3 text-sm font-semibold">
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-primary/15 py-1 pr-1 pl-3 text-sm font-semibold"
+					>
 						{category.name}
 						<button
 							type="button"
@@ -204,7 +208,9 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center">
+		<div
+			class="flex flex-col items-center rounded-3xl border-2 border-dashed px-6 py-14 text-center"
+		>
 			<div class="mb-4 flex size-16 items-center justify-center rounded-3xl bg-primary/15">
 				<ChefHat class="size-8 text-primary" />
 			</div>
