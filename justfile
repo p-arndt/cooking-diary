@@ -26,6 +26,10 @@ check:
 test:
     pnpm test:unit --run
 
+# Run the browser end-to-end tests (builds first, needs Docker)
+e2e:
+    pnpm test:e2e
+
 # Everything CI would run: type check, lint, unit tests
 ci: check
     pnpm lint

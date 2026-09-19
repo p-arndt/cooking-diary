@@ -26,3 +26,7 @@ vite.config.ts.timestamp-*
 # Uploaded files
 files/*
 !files/.gitkeep
+
+# Playwright
+playwright-report
+blob-report
