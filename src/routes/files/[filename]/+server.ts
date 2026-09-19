@@ -1,49 +1,46 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { FileService } from '$lib/server/services/file.service';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
-	// check better auth session
 	if (!locals.user) {
 		throw redirect(307, '/login');
 	}
 
 	const filename = params.filename;
-	if (!filename) {
-		throw error(400, 'Filename required');
-	}
-
-	// Security: prevent path traversal
-	if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+	if (!filename || !FileService.isSafeFilename(filename)) {
 		throw error(400, 'Invalid filename');
 	}
 
-	const filePath = join(process.cwd(), 'files', filename);
-
-	if (!existsSync(filePath)) {
+	// Unauthorized and missing files look the same so the response doesn't reveal which
+	// files exist.
+	if (!(await FileService.canRead(filename, locals.user.id))) {
 		throw error(404, 'File not found');
 	}
 
+	let file: Buffer | null;
 	try {
-		const file = await readFile(filePath);
-		const ext = filename.split('.').pop()?.toLowerCase();
-
-		let contentType = 'application/octet-stream';
-		if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg';
-		else if (ext === 'png') contentType = 'image/png';
-		else if (ext === 'webp') contentType = 'image/webp';
-		else if (ext === 'gif') contentType = 'image/gif';
-
-		return new Response(file, {
-			headers: {
-				'Content-Type': contentType,
-				'Cache-Control': 'public, max-age=31536000, immutable'
-			}
-		});
+		file = await FileService.readFile(filename);
 	} catch (err) {
 		console.error('Error reading file:', err);
 		throw error(500, 'Error reading file');
 	}
+	if (!file) {
+		throw error(404, 'File not found');
+	}
+
+	// Legacy uploads were typed by client-supplied extension, so the type is taken from the
+	// content; anything that isn't a known image is only offered as a download.
+	const imageType = FileService.detectImageType(file);
+
+	return new Response(new Uint8Array(file), {
+		headers: {
+			'Content-Type': imageType ?? 'application/octet-stream',
+			'Content-Disposition': imageType ? 'inline' : 'attachment',
+			'X-Content-Type-Options': 'nosniff',
+			'Content-Security-Policy': "default-src 'none'; sandbox",
+			// private: these are authenticated photos and must not be served from shared caches.
+			'Cache-Control': 'private, max-age=31536000, immutable'
+		}
+	});
 };

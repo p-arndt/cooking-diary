@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { requireUser } from '$lib/server/api';
-import { FileService } from '$lib/server/services/file.service';
+import { FileService, FileValidationError } from '$lib/server/services/file.service';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
-	requireUser(locals);
+	const user = requireUser(locals);
 	let file: FormDataEntryValue | null;
 	try {
 		file = (await request.formData()).get('file');
@@ -16,8 +16,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		return json({ url: await FileService.saveFile(file) }, { status: 201 });
+		return json({ url: await FileService.saveFile(file, user.id) }, { status: 201 });
 	} catch (err) {
-		return json({ error: err instanceof Error ? err.message : 'Upload failed' }, { status: 400 });
+		if (err instanceof FileValidationError) {
+			return json({ error: err.message }, { status: 400 });
+		}
+		console.error('Error uploading file:', err);
+		return json({ error: 'Upload failed' }, { status: 500 });
 	}
 };
