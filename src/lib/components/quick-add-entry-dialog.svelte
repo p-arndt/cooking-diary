@@ -59,7 +59,10 @@
 	let isInitialized = $state(false);
 	let previousCalendarDate = $state<CalendarDate | null>(null);
 
+	// Initialise on open rather than on mount: the dialog stays mounted between edits, and
+	// `entry` is only fresh (post-invalidate) by the time the user reopens it.
 	$effect(() => {
+		if (!open) return;
 		if (entry && !isInitialized && entry.dateCooked) {
 			selectedMealId = entry.meal.id;
 			const entryDate =
@@ -236,6 +239,60 @@
 			resetForm();
 		}
 	}
+	async function saveEdit() {
+		if (!selectedMealId || !entry) return;
+
+		isSubmitting = true;
+		try {
+			const newPhotoUrls = photoPreviews.filter(
+				(preview) => preview.startsWith('http') || preview.startsWith('/files/')
+			);
+
+			for (const file of photoFiles) {
+				const uploadFormData = new FormData();
+				uploadFormData.append('file', file);
+				const uploadResponse = await fetch('/api/files', {
+					method: 'POST',
+					body: uploadFormData
+				});
+				if (!uploadResponse.ok) {
+					const error = await uploadResponse.json().catch(() => ({}));
+					isSubmitting = false;
+					alert(error.error || m.quickAdd_failedToUpdate());
+					return;
+				}
+				const result = await uploadResponse.json();
+				newPhotoUrls.push(result.url);
+			}
+
+			const response = await fetch('/api/entries', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					id: entry.id,
+					mealId: selectedMealId,
+					dateCooked: toDateString(selectedDate) || '',
+					notes: notes || null,
+					photoUrls: newPhotoUrls
+				})
+			});
+
+			isSubmitting = false;
+			if (response.ok) {
+				resetForm();
+				open = false;
+				onOpenChange?.(false);
+				await invalidateAll();
+			} else {
+				const error = await response.json();
+				alert(error.error || m.quickAdd_failedToUpdate());
+			}
+		} catch (error) {
+			isSubmitting = false;
+			console.error('Error updating entry:', error);
+			alert(m.quickAdd_failedToUpdate());
+		}
+	}
 </script>
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
@@ -260,70 +317,16 @@
 					return;
 				}
 
-				isSubmitting = true;
-
-				if (isEditMode && entry) {
-					const newPhotoUrls: string[] = [];
-
-					for (let i = 0; i < photoPreviews.length; i++) {
-						const preview = photoPreviews[i];
-						if (preview.startsWith('http') || preview.startsWith('/files/')) {
-							newPhotoUrls.push(preview);
-						}
-					}
-
-					return async () => {
-						try {
-							for (const file of photoFiles) {
-								const uploadFormData = new FormData();
-								uploadFormData.append('file', file);
-								const uploadResponse = await fetch('/api/files', {
-									method: 'POST',
-									body: uploadFormData
-								});
-								if (uploadResponse.ok) {
-									const result = await uploadResponse.json();
-									newPhotoUrls.push(result.url);
-								}
-							}
-
-							const response = await fetch('/api/entries', {
-								method: 'PATCH',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({
-									id: entry.id,
-									mealId: selectedMealId,
-									dateCooked: toDateString(selectedDate) || '',
-									notes: notes || null,
-									photoUrls: newPhotoUrls
-								})
-							});
-
-							isSubmitting = false;
-							if (response.ok) {
-								resetForm();
-								open = false;
-								onOpenChange?.(false);
-								await invalidateAll();
-							} else {
-								const error = await response.json();
-								alert(error.error || m.quickAdd_failedToUpdate());
-							}
-						} catch (error) {
-							isSubmitting = false;
-							console.error('Error updating entry:', error);
-							alert(m.quickAdd_failedToUpdate());
-						}
-					};
+				if (isEditMode) {
+					cancel();
+					saveEdit();
 				} else {
+					isSubmitting = true;
 					formData.append('mealId', selectedMealId);
 					formData.append('dateCooked', toDateString(selectedDate) || '');
-					if (notes) formData.append('notes', notes);
-					if (photoFiles.length > 0) {
-						photoFiles.forEach((file) => {
-							formData.append('photos', file);
-						});
-					}
+					photoFiles.forEach((file) => {
+						formData.append('photos', file);
+					});
 
 					return async ({ result }) => {
 						isSubmitting = false;
@@ -334,6 +337,8 @@
 							await invalidateAll();
 						} else if (result.type === 'failure') {
 							alert(result.data?.error || m.quickAdd_failedToCreate());
+						} else if (result.type === 'error') {
+							alert(result.error?.message || m.quickAdd_failedToCreate());
 						}
 					};
 				}
@@ -550,7 +555,6 @@
 								{/if}
 								<Input
 									type="file"
-									name="photos"
 									accept="image/*"
 									multiple
 									onchange={handlePhotoChange}
@@ -574,65 +578,7 @@
 					{m.common_cancel()}
 				</Button>
 				{#if isEditMode}
-					<Button
-						type="button"
-						disabled={isSubmitting || !selectedMealId}
-						onclick={async () => {
-							if (!selectedMealId || !entry) return;
-
-							isSubmitting = true;
-							try {
-								const newPhotoUrls: string[] = [];
-
-								for (let i = 0; i < photoPreviews.length; i++) {
-									const preview = photoPreviews[i];
-									if (preview.startsWith('http') || preview.startsWith('/files/')) {
-										newPhotoUrls.push(preview);
-									}
-								}
-
-								for (const file of photoFiles) {
-									const uploadFormData = new FormData();
-									uploadFormData.append('file', file);
-									const uploadResponse = await fetch('/api/files', {
-										method: 'POST',
-										body: uploadFormData
-									});
-									if (uploadResponse.ok) {
-										const result = await uploadResponse.json();
-										newPhotoUrls.push(result.url);
-									}
-								}
-
-								const response = await fetch('/api/entries', {
-									method: 'PATCH',
-									headers: { 'Content-Type': 'application/json' },
-									body: JSON.stringify({
-										id: entry.id,
-										mealId: selectedMealId,
-										dateCooked: toDateString(selectedDate) || '',
-										notes: notes || null,
-										photoUrls: newPhotoUrls
-									})
-								});
-
-								isSubmitting = false;
-								if (response.ok) {
-									resetForm();
-									open = false;
-									onOpenChange?.(false);
-									await invalidateAll();
-								} else {
-									const error = await response.json();
-									alert(error.error || m.quickAdd_failedToUpdate());
-								}
-							} catch (error) {
-								isSubmitting = false;
-								console.error('Error updating entry:', error);
-								alert(m.quickAdd_failedToUpdate());
-							}
-						}}
-					>
+					<Button type="button" disabled={isSubmitting || !selectedMealId} onclick={saveEdit}>
 						{isSubmitting ? m.common_saving() : m.common_save()}
 					</Button>
 				{:else}

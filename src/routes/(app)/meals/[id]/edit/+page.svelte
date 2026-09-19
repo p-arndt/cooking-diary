@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { enhance } from '$app/forms';
+	import { deserialize, enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -41,10 +41,11 @@
 				}
 			});
 
-			const result = await response.json();
+			const result = deserialize(await response.text());
 			if (result.type === 'success' && result.data?.category) {
-				categories = [...categories, result.data.category];
-				return result.data.category;
+				const category = result.data.category as (typeof categories)[number];
+				categories = [...categories, category];
+				return category;
 			}
 			return null;
 		} catch (error) {
@@ -87,6 +88,7 @@
 		<div>
 			<form
 				method="POST"
+				enctype="multipart/form-data"
 				class="space-y-6"
 				use:enhance={({ formData, cancel }) => {
 					if (!title.trim()) {
@@ -117,6 +119,8 @@
 							goto(resolve('/(app)/meals/[id]', { id: String(result.data.mealId) }));
 						} else if (result.type === 'failure') {
 							alert(result.data?.error || m.meals_form_failedToUpdate());
+						} else if (result.type === 'error') {
+							alert(result.error?.message || m.meals_form_failedToUpdate());
 						}
 					};
 				}}

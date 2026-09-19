@@ -94,8 +94,9 @@
 									formData.append('id', category.id);
 									formData.append('name', editingName.trim());
 
-									return async ({ result }) => {
+									return async ({ result, update }) => {
 										if (result.type === 'success') {
+											await update();
 											cancelEdit();
 										} else if (result.type === 'failure') {
 											alert(result.data?.error || m.categories_failedToUpdate());
@@ -212,8 +213,9 @@
 			use:enhance={({ formData }) => {
 				formData.append('name', newCategoryName.trim());
 
-				return async ({ result }) => {
+				return async ({ result, update }) => {
 					if (result.type === 'success') {
+						await update();
 						newCategoryName = '';
 						showAddDialog = false;
 					} else if (result.type === 'failure') {
@@ -272,8 +274,9 @@
 						formData.append('id', deleteCategoryId);
 					}
 
-					return async ({ result }) => {
+					return async ({ result, update }) => {
 						if (result.type === 'success') {
+							await update();
 							deleteCategoryId = null;
 						} else if (result.type === 'failure') {
 							alert(result.data?.error || m.categories_failedToDelete());

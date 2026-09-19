@@ -379,6 +379,7 @@
 
 					<form
 						method="POST"
+						enctype="multipart/form-data"
 						use:enhance={({ formData, cancel }) => {
 							if (!selectedMealId || !selectedDate) {
 								cancel();
@@ -400,6 +401,8 @@
 									goto(resolve('/'));
 								} else if (result.type === 'failure') {
 									alert(result.data?.error || m.entries_failedToCreate());
+								} else if (result.type === 'error') {
+									alert(result.error?.message || m.entries_failedToCreate());
 								}
 							};
 						}}
