@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
 	server: {
@@ -124,9 +125,10 @@ export default defineConfig({
 				extends: './vite.config.ts',
 				test: {
 					name: 'client',
-					environment: 'browser',
 					browser: {
 						enabled: true,
+						provider: playwright(),
+						headless: true,
 						instances: [{ browser: 'chromium' }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
@@ -140,7 +142,19 @@ export default defineConfig({
 					name: 'server',
 					environment: 'node',
 					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/**/*.integration.test.ts']
+				}
+			},
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'integration',
+					environment: 'node',
+					include: ['src/**/*.integration.test.ts'],
+					globalSetup: ['./src/lib/server/test/global-setup.ts'],
+					fileParallelism: false,
+					testTimeout: 30_000,
+					hookTimeout: 180_000
 				}
 			}
 		]
