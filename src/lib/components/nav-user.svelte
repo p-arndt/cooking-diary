@@ -8,7 +8,7 @@
 	import { getUserInitials } from '$lib/utils/user';
 	import { authClient } from '$lib/auth/client';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
-	import { LayoutDashboard, LogOut, Settings, User } from '@lucide/svelte';
+	import { LogOut, Settings } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let {
@@ -18,7 +18,6 @@
 			name: string;
 			email: string;
 			image?: string | null;
-			isAdmin?: boolean;
 		};
 	} = $props();
 
@@ -76,22 +75,10 @@
 				</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- no /profile route exists, so resolve() rejects the path at type level -->
-					<DropdownMenu.Item onclick={() => goto('/profile')}>
-						<User />
-						{m.nav_profile()}
-					</DropdownMenu.Item>
 					<DropdownMenu.Item onclick={() => goto(resolve('/settings'))}>
 						<Settings />
 						{m.nav_settings()}
 					</DropdownMenu.Item>
-					{#if user.isAdmin}
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- no /admin route exists, so resolve() rejects the path at type level -->
-						<DropdownMenu.Item onclick={() => goto('/admin')}>
-							<LayoutDashboard />
-							{m.nav_adminPanel()}
-						</DropdownMenu.Item>
-					{/if}
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item onclick={onLogout}>
